@@ -45,7 +45,7 @@ public class CouponCourseController {
 
     @GetMapping("/filter")
     public PagedCouponResponseDTO filterCoupons(@RequestParam(defaultValue = "") String category, @RequestParam(defaultValue = "-1") String rating, @RequestParam(defaultValue = "-1") String contentLength, @RequestParam(defaultValue = "") String level, @RequestParam(defaultValue = "") String language, @RequestParam(required = false,  defaultValue = "0") String pageIndex, @RequestParam(required = false,  defaultValue = "10") String numberPerPage, HttpServletRequest request) {
-        return courseResponseService.filterCoupons(rating, contentLength, level, category, language, request.getRemoteAddr(), pageIndex, numberPerPage);
+        return courseResponseService.filterCoupons(rating, contentLength, level, category, language, pageIndex, numberPerPage, request.getRemoteAddr());
     }
 
 

@@ -65,6 +65,11 @@ public class CourseResponseService {
     }
 
     public CouponCourseData getCouponDetail(String courseId) {
-        return couponCourseRepository.findByCourseId(Integer.parseInt(courseId));
+        CouponCourseData couponCourseData = couponCourseRepository.findByCourseId(Integer.parseInt(courseId));
+        if (couponCourseData != null) {
+            return couponCourseData;
+        } else {
+            throw new BadRequestException("Course id not found");
+        }
     }
 }
