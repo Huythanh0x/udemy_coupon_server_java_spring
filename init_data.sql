@@ -47,7 +47,7 @@ CREATE TABLE users
 
 CREATE TABLE refresh_tokens (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    refreshToken VARCHAR(255) NOT NULL,
+    refresh_token VARCHAR(255) NOT NULL,
     user_id INT,
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
