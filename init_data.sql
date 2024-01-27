@@ -45,6 +45,13 @@ CREATE TABLE users
     password VARCHAR(255) NOT NULL
 );
 
+CREATE TABLE refresh_tokens (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    refreshToken VARCHAR(255) NOT NULL,
+    user_id INT,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
 CREATE TABLE user_roles
 (
     user_id INT,
