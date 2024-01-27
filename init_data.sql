@@ -1,13 +1,7 @@
 #database if not exist
+drop database if exists training_coupon;
 create database if not exists training_coupon;
 use training_coupon;
-#drop old table
-drop table if exists expired_course_data;
-drop table if exists coupon_course_data;
-drop table if exists log_app_data;
-drop table if exists users_roles;
-drop table if exists users;
-drop table if exists roles;
 #define all necessary tables
 CREATE TABLE coupon_course_data
 (

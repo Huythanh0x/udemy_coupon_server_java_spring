@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:latest
+    container_name: training-coupon-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: training_coupon
+    ports:
+      - "3306:3306"
+    command: --init-file /docker-entrypoint-initdb.d/init.sql
+    volumes:
+      - ./init_data.sql:/docker-entrypoint-initdb.d/init.sql
+
+  springboot-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: training-coupon-springboot
+    depends_on:
+      - mysql
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./src/main/resources/application.properties
