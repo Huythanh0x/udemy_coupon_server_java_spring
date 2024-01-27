@@ -1,6 +1,7 @@
 # Use an official OpenJDK image with JDK 17 for building Android projects
-FROM openjdk:17-jdk-slim
+FROM openjdk:11-jdk
 
+RUN apt-get update && apt-get install -y curl
 # Set the working directory in the container
 WORKDIR /app
 

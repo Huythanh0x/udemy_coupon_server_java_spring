@@ -44,7 +44,9 @@ public class WebContentFetcher {
             return allContent.toString();
 
         } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
+//            throw new RuntimeException(e);
+            System.out.println(e);
         }
+        return null;
     }
 }
