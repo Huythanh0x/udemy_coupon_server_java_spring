@@ -10,6 +10,9 @@ import org.springframework.data.domain.Page;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * Data class representing a response containing a paginated list of coupon data.
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -20,6 +23,11 @@ public class PagedCouponResponseDTO {
     Integer currentPage;
     List<CouponCourseData> courses;
 
+    /**
+     * Constructs a new PagedCouponResponseDTO object with the given page of CouponCourseData objects.
+     *
+     * @param courses the page of CouponCourseData objects
+     */
     public PagedCouponResponseDTO(Page<CouponCourseData> courses) {
         this.totalPage = courses.getTotalPages();
         this.totalCoupon = courses.getTotalElements();

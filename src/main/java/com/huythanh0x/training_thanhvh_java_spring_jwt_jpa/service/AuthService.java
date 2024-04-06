@@ -20,6 +20,9 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.Optional;
 
+/**
+ * Service class for handling authentication functionalities.
+ */
 @Service
 public class AuthService {
     private final AuthenticationManager authenticationManager;
@@ -41,12 +44,27 @@ public class AuthService {
         this.refreshTokenRepository = refreshTokenRepository;
     }
 
+    /**
+     * Checks if a user with the specified username already exists.
+     * Throws a BadRequestException if the username is already taken.
+     *
+     * @param username The username to check for existence
+     * @throws BadRequestException If the username is already taken
+     */
     public void checkIfUserExist(String username) {
         if (userRepository.existsByUsername(username)) {
             throw new BadRequestException("Username is taken!");
         }
     }
 
+    /**
+     * Validates the username and password for registration.
+     * Throws a BadRequestException if the username or password is null, or if their length is less than 6 characters.
+     *
+     * @param username The username to be validated
+     * @param password The password to be validated
+     * @throws BadRequestException if the username or password is null, or if their length is less than 6 characters
+     */
     public void validateRegisterData(String username, String password) {
         if (username == null || password == null) {
             throw new BadRequestException("Invalid username or password, try again !!!");
@@ -56,6 +74,13 @@ public class AuthService {
         }
     }
 
+    /**
+     * Validates the given username and password.
+     *
+     * @param username the username to be validated
+     * @param password the password to be validated
+     * @throws BadRequestException if the username or password is null or empty, or if either has a length less than 6
+     */
     public void validateLoginData(String username, String password) {
         if (username == null || password == null) {
             throw new BadRequestException("Invalid username or password, try again !!!");
@@ -65,6 +90,14 @@ public class AuthService {
         }
     }
 
+    /**
+     * Generates a JWT token for the current user using the provided username and password.
+     *
+     * @param username the username of the current user
+     * @param password the password of the current user
+     * @return the generated JWT token
+     * @throws BadCredentialsException if the provided credentials are invalid
+     */
     public String getJwtTokenForCurrentUser(String username, String password) throws BadCredentialsException {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(username, password));
@@ -72,6 +105,12 @@ public class AuthService {
         return jwtGenerator.generateToken(authentication);
     }
 
+    /**
+     * Creates a new user with the given username and password.
+     *
+     * @param username the username of the new user
+     * @param password the password of the new user
+     */
     public void createUserWith(String username, String password) {
         UserEntity user = new UserEntity();
         user.setUsername(username);
@@ -81,11 +120,22 @@ public class AuthService {
         userRepository.save(user);
     }
 
-    public boolean isTokenExpiredOrValid(String accessToken){
-       return jwtGenerator.isTokenExpiredOrValid(accessToken);
+    /**
+     * Check if the given access token is expired or still valid.
+     * @param accessToken The access token to be checked.
+     * @return true if the token is expired or invalid, false if the token is still valid.
+     */
+    public boolean isTokenExpiredOrValid(String accessToken) {
+        return jwtGenerator.isTokenExpiredOrValid(accessToken);
     }
 
-    public String generateNewToken(String refreshToken){
+    /**
+     * Generates a new JWT token using the provided refresh token.
+     *
+     * @param refreshToken the refresh token used to retrieve the corresponding user's username
+     * @return a new JWT token generated for the user specified by the refresh token
+     */
+    public String generateNewToken(String refreshToken) {
         String username = refreshTokenRepository.findByRefreshToken(refreshToken).get().getUser().getUsername();
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
         return jwtGenerator.generateToken(userDetails);

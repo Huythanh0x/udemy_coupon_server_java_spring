@@ -10,6 +10,9 @@ import org.json.JSONObject;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
+/**
+ * A class that extracts Udemy coupon course data from the provided coupon URL.
+ */
 public class UdemyCouponCourseExtractor {
     private final String couponUrl;
     private int courseId = 0;
@@ -21,6 +24,13 @@ public class UdemyCouponCourseExtractor {
         couponCode = extractCouponCode();
     }
 
+    /**
+     * Extracts the course ID from the HTML document retrieved from a given coupon URL.
+     * If the data-clp-course-id attribute is found in the body of the document, it is parsed
+     * and returned as an integer. If not found, it checks for the element with the id "udemy"
+     * and retrieves the data-clp-course-id attribute from it. If neither is found, returns -1.
+     * @return The course ID as an integer if found, -1 otherwise.
+     */
     private int extractCourseId() {
         Document document = new WebContentFetcher().getHtmlDocumentFrom(couponUrl);
         try {
@@ -35,10 +45,23 @@ public class UdemyCouponCourseExtractor {
         }
     }
 
+    /**
+     * Extracts the coupon code from a given coupon URL by splitting the URL at "/?couponCode="
+     * and returning the second element of the resulting array.
+     *
+     * @return the extracted coupon code
+     */
     private String extractCouponCode() {
         return couponUrl.split("/?couponCode=")[1];
     }
 
+    /**
+     * Retrieves full coupon code data for a specific course.
+     * Makes API calls to extract coupon data and course data from official APIs.
+     * Combines the extracted data to create a CouponCourseData object.
+     *
+     * @return CouponCourseData object containing both coupon data and course data
+     */
     public CouponCourseData getFullCouponCodeData() {
         CouponJsonData couponDataResult = extractDataCouponFromOfficialAPI(
                 WebContentFetcher.getJsonObjectFrom(UrlUtils.getCouponAPI(courseId, couponCode))
@@ -49,6 +72,12 @@ public class UdemyCouponCourseExtractor {
         return combineCourseAndCouponData(couponDataResult, courseDataResult);
     }
 
+    /**
+     * Extracts course data from the provided JSONObject representing a course object in an official API response.
+     *
+     * @param courseObjectJson the JSONObject containing course data
+     * @return CourseJsonData object with extracted course information
+     */
     private CourseJsonData extractCourseDataFromOfficialAPI(JSONObject courseObjectJson) {
         String author = "Unknown";
         String category = "Unknown";
@@ -86,6 +115,12 @@ public class UdemyCouponCourseExtractor {
         );
     }
 
+    /**
+     * Extracts data from the given coupon JSON object retrieved from the official API.
+     *
+     * @param couponJsonObject JSON object containing coupon data
+     * @return CouponJsonData object with extracted data
+     */
     private CouponJsonData extractDataCouponFromOfficialAPI(JSONObject couponJsonObject) {
         int usesRemaining = 0;
 
@@ -115,7 +150,15 @@ public class UdemyCouponCourseExtractor {
         return new CouponJsonData(price, expiredDate, previewImage, previewVideo, usesRemaining);
     }
 
-    private CouponCourseData combineCourseAndCouponData(CouponJsonData couponData, CourseJsonData courseData){
+    /**
+     * Combines course and coupon data to create a new CouponCourseData object.
+     * If the coupon price is not 0, null is returned.
+     *
+     * @param couponData The CouponJsonData object containing coupon information
+     * @param courseData The CourseJsonData object containing course information
+     * @return A new CouponCourseData object with combined data from course and coupon
+     */
+    private CouponCourseData combineCourseAndCouponData(CouponJsonData couponData, CourseJsonData courseData) {
         if (couponData.getPrice() != 0f) return null;
         return new CouponCourseData(
                 courseId,
