@@ -8,6 +8,9 @@ import lombok.NoArgsConstructor;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Represents a user entity stored in the database.
+ */
 @Entity
 @Table(name = "users")
 @Data

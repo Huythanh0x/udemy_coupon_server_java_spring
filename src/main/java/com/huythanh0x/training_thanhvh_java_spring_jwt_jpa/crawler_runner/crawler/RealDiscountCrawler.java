@@ -10,6 +10,9 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * RealDiscountCrawler class extends CouponUrlCrawlerBase and implements a method to fetch coupon URLs from the Real Discount API.
+ */
 @Component
 public class RealDiscountCrawler extends CouponUrlCrawlerBase {
     int maxCouponRequest;
@@ -20,6 +23,11 @@ public class RealDiscountCrawler extends CouponUrlCrawlerBase {
         this.apiUrl = String.format("https://www.real.discount/api-web/all-courses/?store=Udemy&page=1&per_page=%s&orderby=undefined&free=0&search=&language=&cat=", maxCouponRequest);
     }
 
+    /**
+     * Retrieves a list of all coupon URLs from the API.
+     *
+     * @return List<String> containing all coupon URLs
+     */
     @Override
     public List<String> getAllCouponUrls() {
         var jsonArray = fetchListJsonFromAPI(apiUrl);
@@ -32,10 +40,23 @@ public class RealDiscountCrawler extends CouponUrlCrawlerBase {
         return allUrls;
     }
 
+    /**
+     * Extracts the coupon URL from the given JSONObject by removing
+     * the specified predefined string from it.
+     *
+     * @param jsonObject JSONObject containing the coupon URL
+     * @return Extracted coupon URL
+     */
     String extractCouponUrl(JSONObject jsonObject) {
         return jsonObject.getString("url").replace("http://click.linksynergy.com/fs-bin/click?id=bnwWbXPyqPU&subid=&offerid=323058.1&type=10&tmpid=14537&RD_PARM1=", "");
     }
 
+    /**
+     * Fetches a JSONArray from a given API URL.
+     *
+     * @param apiUrl the URL of the API to fetch the JSON data from
+     * @return a JSONArray containing the results fetched from the API
+     */
     public JSONArray fetchListJsonFromAPI(String apiUrl) {
         return new JSONArray(WebContentFetcher.getJsonObjectFrom(apiUrl).getJSONArray("results"));
     }

@@ -14,6 +14,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+/**
+ * Configures the security settings for the application.
+ */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -29,6 +32,15 @@ public class SecurityConfig {
         this.authEntryPoint = authEntryPoint;
     }
 
+    /**
+     * Deprecated security filter chain bean method.
+     *
+     * @param http The HttpSecurity object used to configure security settings.
+     * @return The SecurityFilterChain object for managing security filters.
+     * @throws Exception if an error occurs during configuration.
+     * @deprecated This method is deprecated since version 3.14 and will be removed in future versions.
+     * @SuppressWarnings("removal") Suppresses warnings related to removal.
+     */
     @Bean
     @Deprecated(since = "3.14", forRemoval = true)
     @SuppressWarnings("removal")
@@ -58,17 +70,35 @@ public class SecurityConfig {
         return http.build();
     }
 
+    /**
+     * Creates and returns an AuthenticationManager object based on the provided AuthenticationConfiguration.
+     *
+     * @param authenticationConfiguration the AuthenticationConfiguration used to configure the AuthenticationManager
+     * @return the created AuthenticationManager object
+     * @throws Exception if an error occurs during the creation of the AuthenticationManager
+     */
     @Bean
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
+    /**
+     * Creates a new instance of BCryptPasswordEncoder to be used as a PasswordEncoder.
+     * This bean is used for encoding passwords securely using the BCrypt hashing algorithm.
+     *
+     * @return a PasswordEncoder instance using the BCrypt algorithm
+     */
     @Bean
     PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    /**
+     * Creates a new instance of JWTAuthenticationFilter and returns it as a Spring bean.
+     * This filter is responsible for authenticating incoming JSON web tokens (JWT) in the request headers.
+     * @return a new JWTAuthenticationFilter object
+     */
     @Bean
     public JWTAuthenticationFilter jwtAuthenticationFilter() {
         return new JWTAuthenticationFilter();

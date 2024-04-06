@@ -16,6 +16,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * Controller class that handles authentication related API endpoints.
+ */
 @RestController
 @RequestMapping("/api/v1/auth")
 @ComponentScan("com.huythanh0x.training_thanhvh_java_spring_jwt_jpa.security")
@@ -28,6 +31,13 @@ public class AuthController {
         this.refreshTokenService = refreshTokenService;
     }
 
+    /**
+     * Handles a POST request to the /login endpoint. Validates user login data, generates a JWT token for the user
+     * and saves a refresh token for the user in the database.
+     *
+     * @param loginDto the login credentials provided by the user
+     * @return ResponseEntity containing AuthResponseDTO with JWT token and refresh token
+     */
     @PostMapping("login")
     public ResponseEntity<AuthResponseDTO> login(@RequestBody LoginDTO loginDto) {
         authService.validateLoginData(loginDto.getUsername(), loginDto.getPassword());
@@ -36,6 +46,12 @@ public class AuthController {
         return new ResponseEntity<>(new AuthResponseDTO(tokenForUser, refreshToken.getRefreshToken()), HttpStatus.OK);
     }
 
+    /**
+     * Handles POST requests to register a new user.
+     *
+     * @param registerDto the RegisterDTO containing username and password for registration
+     * @return ResponseEntity with a message confirming successful registration
+     */
     @PostMapping("register")
     public ResponseEntity<String> register(@RequestBody RegisterDTO registerDto) {
         authService.validateRegisterData(registerDto.getUsername(), registerDto.getPassword());
@@ -44,9 +60,15 @@ public class AuthController {
         return new ResponseEntity<>("User registered success!", HttpStatus.OK);
     }
 
+    /**
+     * Endpoint to refresh an authentication token.
+     *
+     * @param refreshTokenRequestDTO The request containing the refresh token and access token.
+     * @return ResponseEntity containing the new authentication token if successful, otherwise throws BadRequestException.
+     */
     @PostMapping("refresh-token")
     public ResponseEntity<AuthResponseDTO> refreshToken(@RequestBody RefreshTokenRequestDTO refreshTokenRequestDTO) {
-        if (refreshTokenRequestDTO.getAccessToken() == null || refreshTokenRequestDTO.getAccessToken().isEmpty()|| authService.isTokenExpiredOrValid(refreshTokenRequestDTO.getAccessToken())) {
+        if (refreshTokenRequestDTO.getAccessToken() == null || refreshTokenRequestDTO.getAccessToken().isEmpty() || authService.isTokenExpiredOrValid(refreshTokenRequestDTO.getAccessToken())) {
             String newToken = authService.generateNewToken(refreshTokenRequestDTO.getRefreshToken());
             return new ResponseEntity<>(new AuthResponseDTO(newToken, refreshTokenRequestDTO.getRefreshToken()), HttpStatus.OK);
         } else {

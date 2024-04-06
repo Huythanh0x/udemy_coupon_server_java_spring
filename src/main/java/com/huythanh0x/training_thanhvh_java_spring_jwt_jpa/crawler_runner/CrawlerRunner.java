@@ -23,6 +23,9 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * CrawlerRunner class is responsible for running the web crawlers to fetch and save coupon data.
+ */
 @Component
 @ComponentScan("com.huythanh0x.training_thanhvh_java_spring_jwt_jpa.repository")
 public class CrawlerRunner implements ApplicationRunner {
@@ -34,6 +37,11 @@ public class CrawlerRunner implements ApplicationRunner {
     @Value("${custom.number-of-request-thread}")
     Integer numberOfThread;
 
+    /**
+     * Executes the method to start the crawler when the application runs.
+     *
+     * @param args The arguments passed to the application upon execution.
+     */
     @Override
     public void run(ApplicationArguments args) {
         startCrawler();
@@ -47,6 +55,14 @@ public class CrawlerRunner implements ApplicationRunner {
         this.intervalTime = intervalTime;
     }
 
+    /**
+     * Starts the crawler process that continuously fetches coupon URLs, filters them,
+     * saves data, and delays until the next round.
+     *
+     * Uses a single thread executor to execute the crawler in a separate thread.
+     *
+     * @throws InterruptedException if the thread is interrupted during execution.
+     */
     public void startCrawler() {
         AtomicLong startTime = new AtomicLong(LastFetchTimeManager.loadLasFetchedTimeInMilliSecond());
         Executors.newSingleThreadExecutor().execute(() -> {
@@ -67,6 +83,13 @@ public class CrawlerRunner implements ApplicationRunner {
         });
     }
 
+    /**
+     * Delays the execution until the next round by calculating the time elapsed
+     * since the start and the remaining time until the next interval.
+     *
+     * @param startTime the start time of the current round
+     * @throws InterruptedException if the thread is interrupted while sleeping
+     */
     private void delayUntilTheNextRound(long startTime) throws InterruptedException {
         long runTime = System.currentTimeMillis() - startTime;
         long delayTime = Math.max(intervalTime - runTime, 0);
@@ -74,6 +97,12 @@ public class CrawlerRunner implements ApplicationRunner {
         Thread.sleep(delayTime);
     }
 
+    /**
+     * Saves all coupon data by extracting the full coupon code data for each coupon URL provided in the list.
+     *
+     * @param allCouponUrls List of URLs containing coupon data to be processed
+     * @param numberOfThread Number of threads to execute concurrently for processing the data
+     */
     private void saveAllCouponData(List<String> allCouponUrls, int numberOfThread) {
         Set<CouponCourseData> validCoupons = new HashSet<>();
         Set<String> failedToValidateCouponUrls = new HashSet<>();
@@ -103,6 +132,14 @@ public class CrawlerRunner implements ApplicationRunner {
         dumpDataToTheDatabase(validCoupons, failedToValidateCouponUrls, expiredCouponUrls);
     }
 
+    /**
+     * Dumps data to the database by saving expired courses, deleting expired coupons,
+     * and saving valid coupons.
+     *
+     * @param validCoupons               Set of valid CouponCourseData to be saved
+     * @param failedToValidateCouponUrls Set of URLs of coupons that failed to validate
+     * @param expiredCouponUrls         Set of URLs of expired coupons
+     */
     private void dumpDataToTheDatabase(Set<CouponCourseData> validCoupons, Set<String> failedToValidateCouponUrls, Set<String> expiredCouponUrls) {
         List<ExpiredCourseData> allExpiredCourses = expiredCouponUrls.stream().map(ExpiredCourseData::new).collect(Collectors.toList());
         expiredCouponRepository.saveAll(allExpiredCourses);
@@ -110,6 +147,13 @@ public class CrawlerRunner implements ApplicationRunner {
         couponCourseRepository.saveAll(validCoupons);
     }
 
+    /**
+     * Filters out invalid coupon URLs from the given list of new coupon URLs.
+     * Checks for validity by ensuring the coupon URL is not null and not present in the list of expired coupon URLs.
+     *
+     * @param newCouponUrls the list of new coupon URLs to filter
+     * @return a list of valid coupon URLs after filtering out invalid ones
+     */
     private List<String> filterValidCouponUrls(List<String> newCouponUrls) {
         List<String> allOldCoupons = couponCourseRepository.findAll().stream().map(CouponCourseData::getCouponUrl).toList();
         List<ExpiredCourseData> allExpiredCoupons = expiredCouponRepository.findAll();
