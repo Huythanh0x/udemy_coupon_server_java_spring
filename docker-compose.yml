@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   mysql:
-    image: mysql:latest
+    image: mysql:8.3.0
     container_name: training-coupon-mysql
     environment:
       MYSQL_ROOT_PASSWORD: password
