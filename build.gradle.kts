@@ -3,13 +3,13 @@ plugins {
     id("org.springframework.boot") version "3.1.1"
     id("io.spring.dependency-management") version "1.1.0"
     id ("io.freefair.lombok") version "6.6.1"
+    kotlin("jvm")
 }
 
 group = "com.huythanh0x"
 version = "0.0.1-SNAPSHOT"
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
 }
 
 repositories {
@@ -29,6 +29,7 @@ dependencies {
     implementation("io.jsonwebtoken:jjwt-impl:0.11.5")
     implementation("io.jsonwebtoken:jjwt-api:0.11.5")
     implementation("io.jsonwebtoken:jjwt-jackson:0.11.5")
+    implementation(kotlin("stdlib-jdk8"))
 }
 
 tasks.withType<Test> {

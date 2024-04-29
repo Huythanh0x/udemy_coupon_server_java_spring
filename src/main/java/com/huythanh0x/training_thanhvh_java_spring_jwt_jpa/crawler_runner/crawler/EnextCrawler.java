@@ -10,6 +10,10 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Component class for crawling coupon URLs from the Enext API.
+ * Extends CouponUrlCrawlerBase.
+ */
 @Component
 public class EnextCrawler extends CouponUrlCrawlerBase {
     String apiUrl = "https://jobs.e-next.in/public/assets/data/udemy.json";
@@ -19,6 +23,10 @@ public class EnextCrawler extends CouponUrlCrawlerBase {
         this.maxCouponRequest = maxCouponRequest;
     }
 
+    /**
+     * Retrieves all coupon URLs from an API based on the provided URL.
+     * @return a list of strings containing all the coupon URLs
+     */
     @Override
     public List<String> getAllCouponUrls() {
         var jsonArray = fetchListJsonFromAPI(apiUrl);
@@ -35,6 +43,12 @@ public class EnextCrawler extends CouponUrlCrawlerBase {
         }
     }
 
+    /**
+     * Extracts the coupon url from the provided JSONObject.
+     *
+     * @param jsonObject the JSONObject containing the coupon url and code
+     * @return the formatted URL with the coupon code appended
+     */
     String extractCouponUrl(JSONObject jsonObject) {
         try {
             String url = jsonObject.getString("url");
@@ -46,6 +60,12 @@ public class EnextCrawler extends CouponUrlCrawlerBase {
         }
     }
 
+    /**
+     * Fetches a JSON array from an API using the specified API URL.
+     *
+     * @param apiUrl the URL of the API to fetch the JSON array from
+     * @return a JSON array retrieved from the API
+     */
     public JSONArray fetchListJsonFromAPI(String apiUrl) {
         return new WebContentFetcher().getJsonArrayFrom(apiUrl);
     }

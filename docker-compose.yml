@@ -23,4 +23,4 @@ services:
     ports:
       - "8080:8080"
     env_file:
-      - ./src/main/resources/application.properties
+      - ./src/main/resources/application-dev.properties

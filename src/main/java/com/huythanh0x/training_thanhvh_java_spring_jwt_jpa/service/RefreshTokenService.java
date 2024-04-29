@@ -7,6 +7,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
+/**
+ * Service class for handling refresh tokens.
+ */
 @Service
 public class RefreshTokenService {
     UserRepository userRepository;
@@ -17,6 +20,12 @@ public class RefreshTokenService {
         this.refreshTokenRepository = refreshTokenRepository;
     }
 
+    /**
+     * Saves a new refresh token for the specified user.
+     *
+     * @param username The username of the user to save the refresh token for
+     * @return The saved refresh token entity
+     */
     public RefreshTokenEntity saveRefreshToken(String username) {
         RefreshTokenEntity refreshToken = RefreshTokenEntity.builder().
                 refreshToken(getRefreshTokenString())
@@ -26,6 +35,11 @@ public class RefreshTokenService {
         return refreshToken;
     }
 
+    /**
+     * Generates a new random refresh token string using a UUID.
+     *
+     * @return a string representing the new refresh token
+     */
     public String getRefreshTokenString() {
         return UUID.randomUUID().toString();
     }
