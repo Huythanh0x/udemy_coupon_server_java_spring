@@ -5,10 +5,12 @@ import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.concurrent.TimeUnit;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 
 public class WebContentFetcher {
 
@@ -25,23 +27,16 @@ public class WebContentFetcher {
         return Jsoup.parse(getRawHTMLContentFrom(urlString));
     }
 
-    static String getRawHTMLContentFrom(String urlString) {
-        var command = new String[]{"curl", "-g", urlString};
-        var processBuilder = new ProcessBuilder(command);
+    public static String getRawHTMLContentFrom(String urlString) {
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(urlString))
+                .timeout(Duration.ofSeconds(10)) // Set a timeout for the request
+                .build();
+
         try {
-            Process process = processBuilder.start();
-
-            var inputStream = process.getInputStream();
-            var reader = new BufferedReader(new InputStreamReader(inputStream));
-
-            StringBuilder allContent = new StringBuilder();
-            String newLine = reader.readLine();
-            while (newLine != null) {
-                allContent.append(newLine);
-                newLine = reader.readLine();
-            }
-            process.waitFor(5, TimeUnit.SECONDS);
-            return allContent.toString();
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            return response.body();
 
         } catch (IOException | InterruptedException e) {
 //            throw new RuntimeException(e);
