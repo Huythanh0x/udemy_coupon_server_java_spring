@@ -55,6 +55,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/auth/**").permitAll()
                 .requestMatchers("/error").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/coupons/**").permitAll()
+                .requestMatchers("/*").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .httpBasic();
