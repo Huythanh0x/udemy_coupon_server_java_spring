@@ -12,6 +12,11 @@ services:
     command: --init-file /docker-entrypoint-initdb.d/init.sql
     volumes:
       - ./init_data.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: always
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
 
   springboot-app:
     build:
@@ -24,3 +29,9 @@ services:
       - "8080:8080"
     env_file:
       - ./src/main/resources/application-dev.properties
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
