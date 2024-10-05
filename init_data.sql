@@ -1,9 +1,9 @@
-#database if not exist
-drop database if exists training_coupon;
-create database if not exists training_coupon;
-use training_coupon;
-#define all necessary tables
-CREATE TABLE coupon_course_data
+-- Create the database if it does not exist
+CREATE DATABASE IF NOT EXISTS training_coupon;
+USE training_coupon;
+
+-- Define all necessary tables
+CREATE TABLE IF NOT EXISTS coupon_course_data
 (
     course_id      INT PRIMARY KEY,
     category       VARCHAR(255),
@@ -24,46 +24,44 @@ CREATE TABLE coupon_course_data
     description    TEXT,
     preview_video  VARCHAR(255),
     language       VARCHAR(255)
-);
+    );
 
-CREATE TABLE expired_course_data
+CREATE TABLE IF NOT EXISTS expired_course_data
 (
     coupon_url VARCHAR(255) PRIMARY KEY,
     time_stamp TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP
-);
+    );
 
-CREATE TABLE roles
+CREATE TABLE IF NOT EXISTS roles
 (
     id   INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL
-);
+    );
 
-CREATE TABLE users
+CREATE TABLE IF NOT EXISTS users
 (
     id       INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL
-);
+    );
 
-CREATE TABLE refresh_tokens (
+CREATE TABLE IF NOT EXISTS refresh_tokens
+(
     id INT PRIMARY KEY AUTO_INCREMENT,
     refresh_token VARCHAR(255) NOT NULL,
     user_id INT,
     FOREIGN KEY (user_id) REFERENCES users(id)
-);
+    );
 
-CREATE TABLE user_roles
+CREATE TABLE IF NOT EXISTS user_roles
 (
     user_id INT,
     role_id INT,
     PRIMARY KEY (user_id, role_id),
     FOREIGN KEY (user_id) REFERENCES users (id),
     FOREIGN KEY (role_id) REFERENCES roles (id)
-);
+    );
 
-#add role to roles table
-INSERT INTO roles(id, name)
-VALUES (1, "USER");
-
-INSERT INTO roles(id, name)
-VALUES (2, "ADMIN");
+-- Add roles to roles table
+INSERT INTO roles(id, name) VALUES (1, 'USER') ON DUPLICATE KEY UPDATE name=name;
+INSERT INTO roles(id, name) VALUES (2, 'ADMIN') ON DUPLICATE KEY UPDATE name=name;
