@@ -1,167 +1,55 @@
-Spring boot server
-============
+# Spring Boot: 100% Off Udemy Coupon Server
 
-The project is a Spring Boot server that crawls coupons from various websites and validates coupons by sending data to
-the official Udemy API. It provides several API endpoints, including fetching coupons and searching
-for coupons by query search. Authentication and authorization are included too.
+![Java](https://img.shields.io/badge/Java-17-blue)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.1.1-brightgreen)
+![License](https://img.shields.io/badge/License-MIT-yellow)
 
-### List source websites
+<a href="https://coupons.thanh0x.com/"> <img alt="Spring Boot Coupon Server" src="https://raw.githubusercontent.com/datacenter0x/static/main/uPic/RqCLnh.png"></a>
 
-- <https://jobs.e-next.in/course/udemy>
-- <https://www.real.discount/>
+The Spring Boot Coupon Server is a robust application designed to crawl 100% off coupons from various websites and validate them using the official Udemy API. It provides several API endpoints for fetching, searching, and filtering these free coupons, with built-in authentication and authorization.
+## Features
 
-### Techs, libs, frameworks
-- Java 11
-- [Spring Boot](https://spring.io/projects/spring-boot)
-- [Spring with Jwt](https://docs.spring.io/spring-security/reference/servlet/oauth2/resource-server/jwt.html)
-- [Spring Jpa](https://spring.io/projects/spring-data-jpa)
-- [Mysql](https://hub.docker.com/_/mysql)
+- **Coupon Crawling**: Automatically fetch coupons from multiple sources.
+- **Coupon Validation**: Validate coupons using the Udemy API then filter 100% off coupon only
+- **Search Functionality**: Search for coupons by query.
+- **Filter Functionality**: Filter coupons based on various criteria.
+- **Authentication & Authorization**: Secure access to API endpoints.
 
-### Build from the source
+## Prerequisites
+- [Java 17](https://jdk.java.net/17/) or higher (JDK)
+- with [Docker](https://www.docker.com/) (for MySQL container)
+- or [Docker Compose](https://docs.docker.com/compose/)
 
-#### Prerequisites:
+## Getting Started
 
-- Java 11 or higher (Jdk)
-- Docker to use mysql container
-
-#### Steps to run from source:
-
-1. Clone this repo
-2. Pull and run mysql container with below command
+### Clone the Repository
 
 ```shell
-sudo docker run --name training-coupon-mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=password -d mysql:latest
-sudo docker start training-coupon-mysql
+git clone https://github.com/huythanh0x/udemy_coupon_server_java_spring
+cd udemy_coupon_server_java_spring
 ```
 
-3. Access to mysql container
+### Start the Server
+1. Docker Compose - Recommend way
 
 ```shell
-sudo docker exec -it training-coupon-mysql /bin/bash
+docker compose up
 ```
+2. MySQL docker and build Spring from source
 
 ```shell
-mysql -u root -p
-```
-
-```shell
-password
-```
-
-3. Then paste entire SQL query from `init_data.sql` file to create database and tables.
-
-4 (1) Start server with default profile
-
-```shell
+./init_mysql_docker.sh
 ./gradlew bootRun
 ```
 
-4 (2) Start server with dev profile
+## API Documentation
+For detailed API documentation, please refer to the [GitHub Wiki](DOCUMENTS.md).
 
-```shell
-./gradlew bootRun --args='--spring.profiles.active=dev'
-```
+## Contributing
+We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for more details.
 
-The server will be started at <http://0.0.0.0:8080>
+## License
+This project is licensed under the MIT License. See the [LICENSE](LICENSE.md) file for details.
 
-### API Endpoints
-
-#### Coupon course response:
-
-<details>
-    <summary> Click to show hidden info</summary>
-    <pre>
-    {
-        "lastFetchTime": "2023-07-12T15:32:01.748575966",
-        "totalCoupon": 139,
-        "totalPage": 14,
-        "currentPage": 0,
-        "courses": [
-            {
-                "courseId": 605750,
-                "category": "Personal Development",
-                "subCategory": "Unknown",
-                "title": "Job Interview Skills Training Course | Successful Interviews",
-                "contentLength": 73,
-                "level": "All Levels",
-                "author": "Mauricio Rubio - Agile Guru & Founder of AgileKB | AgileLee & Ureducation",
-                "rating": 4.19763,
-                "reviews": 320,
-                "students": 7776,
-                "couponCode": "466E1CBD03B841998363",
-                "previewImage": "https://img-b.udemycdn.com/course/750x422/605750_58ea_2.jpg",
-                "couponUrl": "https://www.udemy.com/course/10-steps-for-a-successful-interview-get-the-job/?couponCode=466E1CBD03B841998363",
-                "expiredDate": "2023-07-16 06:19:00+00:00",
-                "usesRemaining": 260,
-                "heading": "Job Interview Skills Training to hit the ground running | Interview like a PRO and achieve success in your interviews",
-                "description": "A really long HTML code here",
-                "previewVideo": "/course/605750/preview/?startPreviewId=24000252",
-                "language": "English"
-            }
-        ]
-    }
-    </pre>
-</details>
-
-#### Fetch with param
-
-```
-GET /api/v1/coupons?pageIndex=3&numberPerPage=20
-```
-
-#### Fetch with default param (pageIndex=0 numberPerPage=10)
-
-```
-GET /api/v1/coupons
-```
-
-#### Get course details (courseId = 12345)
-
-```
-GET /api/v1/coupons/12345
-```
-
-#### Search by title (querySearch = xxxx)
-
-```
-GET /api/v1/coupons/search?querySearch=xxxx
-```
-
-#### Filter by category, rating, content length, level, language
-
-```
-GET /api/v1/coupons/filter?category=Business&rating=3.0&contentLength=120&level=All Levels&language=English
-```
-
-#### User authentication response and request
-
-```json
-{
-  "username": "test_username",
-  "password": "password"
-}
-```
-
-#### Register new account
-
-```
-POST /api/v1/register
-```
-
-#### Login to existing account
-
-```
-POST /api/v1/login
-```
-
-#### Get fingerprint token
-
-```
-GET /api/v1/auth/fingerprint-token
-```
-
-#### Get access token
-
-```
-GET /api/v1/auth/access-token
-```
+## Contact
+For any inquiries or issues, please open an issue on GitHub or contact us at <a href="mailto:huythanh0x@gmail.com">huythanh0x@gmail.com</a>
