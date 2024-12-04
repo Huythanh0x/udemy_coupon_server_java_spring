@@ -14,36 +14,43 @@
             margin: 0;
             padding: 20px;
         }
+
         .controls {
             display: flex;
             justify-content: space-between;
             margin-bottom: 20px;
             flex-wrap: wrap;
         }
-        h1 {
+
+        h3 {
             color: #2c3e50;
             text-align: center;
             margin: 0; /* Reduce top and bottom margin */
         }
+
         .controls {
             display: flex;
             justify-content: space-between;
             margin-bottom: 20px;
             flex-wrap: wrap;
         }
+
         .search-box, .filter-box, .sort-box {
             margin-bottom: 10px;
         }
+
         input, select {
             padding: 8px;
             border-radius: 5px;
             border: 1px solid #ddd;
         }
+
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 20px;
         }
+
         .card {
             background-color: #fff;
             border-radius: 10px;
@@ -52,27 +59,33 @@
             transition: transform 0.3s ease;
             position: relative;
         }
+
         .card:hover {
             transform: translateY(-5px);
         }
+
         .card-image {
             width: 100%;
             height: 200px;
             object-fit: cover;
         }
+
         .card-content {
             padding: 20px;
         }
+
         .card-title {
             font-size: 1.2em;
             font-weight: bold;
             margin-bottom: 10px;
         }
+
         .card-heading {
             font-size: 0.9em;
             color: #7f8c8d;
             margin-bottom: 10px;
         }
+
         .category, .level {
             display: inline-block;
             padding: 5px 10px;
@@ -81,6 +94,7 @@
             margin-right: 10px;
             margin-bottom: 10px;
         }
+
         .expiry-tag {
             position: absolute;
             top: 10px;
@@ -89,21 +103,25 @@
             padding: 5px 10px;
             border-radius: 20px;
             font-size: 0.8em;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
+
         .stats {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 10px;
         }
+
         .stats-left {
             display: flex;
             align-items: center;
         }
+
         .stats-left > span {
             margin-right: 10px;
         }
+
         .button {
             display: block;
             background-color: #3498db;
@@ -114,15 +132,18 @@
             border-radius: 5px;
             transition: background-color 0.3s;
         }
+
         .button:hover {
             background-color: #2980b9;
         }
+
         .coupons-left {
             font-size: 0.8em;
             text-align: center;
             margin-top: 5px;
             color: #e74c3c;
         }
+
         .loading {
             position: fixed;
             top: 0;
@@ -135,6 +156,7 @@
             align-items: center;
             z-index: 1000;
         }
+
         .loading-spinner {
             border: 5px solid #f3f3f3;
             border-top: 5px solid #3498db;
@@ -143,10 +165,16 @@
             height: 50px;
             animation: spin 1s linear infinite;
         }
+
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
         }
+
         .error-dialog {
             position: fixed;
             top: 50%;
@@ -155,9 +183,10 @@
             background-color: white;
             padding: 20px;
             border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             z-index: 1001;
         }
+
         .error-dialog button {
             margin-top: 10px;
             padding: 5px 10px;
@@ -167,6 +196,7 @@
             border-radius: 3px;
             cursor: pointer;
         }
+
         .no-results {
             text-align: center;
             margin-top: 50px;
@@ -186,314 +216,378 @@
         .reset-button:hover {
             background-color: #27ae60;
         }
+        .status-tag {
+            display: inline-block;
+            padding: 4px;
+            font-size: 12px;
+            border-radius: 4px;
+            color: white;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .status-2xx {
+            background-color: green;
+        }
+        .status-3xx {
+            background-color: yellow;
+            color: black;
+        }
+        .status-4xx, .status-5xx {
+            background-color: red;
+        }
+        .info-tag {
+            display: inline-block;
+            padding: 4px;
+            font-size: 12px;
+            border-radius: 5px;
+            background-color: #3498db;
+            color: white;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .footer-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Udemy Course Coupons</h1>
-        <div style="text-align: center; margin-top: 10px;">
-            <a class="github-info" href="https://github.com/Huythanh0x/udemy_coupon_server_java_spring" target="_blank" style="text-decoration: none; color: #3498db; margin-bottom: 10px;">
-                <i class="fab fa-github"></i> from thanh0x with love <i class="fas fa-heart" style="color: red;"></i>
-            </a>
+<div class="container">
+    <h3>100% Off Udemy coupons
+        <a class="github-info" href="https://github.com/Huythanh0x/udemy_coupon_server_java_spring" target="_blank"
+           style="text-decoration: none; color: #3498db; margin-left: 10px;">
+            <i class="fab fa-github"></i>
+        </a>
+    </h3>
+    <div class="footer-container">
+        <div id="statusTag" class="status-tag"></div>
+        <div id="totalCoupons" class="info-tag"></div>
+        <div id="lastUpdateTime" class="info-tag"></div>
+    </div>
+    <div class="controls">
+        <div class="search-box">
+            <input type="text" id="search" placeholder="Search courses...">
         </div>
-        <div class="controls">
-            <div class="search-box">
-                <input type="text" id="search" placeholder="Search courses...">
-            </div>
-            <div class="filter-box">
-                <select id="category-filter">
-                    <option value="">All Categories</option>
-                </select>
-                <select id="level-filter">
-                    <option value="">All Levels</option>
-                </select>
-                <select id="language-filter">
-                    <option value="">All Languages</option>
-                </select>
-            </div>
-            <div class="sort-box">
-                <select id="sort">
-                    <option value="students-desc" selected>Sort by Students &#x25BC;</option>
-                    <option value="students-asc">Sort by Students &#x25B2;</option>
-                    <option value="contentLength-desc">Sort by Content Length &#x25BC;</option>
-                    <option value="contentLength-asc">Sort by Content Length &#x25B2;</option>
-                    <option value="rating-desc">Sort by Rating &#x25BC;</option>
-                    <option value="rating-asc">Sort by Rating &#x25B2;</option>
-                    <option value="usesRemaining-desc">Sort by Remaining Coupons &#x25BC;</option>
-                    <option value="usesRemaining-asc">Sort by Remaining Coupons &#x25B2;</option>
-                </select>
-                <button id="reset-filters" class="reset-button">Reset Filters</button>
-            </div>
+        <div class="filter-box">
+            <select id="category-filter">
+                <option value="">All Categories</option>
+            </select>
+            <select id="level-filter">
+                <option value="">All Levels</option>
+            </select>
+            <select id="language-filter">
+                <option value="">All Languages</option>
+            </select>
         </div>
-        <div id="courseContainer" class="grid"></div>
-        <div id="noResults" class="no-results" style="display: none;">
-            <p>No results found. Please adjust your filters.</p>
-            <button id="reset-filters-no-results" class="reset-button">Reset Filters</button>
+        <div class="sort-box">
+            <select id="sort">
+                <option value="students-desc" selected>Sort by Students &#x25BC;</option>
+                <option value="students-asc">Sort by Students &#x25B2;</option>
+                <option value="contentLength-desc">Sort by Content Length &#x25BC;</option>
+                <option value="contentLength-asc">Sort by Content Length &#x25B2;</option>
+                <option value="rating-desc">Sort by Rating &#x25BC;</option>
+                <option value="rating-asc">Sort by Rating &#x25B2;</option>
+                <option value="usesRemaining-desc">Sort by Remaining Coupons &#x25BC;</option>
+                <option value="usesRemaining-asc">Sort by Remaining Coupons &#x25B2;</option>
+            </select>
+            <button id="reset-filters" class="reset-button">Reset Filters</button>
         </div>
     </div>
-
-    <div id="loading" class="loading" style="display: none;">
-        <div class="loading-spinner"></div>
+    <div id="courseContainer" class="grid"></div>
+    <div id="noResults" class="no-results" style="display: none;">
+        <p>No results found. Please adjust your filters.</p>
+        <button id="reset-filters-no-results" class="reset-button">Reset Filters</button>
     </div>
+</div>
 
-    <div id="errorDialog" class="error-dialog" style="display: none;">
-        <p id="errorMessage"></p>
-        <button onclick="closeErrorDialog()">Close</button>
-    </div>
+<div id="loading" class="loading" style="display: none;">
+    <div class="loading-spinner"></div>
+</div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
-    <script>
-        const BASE_URL = 'https://coupons.thanh0x.com';
-        let allCourses = [];
+<div id="errorDialog" class="error-dialog" style="display: none;">
+    <p id="errorMessage"></p>
+    <button onclick="closeErrorDialog()">Close</button>
+</div>
 
-        const categoryColors = {
-            'Business': '#3498db',
-            'Development': '#2ecc71',
-            'Finance & Accounting': '#f1c40f',
-            'IT & Software': '#e74c3c',
-            'Office Productivity': '#9b59b6',
-            'Personal Development': '#1abc9c',
-            'Design': '#34495e',
-            'Marketing': '#e67e22',
-            'Lifestyle': '#95a5a6',
-            'Photography & Video': '#16a085',
-            'Health & Fitness': '#d35400',
-            'Music': '#8e44ad',
-            'Teaching & Academics': '#2c3e50'
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+<script>
+    const BASE_URL = 'https://coupons.thanh0x.com';
+    let allCourses = [];
+
+    const categoryColors = {
+        'Business': '#3498db',
+        'Development': '#2ecc71',
+        'Finance & Accounting': '#f1c40f',
+        'IT & Software': '#e74c3c',
+        'Office Productivity': '#9b59b6',
+        'Personal Development': '#1abc9c',
+        'Design': '#34495e',
+        'Marketing': '#e67e22',
+        'Lifestyle': '#95a5a6',
+        'Photography & Video': '#16a085',
+        'Health & Fitness': '#d35400',
+        'Music': '#8e44ad',
+        'Teaching & Academics': '#2c3e50'
+    };
+
+    const levelEmojis = {
+        'All Levels': '🌟',
+        'Beginner': '🐣',
+        'Intermediate': '🚀',
+        'Expert': '🏆'
+    };
+
+    function getCategoryIcon(category) {
+        const icons = {
+            'Business': 'fa-briefcase',
+            'Development': 'fa-code',
+            'Finance & Accounting': 'fa-chart-line',
+            'IT & Software': 'fa-laptop-code',
+            'Office Productivity': 'fa-file-alt',
+            'Personal Development': 'fa-user',
+            'Design': 'fa-paint-brush',
+            'Marketing': 'fa-ad',
+            'Lifestyle': 'fa-heart',
+            'Photography & Video': 'fa-camera',
+            'Health & Fitness': 'fa-dumbbell',
+            'Music': 'fa-music',
+            'Teaching & Academics': 'fa-graduation-cap'
         };
+        return icons[category] || 'fa-book';
+    }
 
-        const levelEmojis = {
-            'All Levels': '🌟',
-            'Beginner': '🐣',
-            'Intermediate': '🚀',
-            'Expert': '🏆'
-        };
+    function displayCourse(course) {
+        const courseElement = document.createElement('div');
+        courseElement.className = 'card';
 
-        function getCategoryIcon(category) {
-            const icons = {
-                'Business': 'fa-briefcase',
-                'Development': 'fa-code',
-                'Finance & Accounting': 'fa-chart-line',
-                'IT & Software': 'fa-laptop-code',
-                'Office Productivity': 'fa-file-alt',
-                'Personal Development': 'fa-user',
-                'Design': 'fa-paint-brush',
-                'Marketing': 'fa-ad',
-                'Lifestyle': 'fa-heart',
-                'Photography & Video': 'fa-camera',
-                'Health & Fitness': 'fa-dumbbell',
-                'Music': 'fa-music',
-                'Teaching & Academics': 'fa-graduation-cap'
-            };
-            return icons[category] || 'fa-book';
-        }
+        const categoryColor = categoryColors[course.category] || '#bdc3c7';
+        const levelEmoji = levelEmojis[course.level] || '📚';
+        const categoryIcon = getCategoryIcon(course.category);
 
-        function displayCourse(course) {
-            const courseElement = document.createElement('div');
-            courseElement.className = 'card';
-            
-            const categoryColor = categoryColors[course.category] || '#bdc3c7';
-            const levelEmoji = levelEmojis[course.level] || '📚';
-            const categoryIcon = getCategoryIcon(course.category);
+        // Create elements
+        const img = document.createElement('img');
+        img.src = course.previewImage;
+        img.alt = course.title;
+        img.className = 'card-image';
 
-            // Create elements
-            const img = document.createElement('img');
-            img.src = course.previewImage;
-            img.alt = course.title;
-            img.className = 'card-image';
+        const expiryTag = document.createElement('div');
+        expiryTag.className = 'expiry-tag';
+        expiryTag.textContent = `Expires ${moment(course.expiredDate).fromNow()}`;
 
-            const expiryTag = document.createElement('div');
-            expiryTag.className = 'expiry-tag';
-            expiryTag.textContent = `Expires ${moment(course.expiredDate).fromNow()}`;
+        const cardContent = document.createElement('div');
+        cardContent.className = 'card-content';
 
-            const cardContent = document.createElement('div');
-            cardContent.className = 'card-content';
+        const cardTitle = document.createElement('div');
+        cardTitle.className = 'card-title';
+        cardTitle.innerHTML = `<i class="fas ${categoryIcon}"></i> ${course.title}`;
 
-            const cardTitle = document.createElement('div');
-            cardTitle.className = 'card-title';
-            cardTitle.innerHTML = `<i class="fas ${categoryIcon}"></i> ${course.title}`;
+        const cardHeading = document.createElement('div');
+        cardHeading.className = 'card-heading';
+        cardHeading.textContent = course.heading;
 
-            const cardHeading = document.createElement('div');
-            cardHeading.className = 'card-heading';
-            cardHeading.textContent = course.heading;
+        const category = document.createElement('div');
+        category.className = 'category';
+        category.style.backgroundColor = categoryColor;
+        category.style.color = 'white';
+        category.textContent = course.category;
 
-            const category = document.createElement('div');
-            category.className = 'category';
-            category.style.backgroundColor = categoryColor;
-            category.style.color = 'white';
-            category.textContent = course.category;
+        const level = document.createElement('div');
+        level.className = 'level';
+        level.style.backgroundColor = '#ecf0f1';
+        level.style.color = '#34495e';
+        level.textContent = `${levelEmoji} ${course.level}`;
 
-            const level = document.createElement('div');
-            level.className = 'level';
-            level.style.backgroundColor = '#ecf0f1';
-            level.style.color = '#34495e';
-            level.textContent = `${levelEmoji} ${course.level}`;
+        const stats = document.createElement('div');
+        stats.className = 'stats';
 
-            const stats = document.createElement('div');
-            stats.className = 'stats';
+        const statsLeft = document.createElement('div');
+        statsLeft.className = 'stats-left';
+        statsLeft.innerHTML = `
+            <span><i class="fas fa-star" style="color: #f1c40f;"></i> ${course.rating.toFixed(1)}</span>
+            <span><i class="fas fa-user-graduate"></i> ${course.students.toLocaleString()}</span>
+        `;
 
-            const statsLeft = document.createElement('div');
-            statsLeft.className = 'stats-left';
-            statsLeft.innerHTML = `
-                <span><i class="fas fa-star" style="color: #f1c40f;"></i> ${course.rating.toFixed(1)}</span>
-                <span><i class="fas fa-user-graduate"></i> ${course.students.toLocaleString()}</span>
-            `;
+        const statsRight = document.createElement('span');
+        statsRight.innerHTML = `<i class="fas fa-clock"></i> ${course.contentLength} mins`;
 
-            const statsRight = document.createElement('span');
-            statsRight.innerHTML = `<i class="fas fa-clock"></i> ${course.contentLength} mins`;
+        const author = document.createElement('p');
+        author.innerHTML = `<strong>${course.author}</strong>`;
 
-            const author = document.createElement('p');
-            author.innerHTML = `<strong>${course.author}</strong>`;
+        const button = document.createElement('a');
+        button.href = course.couponUrl;
+        button.target = '_blank';
+        button.className = 'button';
+        button.textContent = 'Get Course';
 
-            const button = document.createElement('a');
-            button.href = course.couponUrl;
-            button.target = '_blank';
-            button.className = 'button';
-            button.textContent = 'Get Course';
+        const couponsLeft = document.createElement('div');
+        couponsLeft.className = 'coupons-left';
+        couponsLeft.textContent = `${course.usesRemaining} coupons left`;
 
-            const couponsLeft = document.createElement('div');
-            couponsLeft.className = 'coupons-left';
-            couponsLeft.textContent = `${course.usesRemaining} coupons left`;
+        // Append elements
+        stats.appendChild(statsLeft);
+        stats.appendChild(statsRight);
 
-            // Append elements
-            stats.appendChild(statsLeft);
-            stats.appendChild(statsRight);
+        cardContent.appendChild(cardTitle);
+        cardContent.appendChild(cardHeading);
+        cardContent.appendChild(category);
+        cardContent.appendChild(level);
+        cardContent.appendChild(stats);
+        cardContent.appendChild(author);
+        cardContent.appendChild(button);
+        cardContent.appendChild(couponsLeft);
 
-            cardContent.appendChild(cardTitle);
-            cardContent.appendChild(cardHeading);
-            cardContent.appendChild(category);
-            cardContent.appendChild(level);
-            cardContent.appendChild(stats);
-            cardContent.appendChild(author);
-            cardContent.appendChild(button);
-            cardContent.appendChild(couponsLeft);
+        courseElement.appendChild(img);
+        courseElement.appendChild(expiryTag);
+        courseElement.appendChild(cardContent);
+        return courseElement;
+    }
 
-            courseElement.appendChild(img);
-            courseElement.appendChild(expiryTag);
-            courseElement.appendChild(cardContent);
-            return courseElement;
-        }
+    async function fetchAllCourses() {
+        showLoading();
+        try {
+            const response = await fetch(`${BASE_URL}/api/v1/coupons/filter?numberPerPage=1000&pageIndex=0`);
+            const statusTag = document.getElementById('statusTag');
+            const totalCoupons = document.getElementById('totalCoupons');
+            const lastUpdateTime = document.getElementById('lastUpdateTime');
 
-        async function fetchAllCourses() {
-            showLoading();
-            try {
-                const response = await fetch(`${BASE_URL}/api/v1/coupons/filter?numberPerPage=1000&pageIndex=0`);
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                const data = await response.json();
-                allCourses = data.courses;
-                setupFilters();
-                applyFilters();
-            } catch (error) {
-                showErrorDialog('Failed to fetch courses. Please try again later.');
-                console.error('Error fetching courses:', error);
-            } finally {
-                hideLoading();
-            }
-        }
-
-        function setupFilters() {
-            const categories = {}
-            const levels = {};
-            const languages = {};
-
-            allCourses.forEach(course => {
-                categories[course.category] = (categories[course.category] || 0) + 1;
-                levels[course.level] = (levels[course.level] || 0) + 1;
-                languages[course.language] = (languages[course.language] || 0) + 1;
-            });
-
-            populateFilter("categories", 'category-filter', categories);
-            populateFilter("levels", 'level-filter', levels);
-            populateFilter("lanuages", 'language-filter', languages);
-        }
-
-        function populateFilter(name, filterId, options) {
-            const filter = document.getElementById(filterId);
-            filter.innerHTML = `<option value="">All ${name}</option>`;
-            Object.entries(options).sort((a, b) => b[1] - a[1]).forEach(([option, count]) => {
-                const optionElement = document.createElement('option');
-                optionElement.value = option;
-                optionElement.textContent = `${option} (${count})`;
-                filter.appendChild(optionElement);
-            });
-        }
-
-        function applyFilters() {
-            const searchTerm = document.getElementById('search').value.toLowerCase();
-            const categoryFilter = document.getElementById('category-filter').value;
-            const levelFilter = document.getElementById('level-filter').value;
-            const languageFilter = document.getElementById('language-filter').value;
-            const sortBy = document.getElementById('sort').value;
-
-            let filteredCourses = allCourses.filter(course => 
-                course.title.toLowerCase().includes(searchTerm) &&
-                (categoryFilter === '' || course.category === categoryFilter) &&
-                (levelFilter === '' || course.level === levelFilter) &&
-                (languageFilter === '' || course.language === languageFilter)
-            );
-
-            filteredCourses.sort((a, b) => {
-                const [key, order] = sortBy.split('-');
-                const direction = order === 'asc' ? 1 : -1;
-                if (key === 'contentLength') return (a.contentLength - b.contentLength) * direction;
-                if (key === 'rating') return (a.rating - b.rating) * direction;
-                if (key === 'students') return (a.students - b.students) * direction;
-                if (key === 'usesRemaining') return (a.usesRemaining - b.usesRemaining) * direction;
-            });
-
-            displayCourses(filteredCourses);
-        }
-
-        function displayCourses(courses) {
-            const courseContainer = document.getElementById('courseContainer');
-            const noResults = document.getElementById('noResults');
-            courseContainer.innerHTML = '';
-            if (courses.length === 0) {
-                noResults.style.display = 'block';
+            // Set status tag based on response status
+            statusTag.style.display = 'block';
+            if (response.status >= 200 && response.status < 300) {
+                statusTag.className = 'status-tag status-2xx';
+            } else if (response.status >= 300 && response.status < 400) {
+                statusTag.className = 'status-tag status-3xx';
             } else {
-                noResults.style.display = 'none';
-                courses.forEach(course => {
-                    courseContainer.appendChild(displayCourse(course));
-                });
+                statusTag.className = 'status-tag status-4xx';
             }
-        }
+            statusTag.textContent = `Status: ${response.status}`;
 
-        function showLoading() {
-            document.getElementById('loading').style.display = 'flex';
-        }
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
 
-        function hideLoading() {
-            document.getElementById('loading').style.display = 'none';
-        }
+            const data = await response.json();
+            allCourses = data.courses;
 
-        function showErrorDialog(message) {
-            document.getElementById('errorMessage').textContent = message;
-            document.getElementById('errorDialog').style.display = 'block';
-        }
+            // Update total coupons and last update time
+            totalCoupons.style.display = 'block';
+            totalCoupons.textContent = `Coupons: ${data.totalCoupon}`;
+            lastUpdateTime.style.display = 'block';
+            lastUpdateTime.textContent = `Update: ${moment(data.lastFetchTime).add(7, 'hours').fromNow()}`;
 
-        function closeErrorDialog() {
-            document.getElementById('errorDialog').style.display = 'none';
-        }
-
-        function resetFilters() {
-            document.getElementById('search').value = '';
-            document.getElementById('category-filter').value = '';
-            document.getElementById('level-filter').value = '';
-            document.getElementById('language-filter').value = '';
-            document.getElementById('sort').value = 'students-desc';
+            setupFilters();
             applyFilters();
+        } catch (error) {
+            showErrorDialog('Failed to fetch courses. Please try again later.');
+            console.error('Error fetching courses:', error);
+        } finally {
+            hideLoading();
         }
+    }
 
-        document.getElementById('search').addEventListener('input', applyFilters);
-        document.getElementById('category-filter').addEventListener('change', applyFilters);
-        document.getElementById('level-filter').addEventListener('change', applyFilters);
-        document.getElementById('language-filter').addEventListener('change', applyFilters);
-        document.getElementById('sort').addEventListener('change', applyFilters);
-        document.getElementById('reset-filters').addEventListener('click', resetFilters);
-        document.getElementById('reset-filters-no-results').addEventListener('click', resetFilters);
-        fetchAllCourses();
-    </script>
+    function setupFilters() {
+        const categories = {};
+        const levels = {};
+        const languages = {};
+
+        allCourses.forEach(course => {
+            categories[course.category] = (categories[course.category] || 0) + 1;
+            levels[course.level] = (levels[course.level] || 0) + 1;
+            languages[course.language] = (languages[course.language] || 0) + 1;
+        });
+
+        populateFilter("categories", 'category-filter', categories);
+        populateFilter("levels", 'level-filter', levels);
+        populateFilter("languages", 'language-filter', languages);
+    }
+
+    function populateFilter(name, filterId, options) {
+        const filter = document.getElementById(filterId);
+        filter.innerHTML = `<option value="">All ${name}</option>`;
+        Object.entries(options).sort((a, b) => b[1] - a[1]).forEach(([option, count]) => {
+            const optionElement = document.createElement('option');
+            optionElement.value = option;
+            optionElement.textContent = `${option} (${count})`;
+            filter.appendChild(optionElement);
+        });
+    }
+
+    function applyFilters() {
+        const searchTerm = document.getElementById('search').value.toLowerCase();
+        const categoryFilter = document.getElementById('category-filter').value;
+        const levelFilter = document.getElementById('level-filter').value;
+        const languageFilter = document.getElementById('language-filter').value;
+        const sortBy = document.getElementById('sort').value;
+
+        let filteredCourses = allCourses.filter(course =>
+            course.title.toLowerCase().includes(searchTerm) &&
+            (categoryFilter === '' || course.category === categoryFilter) &&
+            (levelFilter === '' || course.level === levelFilter) &&
+            (languageFilter === '' || course.language === languageFilter)
+        );
+
+        filteredCourses.sort((a, b) => {
+            const [key, order] = sortBy.split('-');
+            const direction = order === 'asc' ? 1 : -1;
+            if (key === 'contentLength') return (a.contentLength - b.contentLength) * direction;
+            if (key === 'rating') return (a.rating - b.rating) * direction;
+            if (key === 'students') return (a.students - b.students) * direction;
+            if (key === 'usesRemaining') return (a.usesRemaining - b.usesRemaining) * direction;
+        });
+
+        displayCourses(filteredCourses);
+    }
+
+    function displayCourses(courses) {
+        const courseContainer = document.getElementById('courseContainer');
+        const noResults = document.getElementById('noResults');
+        courseContainer.innerHTML = '';
+        if (courses.length === 0) {
+            noResults.style.display = 'block';
+        } else {
+            noResults.style.display = 'none';
+            courses.forEach(course => {
+                courseContainer.appendChild(displayCourse(course));
+            });
+        }
+    }
+
+    function showLoading() {
+        document.getElementById('loading').style.display = 'flex';
+    }
+
+    function hideLoading() {
+        document.getElementById('loading').style.display = 'none';
+    }
+
+    function showErrorDialog(message) {
+        document.getElementById('errorMessage').textContent = message;
+        document.getElementById('errorDialog').style.display = 'block';
+    }
+
+    function closeErrorDialog() {
+        document.getElementById('errorDialog').style.display = 'none';
+    }
+
+    function resetFilters() {
+        document.getElementById('search').value = '';
+        document.getElementById('category-filter').value = '';
+        document.getElementById('level-filter').value = '';
+        document.getElementById('language-filter').value = '';
+        document.getElementById('sort').value = 'students-desc';
+        applyFilters();
+    }
+
+    document.getElementById('search').addEventListener('input', applyFilters);
+    document.getElementById('category-filter').addEventListener('change', applyFilters);
+    document.getElementById('level-filter').addEventListener('change', applyFilters);
+    document.getElementById('language-filter').addEventListener('change', applyFilters);
+    document.getElementById('sort').addEventListener('change', applyFilters);
+    document.getElementById('reset-filters').addEventListener('click', resetFilters);
+    document.getElementById('reset-filters-no-results').addEventListener('click', resetFilters);
+    fetchAllCourses();
+</script>
 </body>
 </html>
