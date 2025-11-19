@@ -20,7 +20,7 @@ public class RealDiscountCrawler extends CouponUrlCrawlerBase {
 
     RealDiscountCrawler(@Value("${custom.number-of-real-discount-coupon}") int maxCouponRequest) {
         this.maxCouponRequest = maxCouponRequest;
-        this.apiUrl = String.format("https://www.real.discount/api-web/all-courses/?store=Udemy&page=1&per_page=%s&orderby=undefined&free=0&search=&language=&cat=", maxCouponRequest);
+        this.apiUrl = String.format("https://cdn.real.discount/api/courses?page=1&limit=%s&sortBy=sale_start", maxCouponRequest);
     }
 
     /**
@@ -48,7 +48,7 @@ public class RealDiscountCrawler extends CouponUrlCrawlerBase {
      * @return Extracted coupon URL
      */
     String extractCouponUrl(JSONObject jsonObject) {
-        return jsonObject.getString("url").replace("http://click.linksynergy.com/fs-bin/click?id=bnwWbXPyqPU&subid=&offerid=323058.1&type=10&tmpid=14537&RD_PARM1=", "");
+        return jsonObject.getString("url");
     }
 
     /**
@@ -58,6 +58,6 @@ public class RealDiscountCrawler extends CouponUrlCrawlerBase {
      * @return a JSONArray containing the results fetched from the API
      */
     public JSONArray fetchListJsonFromAPI(String apiUrl) {
-        return new JSONArray(WebContentFetcher.getJsonObjectFrom(apiUrl).getJSONArray("results"));
+        return new JSONArray(WebContentFetcher.getJsonObjectFrom(apiUrl).getJSONArray("items"));
     }
 }
