@@ -1,5 +1,5 @@
 # Use an official OpenJDK image with JDK 17 for building Android projects
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:17-jdk
 
 RUN apt-get update && apt-get install -y curl
 # Set the working directory in the container
