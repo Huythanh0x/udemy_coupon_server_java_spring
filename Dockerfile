@@ -1,18 +1,36 @@
-# Use an official OpenJDK image with JDK 17 for building Android projects
-FROM eclipse-temurin:17-jdk
 
-RUN apt-get update && apt-get install -y curl
-# Set the working directory in the container
+## Build stage
+FROM eclipse-temurin:17-jdk AS builder
+
 WORKDIR /app
 
-# Copy the current directory contents into the container at /app
-COPY . /app
+COPY gradlew .
+COPY gradle gradle/
+COPY build.gradle.kts .
+COPY settings.gradle.kts .
 
-# Build the application
-RUN ./gradlew build
+RUN chmod +x gradlew
 
-# Expose the port the app runs on
+RUN --mount=type=cache,target=/root/.gradle/caches \
+    --mount=type=cache,target=/root/.gradle/wrapper \
+    ./gradlew --no-daemon dependencies
+
+COPY src src/
+
+RUN --mount=type=cache,target=/root/.gradle/caches \
+    --mount=type=cache,target=/root/.gradle/wrapper \
+    ./gradlew --no-daemon bootJar -x test
+
+## Runtime stage
+FROM eclipse-temurin:17-jre
+
+WORKDIR /app
+
+COPY --from=builder /app/build/libs/*-SNAPSHOT.jar app.jar
+
+RUN useradd -m -u 1001 appuser && chown -R appuser:appuser /app
+USER appuser
+
 EXPOSE 8080
 
-# Specify the command to run on container start
-CMD ["java", "-jar", "build/libs/training_thanhvh_java_spring_jwt_jpa-0.0.1-SNAPSHOT.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]

@@ -18,11 +18,19 @@ services:
       test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
       timeout: 20s
       retries: 10
+    networks:
+      - app-network
 
   springboot-app:
     build:
       context: .
       dockerfile: Dockerfile
+      # Add build arguments for cache control
+      args:
+        - GRADLE_USER_HOME=/cache
+      cache_from:
+        - training-coupon-springboot:latest
+    image: training-coupon-springboot:latest
     container_name: training-coupon-springboot
     depends_on:
       mysql:
@@ -37,6 +45,11 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-
+    networks:
+      - app-network
 volumes:
   mysql-data:
+
+networks:
+  app-network:
+    driver: bridge
