@@ -9,10 +9,8 @@ services:
       MYSQL_DATABASE: training_coupon
     ports:
       - "3306:3306"
-    command: --init-file /docker-entrypoint-initdb.d/init.sql
     volumes:
       - mysql-data:/var/lib/mysql
-      - ./init_data.sql:/docker-entrypoint-initdb.d/init.sql
     restart: always
     healthcheck:
       test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]

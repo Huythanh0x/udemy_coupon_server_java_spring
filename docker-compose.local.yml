@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.3.0
+    container_name: training-coupon-mysql-local
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: training_coupon
+    ports:
+      - "3306:3306"
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      timeout: 20s
+      retries: 10
+    volumes:
+      - mysql-data-local:/var/lib/mysql
+
+volumes:
+  mysql-data-local:
+

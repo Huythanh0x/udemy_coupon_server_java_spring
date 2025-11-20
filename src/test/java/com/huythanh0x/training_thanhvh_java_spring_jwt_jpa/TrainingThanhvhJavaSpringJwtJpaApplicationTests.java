@@ -2,8 +2,10 @@ package com.huythanh0x.training_thanhvh_java_spring_jwt_jpa;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
+@ActiveProfiles("test")
 class TrainingThanhvhJavaSpringJwtJpaApplicationTests {
 
     @Test

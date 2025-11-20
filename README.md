@@ -30,17 +30,25 @@ cd udemy_coupon_server_java_spring
 ```
 
 ### Start the Server
-1. Docker Compose - Recommend way
+1. Docker Compose - recommended for parity with production:
 
 ```shell
 docker compose up
 ```
-2. MySQL docker and build Spring from source
+
+2. Local development (run app from source, MySQL via local compose):
 
 ```shell
-./init_mysql_docker.sh
-./gradlew bootRun
+docker compose -f docker-compose.local.yml up -d mysql
+./gradlew bootRun --args='--spring.profiles.active=local'
 ```
+
+## Database migrations
+
+- Schema changes and seed data are managed by [Flyway](https://flywaydb.org/).
+- Migration scripts live under `src/main/resources/db/migration` (e.g., `V1__init_schema.sql`).
+- When the Spring Boot app starts it automatically runs pending migrations; no manual SQL is required.
+- For local verification you can run `./gradlew flywayMigrate` once your MySQL instance is up.
 
 ## API Documentation
 For detailed API documentation, please refer to the [GitHub Wiki](DOCUMENTS.md).

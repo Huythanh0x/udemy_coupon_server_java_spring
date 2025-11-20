@@ -160,26 +160,26 @@ public class UdemyCouponCourseExtractor {
      */
     private CouponCourseData combineCourseAndCouponData(CouponJsonData couponData, CourseJsonData courseData) {
         if (couponData.getPrice() != 0f) return null;
-        return new CouponCourseData(
-                courseId,
-                courseData.getCategory(),
-                courseData.getSubCategory(),
-                courseData.getCourseTitle(),
-                courseData.getContentLength(),
-                courseData.getLevel(),
-                courseData.getAuthor(),
-                courseData.getRating(),
-                courseData.getNumberReviews(),
-                courseData.getStudents(),
-                couponCode,
-                couponData.getPreviewImage(),
-                couponUrl,
-                couponData.getExpiredDate(),
-                couponData.getUsesRemaining(),
-                courseData.getHeadline(),
-                courseData.getDescription(),
-                couponData.getPreviewVideo(),
-                courseData.getLanguage()
-        );
+        return CouponCourseData.builder()
+                .courseId(courseId)
+                .category(courseData.getCategory())
+                .subCategory(courseData.getSubCategory())
+                .title(courseData.getCourseTitle())
+                .contentLength(courseData.getContentLength())
+                .level(courseData.getLevel())
+                .author(courseData.getAuthor())
+                .rating(courseData.getRating())
+                .reviews(courseData.getNumberReviews())
+                .students(courseData.getStudents())
+                .couponCode(couponCode)
+                .previewImage(couponData.getPreviewImage())
+                .couponUrl(couponUrl)
+                .expiredDate(couponData.getExpiredDate())
+                .usesRemaining(couponData.getUsesRemaining())
+                .heading(courseData.getHeadline())
+                .description(courseData.getDescription())
+                .previewVideo(couponData.getPreviewVideo())
+                .language(courseData.getLanguage())
+                .build();
     }
 }
