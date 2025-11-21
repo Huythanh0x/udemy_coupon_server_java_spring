@@ -36,7 +36,7 @@ services:
     ports:
       - "8080:8080"
     env_file:
-      - ./src/main/resources/application-dev.properties
+      - ./modules/coupon-api-service/src/main/resources/application-dev.properties
     restart: always
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]

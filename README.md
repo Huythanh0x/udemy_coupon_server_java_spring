@@ -15,6 +15,11 @@ The Spring Boot Coupon Server is a robust application designed to crawl 100% off
 - **Filter Functionality**: Filter coupons based on various criteria.
 - **Authentication & Authorization**: Secure access to API endpoints.
 
+## Architecture
+- `modules/coupon-domain`: entities, repositories, shared DTOs, Flyway migrations.
+- `modules/coupon-api-service`: REST APIs, security/auth, Swagger UI (port 8080).
+- `modules/coupon-crawler-service`: crawler workers + schedulers (port 8081).
+
 ## Prerequisites
 - [Java 17](https://jdk.java.net/17/) or higher (JDK)
 - with [Docker](https://www.docker.com/) (for MySQL container)
@@ -29,26 +34,28 @@ git clone https://github.com/huythanh0x/udemy_coupon_server_java_spring
 cd udemy_coupon_server_java_spring
 ```
 
-### Start the Server
-1. Docker Compose - recommended for parity with production:
+### Start the Services
+1. Docker Compose (API + MySQL) - recommended for parity with production:
 
 ```shell
 docker compose up
 ```
 
-2. Local development (run app from source, MySQL via local compose):
+2. Local development (run services from source, MySQL via local compose):
 
 ```shell
 docker compose -f docker-compose.local.yml up -d mysql
-./gradlew bootRun --args='--spring.profiles.active=local'
+./gradlew :modules:coupon-api-service:bootRun --args='--spring.profiles.active=local'
+# optional crawler worker
+./gradlew :modules:coupon-crawler-service:bootRun --args='--spring.profiles.active=local'
 ```
 
 ## Database migrations
 
 - Schema changes and seed data are managed by [Flyway](https://flywaydb.org/).
-- Migration scripts live under `src/main/resources/db/migration` (e.g., `V1__init_schema.sql`).
+- Migration scripts live under `modules/coupon-domain/src/main/resources/db/migration` (e.g., `V1__init_schema.sql`).
 - When the Spring Boot app starts it automatically runs pending migrations; no manual SQL is required.
-- For local verification you can run `./gradlew flywayMigrate` once your MySQL instance is up.
+- For local verification you can run `./gradlew :modules:coupon-api-service:flywayMigrate` (or the crawler equivalent) once MySQL is up.
 
 ## API Documentation
 Once the server is running, navigate to [Swagger UI](http://localhost:8080/swagger-ui/index.html) for interactive docs or fetch the OpenAPI JSON at `/v3/api-docs`. See `docs/getting-started.md` for setup instructions and `docs/business-logic.md` for flow details.

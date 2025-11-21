@@ -1,0 +1,23 @@
+plugins {
+    id("org.springframework.boot")
+    id("io.spring.dependency-management")
+    id("io.freefair.lombok")
+    kotlin("jvm")
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+dependencies {
+    implementation(project(":modules:coupon-domain"))
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("org.flywaydb:flyway-mysql")
+    implementation("com.mysql:mysql-connector-j:8.3.0")
+    implementation("org.jsoup:jsoup:1.15.4")
+    implementation("org.json:json:20231013")
+}
+

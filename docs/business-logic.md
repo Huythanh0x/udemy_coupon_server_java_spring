@@ -1,10 +1,15 @@
 # Business Logic & Flow
 
+## Module Map
+- `coupon-domain`: DTOs, entities, repositories, shared utilities (`UdemyCouponCourseExtractor`, `LastFetchTimeManager`), and Flyway migrations (classpath `db/migration`). Both services depend on this module.
+- `coupon-api-service`: REST stack (controllers, services, OpenAPI, security). Builds the Swagger-enabled HTTP API exposed on port 8080 by default.
+- `coupon-crawler-service`: Dedicated Spring Boot app (port 8081) hosting `CrawlerRunner` plus crawler implementations/schedulers. Can run headless or via Actuator endpoints.
+
 ## High-Level Architecture
-- **Crawler layer** (`src/main/java/.../crawler_runner`): pulls coupon URLs from multiple sites, validates each coupon via the Udemy API, and persists valid/expired entries.
+- **Crawler layer** (`modules/coupon-crawler-service/src/main/java/.../crawler_runner`): pulls coupon URLs from multiple sites, validates each coupon via the Udemy API, and persists valid/expired entries.
 - **Service + Repository layer** (`CourseResponseService`, `CouponCourseRepository`, etc.): encapsulates pagination, filtering, search, and CRUD-like operations on coupon data.
-- **API layer** (controllers under `controller/`): exposes REST endpoints for coupons (`/api/v1/coupons/**`) and authentication (`/api/v1/auth/**`).
-- **Security/Auth** (`AuthService`, `RefreshTokenService`, `security/` package): handles registration, login, JWT issuance, and refresh-token rotation.
+- **API layer** (controllers under `modules/coupon-api-service/src/main/java/.../controller`): exposes REST endpoints for coupons (`/api/v1/coupons/**`) and authentication (`/api/v1/auth/**`).
+- **Security/Auth** (`modules/coupon-api-service/.../security`): handles registration, login, JWT issuance, and refresh-token rotation.
 
 ## Coupon Crawling Pipeline
 1. `CrawlerRunner` implements `ApplicationRunner`, so `startCrawler()` fires after the Spring context starts.
@@ -26,7 +31,7 @@ Key knobs live in `application*.properties` (thread count, interval, per-source 
 ## Coupon API Behavior
 `CouponCourseController` exposes:
 - `GET /api/v1/coupons`: simple pagination (`pageIndex`, `numberPerPage`), backed by `CourseResponseService.getPagedCoupons`.
-- `POST /api/v1/coupons`: ad-hoc validation of a single `couponUrl`, stored if the extractor returns data.
+- `POST /api/v1/coupons`: ad-hoc validation of a single `couponUrl`, stored if the extractor returns data (still synchronous today; future roadmap is to publish these to the crawler queue for async processing).
 - `DELETE /api/v1/coupons`: removes coupons when validation fails (primarily an admin cleanup hook).
 - `GET /api/v1/coupons/filter`: filters by rating, content length, level, category, language.
 - `GET /api/v1/coupons/search`: text search across title/description/heading.

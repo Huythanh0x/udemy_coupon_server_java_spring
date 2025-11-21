@@ -1,9 +1,12 @@
 # Getting Started
 
 ## Overview
-- `Spring Boot Coupon Server` crawls 100%-off Udemy coupons, validates them with the official Udemy API, and exposes REST endpoints for consumers.
+- `Spring Boot Coupon Server` now ships as a multi-module monorepo:
+  - `modules/coupon-domain`: shared entities, DTOs, repositories, and Flyway migrations.
+  - `modules/coupon-api-service`: REST controllers, auth/security, OpenAPI.
+  - `modules/coupon-crawler-service`: scheduled crawlers and validators.
 - Core stack: Java 17, Spring Boot 3.1, MySQL, Flyway, Gradle, Docker/Compose.
-- Key repos/docs to know: `README.md`, `docs/business-logic.md`, `CONTRIBUTING.md`, `src/main/resources/db/migration`.
+- Key docs: `README.md`, `docs/business-logic.md`, `CONTRIBUTING.md`.
 
 ## Prerequisites
 - Java 17 JDK in your `$PATH`.
@@ -25,7 +28,13 @@ This brings up the MySQL container plus the Spring Boot service with the default
 ### Option B: Run the API locally, keep MySQL in Docker
 ```bash
 docker compose -f docker-compose.local.yml up -d mysql
-./gradlew bootRun --args='--spring.profiles.active=local'
+./gradlew :modules:coupon-api-service:bootRun --args='--spring.profiles.active=local'
+```
+
+### Run the crawler service locally (optional but recommended)
+```bash
+docker compose -f docker-compose.local.yml up -d mysql
+./gradlew :modules:coupon-crawler-service:bootRun --args='--spring.profiles.active=local'
 ```
 The `local` profile (`src/main/resources/application-local.properties`) targets `jdbc:mysql://localhost:3306/training_coupon` and bumps crawler thread counts for richer local validation.
 
@@ -42,13 +51,16 @@ The `local` profile (`src/main/resources/application-local.properties`) targets 
 You can override any property via `--args='--spring.profiles.active=<profile>'` or environment variables (Spring Boot relaxed binding).
 
 ## Useful Gradle Tasks
-- `./gradlew bootRun` – start the API using default profile.
-- `./gradlew build` – compile & package (outputs under `build/libs/`).
+- `./gradlew :modules:coupon-api-service:bootRun` – start the API service.
+- `./gradlew :modules:coupon-crawler-service:bootRun` – start the crawler worker.
+- `./gradlew :modules:coupon-api-service:bootJar` / `:modules:coupon-crawler-service:bootJar` – package runnable jars.
+- `./gradlew build` – compile all modules.
 - `./gradlew test` – runs the test suite (currently empty but kept for future coverage).
 
 ## API Surface
-- Start the app and browse `http://localhost:8080/swagger-ui/index.html` for interactive API docs (backed by Springdoc/OpenAPI).
+- Start the API service and browse `http://localhost:8080/swagger-ui/index.html` for interactive docs (backed by Springdoc/OpenAPI).
 - Raw OpenAPI JSON lives at `http://localhost:8080/v3/api-docs`.
+- The crawler service exposes only health endpoints by default and listens on `8081` (configurable via `server.port`).
 - Generated reports/tests are emitted under `build/reports/*` after Gradle runs.
 
 ## Troubleshooting Checklist
