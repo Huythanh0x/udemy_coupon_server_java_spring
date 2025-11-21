@@ -8,6 +8,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+import jakarta.annotation.PostConstruct;
 
 import java.security.Key;
 import java.util.Date;
@@ -22,11 +23,26 @@ public class JWTGenerator {
     String exceptionMessage;
     @Value("${custom.jwt-expiration}")
     Long JWT_EXPIRATION;
-    private static final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS512);
+    @Value("${custom.jwt-secret}")
+    String jwtSecret;
+    private Key key;
     private final CustomUserDetailsService userDetailsService;
 
     public JWTGenerator(CustomUserDetailsService userDetailsService) {
         this.userDetailsService = userDetailsService;
+    }
+
+    @PostConstruct
+    public void initSigningKey() {
+        if (jwtSecret == null || jwtSecret.trim().isEmpty()) {
+            throw new IllegalStateException("JWT secret key is not configured. Please set custom.jwt-secret property.");
+        }
+        // Ensure the secret is at least 256 bits (32 bytes) for HS256/HS512
+        byte[] keyBytes = jwtSecret.getBytes();
+        if (keyBytes.length < 32) {
+            throw new IllegalStateException("JWT secret must be at least 32 characters (256 bits) long for security. Current length: " + keyBytes.length);
+        }
+        this.key = Keys.hmacShaKeyFor(keyBytes);
     }
 
     /**
@@ -122,7 +138,7 @@ public class JWTGenerator {
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date())
                 .setExpiration(expireDate)
-                .signWith(SignatureAlgorithm.HS256, key)
+                .signWith(key, SignatureAlgorithm.HS512)
                 .compact();
     }
 }

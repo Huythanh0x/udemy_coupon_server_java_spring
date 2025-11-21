@@ -5,7 +5,7 @@ services:
     image: mysql:8.3.0
     container_name: training-coupon-mysql-local
     environment:
-      MYSQL_ROOT_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-password}
       MYSQL_DATABASE: training_coupon
     ports:
       - "3306:3306"

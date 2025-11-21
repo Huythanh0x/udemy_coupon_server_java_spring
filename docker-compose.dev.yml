@@ -3,21 +3,21 @@ version: '3.8'
 services:
   mysql:
     image: mysql:8.3.0
-    container_name: training-coupon-mysql
+    container_name: training-coupon-mysql-dev
     environment:
       MYSQL_ROOT_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-password}
       MYSQL_DATABASE: training_coupon
     ports:
       - "3306:3306"
     volumes:
-      - mysql-data:/var/lib/mysql
+      - mysql-data-dev:/var/lib/mysql
     restart: always
     healthcheck:
       test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
       timeout: 20s
       retries: 10
     networks:
-      - app-network
+      - app-network-dev
 
   springboot-app:
     build:
@@ -28,14 +28,14 @@ services:
       cache_from:
         - training-coupon-springboot:latest
     image: training-coupon-springboot:latest
-    container_name: training-coupon-springboot
+    container_name: training-coupon-springboot-dev
     depends_on:
       mysql:
         condition: service_healthy
     ports:
       - "8080:8080"
     environment:
-      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
     env_file:
       - .env
     restart: always
@@ -45,10 +45,11 @@ services:
       timeout: 10s
       retries: 5
     networks:
-      - app-network
+      - app-network-dev
+
 volumes:
-  mysql-data:
+  mysql-data-dev:
 
 networks:
-  app-network:
+  app-network-dev:
     driver: bridge
