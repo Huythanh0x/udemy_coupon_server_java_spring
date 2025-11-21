@@ -3,7 +3,7 @@
 ## Overview
 - `Spring Boot Coupon Server` crawls 100%-off Udemy coupons, validates them with the official Udemy API, and exposes REST endpoints for consumers.
 - Core stack: Java 17, Spring Boot 3.1, MySQL, Flyway, Gradle, Docker/Compose.
-- Key repos to know: `README.md`, `DOCUMENTS.md` (API list), `CONTRIBUTING.md`, `src/main/resources/db/migration`.
+- Key repos/docs to know: `README.md`, `docs/business-logic.md`, `CONTRIBUTING.md`, `src/main/resources/db/migration`.
 
 ## Prerequisites
 - Java 17 JDK in your `$PATH`.
@@ -47,7 +47,8 @@ You can override any property via `--args='--spring.profiles.active=<profile>'` 
 - `./gradlew test` – runs the test suite (currently empty but kept for future coverage).
 
 ## API Surface
-- REST endpoints and example payloads are documented in `DOCUMENTS.md`.
+- Start the app and browse `http://localhost:8080/swagger-ui/index.html` for interactive API docs (backed by Springdoc/OpenAPI).
+- Raw OpenAPI JSON lives at `http://localhost:8080/v3/api-docs`.
 - Generated reports/tests are emitted under `build/reports/*` after Gradle runs.
 
 ## Troubleshooting Checklist

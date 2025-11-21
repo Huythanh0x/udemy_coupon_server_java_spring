@@ -51,7 +51,7 @@ docker compose -f docker-compose.local.yml up -d mysql
 - For local verification you can run `./gradlew flywayMigrate` once your MySQL instance is up.
 
 ## API Documentation
-For detailed API documentation, please refer to the [GitHub Wiki](DOCUMENTS.md).
+Once the server is running, navigate to [Swagger UI](http://localhost:8080/swagger-ui/index.html) for interactive docs or fetch the OpenAPI JSON at `/v3/api-docs`. See `docs/getting-started.md` for setup instructions and `docs/business-logic.md` for flow details.
 
 ## Contributing
 We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for more details.
