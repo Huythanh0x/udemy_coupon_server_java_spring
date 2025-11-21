@@ -1,0 +1,15 @@
+package com.huythanh0x.udemycoupons.controller
+
+import org.springframework.stereotype.Controller
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RequestMapping
+
+
+@Controller
+@RequestMapping("/home")
+class HomeController {
+    @GetMapping
+    fun home(): String {
+        return "index" // This will return the static HTML file located at src/main/resources/static/index.html
+    }
+}
