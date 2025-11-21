@@ -314,7 +314,13 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
 <script>
-    const BASE_URL = 'http://localhost:8080';
+    // Dynamically determine BASE_URL based on current location
+    // This automatically works for local, dev, and prod environments
+    const BASE_URL = (function() {
+        return window.location.origin;
+    })();
+    
+    console.log('API BASE_URL:', BASE_URL);
     let allCourses = [];
 
     const categoryColors = {
