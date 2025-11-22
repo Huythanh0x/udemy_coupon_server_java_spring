@@ -19,6 +19,22 @@ services:
     networks:
       - app-network-dev
 
+  redis:
+    image: redis:7-alpine
+    container_name: training-coupon-redis-dev
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data-dev:/data
+    restart: always
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network-dev
+
   springboot-app:
     build:
       context: .
@@ -31,6 +47,8 @@ services:
     container_name: training-coupon-springboot-dev
     depends_on:
       mysql:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     ports:
       - "8080:8080"
@@ -49,6 +67,7 @@ services:
 
 volumes:
   mysql-data-dev:
+  redis-data-dev:
 
 networks:
   app-network-dev:

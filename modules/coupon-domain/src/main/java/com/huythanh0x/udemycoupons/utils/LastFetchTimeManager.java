@@ -1,67 +1,63 @@
 package com.huythanh0x.udemycoupons.utils;
 
-import org.json.JSONObject;
+import com.huythanh0x.udemycoupons.service.RedisService;
 
-import java.io.FileWriter;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 
 /**
- * A utility class for managing the last fetched time.
+ * A utility class for managing the last fetched time using Redis.
+ * Stores time as epoch milliseconds for consistency and performance.
  */
 public class LastFetchTimeManager {
+    
+    private static final String REDIS_KEY = Constant.REDIS_KEY_LAST_FETCH_TIME;
+    
     /**
-     * Generates a JSON file containing the current local time in ISO format and saves it to a specified file path.
+     * Saves the current time to Redis as epoch milliseconds.
+     * Falls back gracefully if Redis is not available.
      */
     public static void dumpFetchedTimeJsonToFile() {
-        String jsonFilePath = "fetched_time.json";
-        var resultJson = new JSONObject();
-        resultJson.put("localTime", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-        try (FileWriter fileWriter = new FileWriter(jsonFilePath)) {
-            fileWriter.write(resultJson.toString());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        try {
+            RedisService redisService = RedisService.getInstance();
+            long epochMillis = System.currentTimeMillis();
+            redisService.set(REDIS_KEY, String.valueOf(epochMillis));
+            System.out.println("✓ Last fetch time saved to Redis: " + epochMillis + " (" + 
+                LocalDateTime.ofInstant(Instant.ofEpochMilli(epochMillis), ZoneId.systemDefault()) + ")");
+        } catch (IllegalStateException e) {
+            // Redis not available
+            System.err.println("Warning: Redis not available, cannot save fetch time. " + e.getMessage());
         }
     }
 
     /**
-     * Reads the last fetched time in milliseconds from a file named "fetched_time.json",
-     * parses the value from the JSON object, and converts it to the milliseconds since epoch.
-     * If an IO exception occurs during file reading, returns the minimum value of a long.
+     * Reads the last fetched time in milliseconds from Redis.
+     * Returns the time in milliseconds since epoch.
+     * If Redis is not available or the key doesn't exist, returns the minimum value of a long.
      *
-     * @return the last fetched time in milliseconds
+     * @return the last fetched time in milliseconds, or Long.MIN_VALUE if not available
      */
     public static Long loadLasFetchedTimeInMilliSecond() {
         try {
-            String couponsJson = new String(Files.readAllBytes(Paths.get("fetched_time.json")));
-            var responseJsonObject = new JSONObject(couponsJson);
-            var dateTimeString = responseJsonObject.getString("localTime");
-            var formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-            var localDateTime = LocalDateTime.parse(dateTimeString, formatter);
-            return localDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
-        } catch (IOException e) {
+            RedisService redisService = RedisService.getInstance();
+            String epochMillisString = redisService.getString(REDIS_KEY);
+            
+            if (epochMillisString == null || epochMillisString.isEmpty()) {
+                return (long) Integer.MIN_VALUE;
+            }
+            
+            return Long.parseLong(epochMillisString);
+        } catch (IllegalStateException e) {
+            // Redis not available
             return (long) Integer.MIN_VALUE;
-        }
-    }
-
-    /**
-     * Reads the last fetched time from a JSON file and converts it to a LocalDateTime object
-     *
-     * @return the LocalDateTime object representing the last fetched time or null if an IOException occurs
-     */
-    public static LocalDateTime loadLasFetchedTimeInDateTimeString() {
-        try {
-            String couponsJson = new String(Files.readAllBytes(Paths.get("fetched_time.json")));
-            var responseJsonObject = new JSONObject(couponsJson);
-            var dateTimeString = responseJsonObject.getString("localTime");
-            var formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-            return LocalDateTime.parse(dateTimeString, formatter);
-        } catch (IOException e) {
-            return null;
+        } catch (NumberFormatException e) {
+            System.err.println("Error parsing last fetch time from Redis (expected epoch milliseconds): " + e.getMessage());
+            return (long) Integer.MIN_VALUE;
+        } catch (Exception e) {
+            // Other errors
+            System.err.println("Error reading last fetch time from Redis: " + e.getMessage());
+            return (long) Integer.MIN_VALUE;
         }
     }
 }

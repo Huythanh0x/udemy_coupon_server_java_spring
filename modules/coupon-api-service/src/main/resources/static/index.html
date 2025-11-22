@@ -481,7 +481,7 @@
             totalCoupons.style.display = 'block';
             totalCoupons.textContent = `Coupons: ${data.totalCoupon}`;
             lastUpdateTime.style.display = 'block';
-            lastUpdateTime.textContent = `Update: ${moment(data.lastFetchTime).add(7, 'hours').fromNow()}`;
+            lastUpdateTime.textContent = `Update: ${moment(data.lastFetchTime).local().fromNow()}`;
 
             setupFilters();
             applyFilters();

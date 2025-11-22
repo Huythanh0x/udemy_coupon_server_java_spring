@@ -7,7 +7,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.domain.Page;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -17,7 +16,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PagedCouponResponseDTO {
-    LocalDateTime lastFetchTime;
+    Long lastFetchTime; // Epoch milliseconds
     Long totalCoupon;
     Integer totalPage;
     Integer currentPage;
@@ -33,6 +32,6 @@ public class PagedCouponResponseDTO {
         this.totalCoupon = courses.getTotalElements();
         this.currentPage = courses.getPageable().getPageNumber();
         this.courses = courses.getContent();
-        this.lastFetchTime = LastFetchTimeManager.loadLasFetchedTimeInDateTimeString();
+        this.lastFetchTime = LastFetchTimeManager.loadLasFetchedTimeInMilliSecond();
     }
 }

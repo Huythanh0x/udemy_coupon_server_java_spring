@@ -17,6 +17,21 @@ services:
     volumes:
       - mysql-data-local:/var/lib/mysql
 
+  redis:
+    image: redis:7-alpine
+    container_name: training-coupon-redis-local
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data-local:/data
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   mysql-data-local:
+  redis-data-local:
 
