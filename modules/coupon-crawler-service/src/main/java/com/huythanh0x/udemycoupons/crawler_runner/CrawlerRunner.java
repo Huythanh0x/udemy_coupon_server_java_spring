@@ -18,6 +18,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -47,6 +48,8 @@ public class CrawlerRunner implements ApplicationRunner {
     Integer refreshMinUsesRemaining;
     @Value("${custom.enable-smart-refresh:true}")
     Boolean enableSmartRefresh;
+    @Value("${custom.batch-processing-size:100}")
+    Integer batchProcessingSize;
 
     /**
      * Executes the method to start the crawler when the application runs.
@@ -127,17 +130,77 @@ public class CrawlerRunner implements ApplicationRunner {
     }
 
     /**
-     * Saves all coupon data by extracting the full coupon code data for each coupon URL provided in the list.
+     * Saves all coupon data by processing URLs in batches sequentially.
+     * Each batch processes URLs concurrently (using numberOfThread), but batches run one after another
+     * to avoid hitting rate limits (429 errors) from Udemy API.
+     * Each batch is saved immediately to the database for faster user visibility.
      *
      * @param allCouponUrls List of URLs containing coupon data to be processed
-     * @param numberOfThread Number of threads to execute concurrently for processing the data
+     * @param numberOfThread Number of threads to execute concurrently within each batch
      */
     private void saveAllCouponData(List<String> allCouponUrls, int numberOfThread) {
-        Set<CouponCourseData> validCoupons = new HashSet<>();
-        Set<String> failedToValidateCouponUrls = new HashSet<>();
-        Set<String> expiredCouponUrls = new HashSet<>();
+        System.out.println("Processing " + allCouponUrls.size() + " URLs in batches of " + batchProcessingSize);
+        
+        Set<String> allExpiredCouponUrls = new HashSet<>();
+        int totalProcessed = 0;
+        
+        while (totalProcessed < allCouponUrls.size()) {
+            List<String> batch = allCouponUrls.stream()
+                    .skip(totalProcessed)
+                    .limit(batchProcessingSize)
+                    .collect(Collectors.toList());
+            
+            System.out.println("Processing batch: " + (totalProcessed + 1) + "-" + 
+                             Math.min(totalProcessed + batchProcessingSize, allCouponUrls.size()) + 
+                             " of " + allCouponUrls.size());
+            
+            BatchResult batchResult = processBatch(batch, numberOfThread);
+            
+            if (!batchResult.validCoupons.isEmpty()) {
+                couponCourseRepository.saveAll(batchResult.validCoupons);
+                System.out.println("✓ Saved " + batchResult.validCoupons.size() + " valid coupons to database");
+            }
+
+            if (!batchResult.expiredCouponUrls.isEmpty()) {
+                List<ExpiredCourseData> batchExpired = batchResult.expiredCouponUrls.stream()
+                        .map(ExpiredCourseData::new)
+                        .collect(Collectors.toList());
+                expiredCouponRepository.saveAll(batchExpired);
+                allExpiredCouponUrls.addAll(batchResult.expiredCouponUrls);
+                System.out.println("✓ Saved " + batchResult.expiredCouponUrls.size() + " expired coupons to database");
+            }
+
+            if (!batchResult.failedToValidateCouponUrls.isEmpty()) {
+                System.out.println("⚠ " + batchResult.failedToValidateCouponUrls.size() + " URLs failed to validate");
+            }
+            
+            totalProcessed += batch.size();
+            System.out.println("Progress: " + totalProcessed + "/" + allCouponUrls.size() + " URLs processed\n");
+        }
+        
+        if (!allExpiredCouponUrls.isEmpty()) {
+            couponCourseRepository.deleteAllCouponsByUrl(allExpiredCouponUrls);
+            System.out.println("✓ Cleaned up " + allExpiredCouponUrls.size() + " expired coupons from main table");
+        }
+        
+        System.out.println("All batches finished. Total processed: " + totalProcessed);
+        LastFetchTimeManager.dumpFetchedTimeJsonToFile();
+    }
+
+    /**
+     * Processes a batch of coupon URLs concurrently and returns the results.
+     *
+     * @param batch List of coupon URLs to process
+     * @param numberOfThread Number of threads to execute concurrently
+     * @return BatchResult containing valid coupons, expired URLs, and failed validations
+     */
+    private BatchResult processBatch(List<String> batch, int numberOfThread) {
+        Set<CouponCourseData> validCoupons = Collections.synchronizedSet(new HashSet<>());
+        Set<String> failedToValidateCouponUrls = Collections.synchronizedSet(new HashSet<>());
+        Set<String> expiredCouponUrls = Collections.synchronizedSet(new HashSet<>());
+        
         ExecutorService executor = Executors.newFixedThreadPool(numberOfThread);
-        for (String couponUrl : allCouponUrls) {
+        for (String couponUrl : batch) {
             executor.submit(() -> {
                 try {
                     CouponCourseData couponCodeData = new UdemyCouponCourseExtractor(couponUrl).getFullCouponCodeData();
@@ -156,24 +219,23 @@ public class CrawlerRunner implements ApplicationRunner {
         while (!executor.isTerminated()) {
             // Wait until all threads are finished
         }
-        System.out.println("All threads finished");
-        LastFetchTimeManager.dumpFetchedTimeJsonToFile();
-        dumpDataToTheDatabase(validCoupons, failedToValidateCouponUrls, expiredCouponUrls);
+        
+        return new BatchResult(validCoupons, failedToValidateCouponUrls, expiredCouponUrls);
     }
 
     /**
-     * Dumps data to the database by saving expired courses, deleting expired coupons,
-     * and saving valid coupons.
-     *
-     * @param validCoupons               Set of valid CouponCourseData to be saved
-     * @param failedToValidateCouponUrls Set of URLs of coupons that failed to validate
-     * @param expiredCouponUrls         Set of URLs of expired coupons
+     * Helper class to hold batch processing results.
      */
-    private void dumpDataToTheDatabase(Set<CouponCourseData> validCoupons, Set<String> failedToValidateCouponUrls, Set<String> expiredCouponUrls) {
-        List<ExpiredCourseData> allExpiredCourses = expiredCouponUrls.stream().map(ExpiredCourseData::new).collect(Collectors.toList());
-        expiredCouponRepository.saveAll(allExpiredCourses);
-        couponCourseRepository.deleteAllCouponsByUrl(expiredCouponUrls);
-        couponCourseRepository.saveAll(validCoupons);
+    private static class BatchResult {
+        final Set<CouponCourseData> validCoupons;
+        final Set<String> failedToValidateCouponUrls;
+        final Set<String> expiredCouponUrls;
+
+        BatchResult(Set<CouponCourseData> validCoupons, Set<String> failedToValidateCouponUrls, Set<String> expiredCouponUrls) {
+            this.validCoupons = validCoupons;
+            this.failedToValidateCouponUrls = failedToValidateCouponUrls;
+            this.expiredCouponUrls = expiredCouponUrls;
+        }
     }
 
     /**
