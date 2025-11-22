@@ -20,3 +20,10 @@ subprojects {
         useJUnitPlatform()
     }
 }
+
+// Simplified task - delegates to a shell script (much less boilerplate)
+tasks.register<Exec>("bootRunLocal") {
+    group = "application"
+    description = "Runs both API service and Crawler service in parallel with local profile"
+    commandLine("bash", "scripts/bootRunLocal.sh")
+}
