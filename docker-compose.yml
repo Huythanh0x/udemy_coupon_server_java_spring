@@ -35,16 +35,17 @@ services:
     networks:
       - app-network
 
-  springboot-app:
+  api-service:
     build:
       context: .
       dockerfile: Dockerfile
       args:
+        - SERVICE_NAME=coupon-api-service
         - GRADLE_USER_HOME=/cache
       cache_from:
-        - training-coupon-springboot:latest
-    image: training-coupon-springboot:latest
-    container_name: training-coupon-springboot
+        - training-coupon-api-service:latest
+    image: training-coupon-api-service:latest
+    container_name: training-coupon-api-service
     depends_on:
       mysql:
         condition: service_healthy
@@ -59,6 +60,37 @@ services:
     restart: always
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - app-network
+
+  crawler-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - SERVICE_NAME=coupon-crawler-service
+        - GRADLE_USER_HOME=/cache
+      cache_from:
+        - training-coupon-crawler-service:latest
+    image: training-coupon-crawler-service:latest
+    container_name: training-coupon-crawler-service
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+    env_file:
+      - .env
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 5
