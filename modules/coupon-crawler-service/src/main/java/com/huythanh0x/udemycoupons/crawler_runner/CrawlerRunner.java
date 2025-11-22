@@ -13,6 +13,9 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Component;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -21,7 +24,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * CrawlerRunner class is responsible for running the web crawlers to fetch and save coupon data.
@@ -36,6 +38,8 @@ public class CrawlerRunner implements ApplicationRunner {
     Integer intervalTime;
     @Value("${custom.number-of-request-thread}")
     Integer numberOfThread;
+    @Value("${custom.recheck-expired-days:3}")
+    Integer recheckExpiredDays;
 
     /**
      * Executes the method to start the crawler when the application runs.
@@ -148,16 +152,43 @@ public class CrawlerRunner implements ApplicationRunner {
     }
 
     /**
-     * Filters out invalid coupon URLs from the given list of new coupon URLs.
-     * Checks for validity by ensuring the coupon URL is not null and not present in the list of expired coupon URLs.
+     * Filters coupon URLs using smart pre-validation
+     * - Skips URLs already in DB (and still valid)
+     * - Re-checks recently expired coupons (last N days) as they may be reactivated
+     * - Skips old expired coupons (> N days)
+     * 
+     * This reduces API calls by avoiding unnecessary fetches for URLs we already know about.
      *
-     * @param newCouponUrls the list of new coupon URLs to filter
-     * @return a list of valid coupon URLs after filtering out invalid ones
+     * @param newCouponUrls the list of new coupon URLs scraped from crawlers
+     * @return a list of coupon URLs that need to be fetched and validated
      */
     private List<String> filterValidCouponUrls(List<String> newCouponUrls) {
-        List<String> allOldCoupons = couponCourseRepository.findAll().stream().map(CouponCourseData::getCouponUrl).toList();
-        List<ExpiredCourseData> allExpiredCoupons = expiredCouponRepository.findAll();
-        Stream<String> combinedStreams = Stream.concat(allOldCoupons.stream(), newCouponUrls.stream());
-        return combinedStreams.filter(couponUrl -> couponUrl != null && !allExpiredCoupons.stream().map(ExpiredCourseData::getCouponUrl).toString().contains(couponUrl)).collect(Collectors.toList());
+        if (newCouponUrls == null || newCouponUrls.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        Set<String> existingCouponUrls = couponCourseRepository.findAllCouponUrls();
+        
+        Set<String> allExpiredUrls = expiredCouponRepository.findAllCouponUrls();
+        
+        LocalDateTime cutoffDate = LocalDateTime.now().minusDays(recheckExpiredDays);
+        Timestamp sinceTimestamp = Timestamp.from(cutoffDate.atZone(ZoneId.systemDefault()).toInstant());
+        
+        Set<String> recentlyExpiredUrls = expiredCouponRepository.findCouponUrlsExpiredInLastDays(sinceTimestamp);
+        return newCouponUrls.stream()
+                .filter(couponUrl -> couponUrl != null && !couponUrl.trim().isEmpty())
+                .filter(couponUrl -> {
+                    if (existingCouponUrls.contains(couponUrl)) {
+                        return false;
+                    }
+                    if (recentlyExpiredUrls.contains(couponUrl)) {
+                        return true;
+                    }
+                    if (allExpiredUrls.contains(couponUrl)) {
+                        return false;
+                    }
+                    return true;
+                })
+                .collect(Collectors.toList());
     }
 }

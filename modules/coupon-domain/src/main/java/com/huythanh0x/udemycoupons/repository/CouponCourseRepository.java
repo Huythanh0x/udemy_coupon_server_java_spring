@@ -29,4 +29,13 @@ public interface CouponCourseRepository extends JpaRepository<CouponCourseData, 
     @Modifying
     @Transactional
     void deleteByCouponUrl(String couponUrl);
+
+    /**
+     * Efficiently retrieves all coupon URLs without loading full entities.
+     * Used for pre-validation to avoid fetching URLs already in database.
+     *
+     * @return Set of all coupon URLs currently in the database
+     */
+    @Query("SELECT c.couponUrl FROM CouponCourseData c WHERE c.couponUrl IS NOT NULL")
+    Set<String> findAllCouponUrls();
 }
