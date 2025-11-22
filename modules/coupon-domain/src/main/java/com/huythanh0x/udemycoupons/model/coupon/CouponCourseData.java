@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Entity
@@ -32,7 +33,8 @@ public class CouponCourseData {
     private String couponCode;
     private String previewImage;
     private String couponUrl;
-    private String expiredDate;
+    @Column(name = "expired_date", nullable = false)
+    private Instant expiredDate;
     private int usesRemaining;
     private String heading;
     @Column(columnDefinition = "TEXT")

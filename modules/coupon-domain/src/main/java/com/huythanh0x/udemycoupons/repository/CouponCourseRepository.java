@@ -38,4 +38,24 @@ public interface CouponCourseRepository extends JpaRepository<CouponCourseData, 
      */
     @Query("SELECT c.couponUrl FROM CouponCourseData c WHERE c.couponUrl IS NOT NULL")
     Set<String> findAllCouponUrls();
+
+    /**
+     * Finds coupon URLs that need to be refreshed based on expiration date or uses remaining.
+     * Returns coupon URLs for coupons that are:
+     * - Expiring within the specified hours threshold, OR
+     * - Have uses remaining less than the specified minimum
+     * 
+     * Note: expiredDate is now stored as DATETIME, enabling simple and efficient date comparisons.
+     *
+     * @param expirationThresholdHours Hours from now to check expiration (e.g., 2 = expires within 2 hours)
+     * @param minUsesRemaining Minimum uses remaining threshold (e.g., 50 = less than 50 uses)
+     * @return Set of coupon URLs that need to be refreshed
+     */
+    @Query("SELECT c.couponUrl FROM CouponCourseData c WHERE " +
+           "(c.expiredDate <= :expirationThreshold) OR " +
+           "(c.usesRemaining < :minUsesRemaining)")
+    Set<String> findCouponUrlsNeedingRefresh(
+        @Param("expirationThreshold") java.time.Instant expirationThreshold,
+        @Param("minUsesRemaining") int minUsesRemaining
+    );
 }

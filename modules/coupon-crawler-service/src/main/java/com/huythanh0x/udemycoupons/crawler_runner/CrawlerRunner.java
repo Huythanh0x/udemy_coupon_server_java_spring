@@ -14,6 +14,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Component;
 
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -40,6 +41,12 @@ public class CrawlerRunner implements ApplicationRunner {
     Integer numberOfThread;
     @Value("${custom.recheck-expired-days:3}")
     Integer recheckExpiredDays;
+    @Value("${custom.refresh-expiring-hours:2}")
+    Integer refreshExpiringHours;
+    @Value("${custom.refresh-min-uses-remaining:50}")
+    Integer refreshMinUsesRemaining;
+    @Value("${custom.enable-smart-refresh:true}")
+    Boolean enableSmartRefresh;
 
     /**
      * Executes the method to start the crawler when the application runs.
@@ -74,10 +81,28 @@ public class CrawlerRunner implements ApplicationRunner {
                 delayUntilTheNextRound(startTime.get());
                 while (true) {
                     startTime.set(System.currentTimeMillis());
-                    List<String> allCouponUrls = new ArrayList<>();
-                    allCouponUrls.addAll(enextCrawler.getAllCouponUrls());
-                    allCouponUrls.addAll(realDiscountCrawler.getAllCouponUrls());
-                    List<String> filterCouponUrls = filterValidCouponUrls(allCouponUrls);
+                    
+                    List<String> scrapedCouponUrls = new ArrayList<>();
+                    scrapedCouponUrls.addAll(enextCrawler.getAllCouponUrls());
+                    scrapedCouponUrls.addAll(realDiscountCrawler.getAllCouponUrls());
+                    
+                    Set<String> couponsNeedingRefresh = new HashSet<>();
+                    if (enableSmartRefresh) {
+                        Instant expirationThreshold = Instant.now().plusSeconds(refreshExpiringHours * 3600L);
+                        couponsNeedingRefresh = couponCourseRepository.findCouponUrlsNeedingRefresh(
+                            expirationThreshold, 
+                            refreshMinUsesRemaining
+                        );
+                        System.out.println("Found " + couponsNeedingRefresh.size() + 
+                                         " coupons needing refresh (expiring within " + refreshExpiringHours + 
+                                         " hours or uses remaining < " + refreshMinUsesRemaining + ")");
+                    }
+                    
+                    Set<String> allUrlsToProcess = new HashSet<>(scrapedCouponUrls);
+                    allUrlsToProcess.addAll(couponsNeedingRefresh);
+                    
+                    List<String> filterCouponUrls = filterValidCouponUrls(new ArrayList<>(allUrlsToProcess));
+                    
                     saveAllCouponData(filterCouponUrls, numberOfThread);
                     delayUntilTheNextRound(startTime.get());
                 }

@@ -10,6 +10,11 @@ import org.json.JSONObject;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+
 /**
  * A class that extracts Udemy coupon course data from the provided coupon URL.
  */
@@ -127,12 +132,13 @@ public class UdemyCouponCourseExtractor {
         float price = couponJsonObject.optJSONObject("price_text").optJSONObject("data")
                 .optJSONObject("pricing_result").optJSONObject("price").optFloat("amount");
 
-        String expiredDate;
+        Instant expiredDate;
         try {
-            expiredDate = couponJsonObject.optJSONObject("price_text").optJSONObject("data")
+            String expiredDateStr = couponJsonObject.optJSONObject("price_text").optJSONObject("data")
                     .optJSONObject("pricing_result").optJSONObject("campaign").optString("end_time");
+            expiredDate = parseExpiredDate(expiredDateStr);
         } catch (Exception e) {
-            expiredDate = "2030-05-19 17:24:00+00:00";
+            expiredDate = Instant.parse("2030-05-19T17:24:00Z");
         }
 
         String previewImage = couponJsonObject.optJSONObject("sidebar_container").optJSONObject("componentProps")
@@ -148,6 +154,49 @@ public class UdemyCouponCourseExtractor {
         }
 
         return new CouponJsonData(price, expiredDate, previewImage, previewVideo, usesRemaining);
+    }
+
+    /**
+     * Parses an ISO 8601 date string to Instant (UTC).
+     * Handles formats like:
+     * - "2030-05-19 17:24:00+00:00" (Udemy format with space and timezone)
+     * - "2030-05-19T17:24:00Z" (ISO 8601 standard)
+     * - "2030-05-19T17:24:00+00:00" (ISO 8601 with timezone)
+     *
+     * @param dateStr The date string to parse
+     * @return Instant representing the date in UTC
+     */
+    private Instant parseExpiredDate(String dateStr) {
+        if (dateStr == null || dateStr.trim().isEmpty()) {
+            return Instant.parse("2030-05-19T17:24:00Z"); // Default far future
+        }
+
+        try {
+            if (dateStr.contains("T")) {
+                return Instant.parse(dateStr);
+            }
+            
+            // Handle Udemy format: "2030-05-19 17:24:00+00:00" (space instead of T)
+            String normalized = dateStr.trim();
+            if (normalized.contains(" ")) {
+                normalized = normalized.replaceFirst(" ", "T");
+                boolean hasTimezone = normalized.contains("+") || normalized.contains("Z");
+                // Also check for negative timezone (e.g., "-05:00") after position 19
+                if (!hasTimezone && normalized.length() > 19) {
+                    int timezoneStart = normalized.indexOf("-", 19);
+                    hasTimezone = (timezoneStart > 0 && normalized.length() > timezoneStart + 5);
+                }
+                if (!hasTimezone) {
+                    normalized += "Z"; // Assume UTC if no timezone
+                }
+                return Instant.parse(normalized);
+            }
+            
+            return OffsetDateTime.parse(dateStr, DateTimeFormatter.ISO_OFFSET_DATE_TIME).toInstant();
+            
+        } catch (DateTimeParseException e) {
+            return Instant.parse("2030-05-19T17:24:00Z");
+        }
     }
 
     /**
