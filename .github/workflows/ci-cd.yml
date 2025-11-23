@@ -1,0 +1,181 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+env:
+  DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+  DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
+  REGISTRY: docker.io
+  # Single repository for both services (to use only 1 free private repo)
+  BASE_IMAGE_NAME: ${{ secrets.DOCKER_HUB_USERNAME }}/training-coupon-services
+
+jobs:
+  build-and-push:
+    name: Build and Push Docker Images
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      - name: Extract metadata for API service
+        id: meta-api
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.BASE_IMAGE_NAME }}
+          tags: |
+            type=raw,value=api-{{branch}}
+            type=raw,value=api-pr-{{number}},enable={{is_pr}}
+            type=semver,pattern={{version}},value=api-v{{version}}
+            type=semver,pattern={{major}}.{{minor}},value=api-{{major}}.{{minor}}
+            type=sha,prefix=api-{{branch}}-
+            type=raw,value=api-latest,enable={{is_default_branch}}
+
+      - name: Extract metadata for Crawler service
+        id: meta-crawler
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.BASE_IMAGE_NAME }}
+          tags: |
+            type=raw,value=crawler-{{branch}}
+            type=raw,value=crawler-pr-{{number}},enable={{is_pr}}
+            type=semver,pattern={{version}},value=crawler-v{{version}}
+            type=semver,pattern={{major}}.{{minor}},value=crawler-{{major}}.{{minor}}
+            type=sha,prefix=crawler-{{branch}}-
+            type=raw,value=crawler-latest,enable={{is_default_branch}}
+
+      - name: Build and push API service image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          build-args: |
+            SERVICE_NAME=coupon-api-service
+          tags: ${{ steps.meta-api.outputs.tags }}
+          labels: ${{ steps.meta-api.outputs.labels }}
+          cache-from: type=registry,ref=${{ env.BASE_IMAGE_NAME }}:api-buildcache
+          cache-to: type=registry,ref=${{ env.BASE_IMAGE_NAME }}:api-buildcache,mode=max
+
+      - name: Build and push Crawler service image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          build-args: |
+            SERVICE_NAME=coupon-crawler-service
+          tags: ${{ steps.meta-crawler.outputs.tags }}
+          labels: ${{ steps.meta-crawler.outputs.labels }}
+          cache-from: type=registry,ref=${{ env.BASE_IMAGE_NAME }}:crawler-buildcache
+          cache-to: type=registry,ref=${{ env.BASE_IMAGE_NAME }}:crawler-buildcache,mode=max
+
+  deploy:
+    name: Deploy to Proxmox LXC via Cloudflare Tunnel
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install cloudflared
+        run: |
+          # Install cloudflared for Cloudflare Tunnel SSH access
+          wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -O /tmp/cloudflared
+          chmod +x /tmp/cloudflared
+          sudo mv /tmp/cloudflared /usr/local/bin/cloudflared
+          cloudflared --version
+
+      - name: Setup SSH for Cloudflare Tunnel
+        run: |
+          # Create SSH directory
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          
+          # Write SSH private key
+          echo "${{ secrets.PROXMOX_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          
+          # Configure SSH to use cloudflared as ProxyCommand
+          cat >> ~/.ssh/config << EOF
+          Host ${{ secrets.PROXMOX_HOST }}
+            User ${{ secrets.PROXMOX_USER }}
+            IdentityFile ~/.ssh/deploy_key
+            StrictHostKeyChecking no
+            ProxyCommand cloudflared access ssh --hostname %h
+          EOF
+          chmod 600 ~/.ssh/config
+          
+          # If using Service Token (optional, more secure for automation)
+          # Uncomment and set secrets: CLOUDFLARE_ACCESS_CLIENT_ID and CLOUDFLARE_ACCESS_CLIENT_SECRET
+          # ProxyCommand cloudflared access ssh --hostname %h --service-token ${{ secrets.CLOUDFLARE_ACCESS_CLIENT_ID }}:${{ secrets.CLOUDFLARE_ACCESS_CLIENT_SECRET }}
+
+      - name: Deploy to Proxmox LXC via Cloudflare Tunnel
+        run: |
+          # Build deployment script with GitHub Actions variables expanded
+          DEPLOYMENT_PATH="${{ secrets.DEPLOYMENT_PATH || '/opt/training-coupon' }}"
+          DOCKER_HUB_TOKEN="${{ secrets.DOCKER_HUB_TOKEN }}"
+          DOCKER_HUB_USERNAME="${{ secrets.DOCKER_HUB_USERNAME }}"
+          BASE_IMAGE_NAME="${{ env.BASE_IMAGE_NAME }}"
+          BRANCH_NAME="${{ github.ref_name }}"
+          
+          # Execute deployment via SSH through Cloudflare Tunnel
+          ssh ${{ secrets.PROXMOX_HOST }} bash << EOF
+            set -e
+            # Navigate to deployment directory
+            cd ${DEPLOYMENT_PATH}
+            
+            # Login to Docker Hub (if using private repo)
+            echo "${DOCKER_HUB_TOKEN}" | docker login -u "${DOCKER_HUB_USERNAME}" --password-stdin
+            
+            # Pull latest images with service-prefixed tags
+            docker pull ${BASE_IMAGE_NAME}:api-${BRANCH_NAME}
+            docker pull ${BASE_IMAGE_NAME}:crawler-${BRANCH_NAME}
+            
+            # Also pull latest tags if on main branch
+            if [ "${BRANCH_NAME}" = "main" ]; then
+              docker pull ${BASE_IMAGE_NAME}:api-latest || true
+              docker pull ${BASE_IMAGE_NAME}:crawler-latest || true
+            fi
+            
+            # Restart services using production compose file with environment variables
+            BASE_IMAGE_NAME=${BASE_IMAGE_NAME} \
+            API_IMAGE_TAG=api-${BRANCH_NAME} \
+            CRAWLER_IMAGE_TAG=crawler-${BRANCH_NAME} \
+            docker-compose -f docker-compose.prod.yml pull
+            
+            BASE_IMAGE_NAME=${BASE_IMAGE_NAME} \
+            API_IMAGE_TAG=api-${BRANCH_NAME} \
+            CRAWLER_IMAGE_TAG=crawler-${BRANCH_NAME} \
+            docker-compose -f docker-compose.prod.yml up -d
+            
+            # Health check
+            sleep 10
+            docker-compose -f docker-compose.prod.yml ps
+            
+            # Optional: Run database migrations
+            # docker-compose -f docker-compose.prod.yml exec -T api-service ./gradlew flywayMigrate || true
+            
+            # Clean up old images to save space
+            docker image prune -f
+          EOF
+

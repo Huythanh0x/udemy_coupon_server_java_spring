@@ -1,0 +1,101 @@
+version: '3.8'
+
+# Production docker-compose file
+# This file pulls images from Docker Hub instead of building locally
+# Set BASE_IMAGE_NAME environment variable to your Docker Hub repository
+# Example: export BASE_IMAGE_NAME=yourusername/training-coupon-services
+
+services:
+  mysql:
+    image: mysql:8.3.0
+    container_name: training-coupon-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-password}
+      MYSQL_DATABASE: training_coupon
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    restart: always
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      timeout: 20s
+      retries: 10
+    networks:
+      - app-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: training-coupon-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: always
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+  api-service:
+    # Pull from Docker Hub using service-prefixed tag
+    # Format: {BASE_IMAGE_NAME}:api-{branch}
+    # Example: username/training-coupon-services:api-main
+    image: ${BASE_IMAGE_NAME:-yourusername/training-coupon-services}:${API_IMAGE_TAG:-api-main}
+    container_name: training-coupon-api-service
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+    env_file:
+      - .env
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - app-network
+
+  crawler-service:
+    # Pull from Docker Hub using service-prefixed tag
+    # Format: {BASE_IMAGE_NAME}:crawler-{branch}
+    # Example: username/training-coupon-services:crawler-main
+    image: ${BASE_IMAGE_NAME:-yourusername/training-coupon-services}:${CRAWLER_IMAGE_TAG:-crawler-main}
+    container_name: training-coupon-crawler-service
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+    env_file:
+      - .env
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - app-network
+
+volumes:
+  mysql-data:
+  redis-data:
+
+networks:
+  app-network:
+    driver: bridge
