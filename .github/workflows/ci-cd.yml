@@ -88,94 +88,63 @@ jobs:
           cache-to: type=registry,ref=${{ env.BASE_IMAGE_NAME }}:crawler-buildcache,mode=max
 
   deploy:
-    name: Deploy to Proxmox LXC via Cloudflare Tunnel
+    name: Deploy via Webhook
     needs: build-and-push
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
     
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Install cloudflared
+      - name: Deploy via Webhook
+        id: deploy
         run: |
-          # Install cloudflared for Cloudflare Tunnel SSH access
-          wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -O /tmp/cloudflared
-          chmod +x /tmp/cloudflared
-          sudo mv /tmp/cloudflared /usr/local/bin/cloudflared
-          cloudflared --version
-
-      - name: Setup SSH for Cloudflare Tunnel
-        run: |
-          # Create SSH directory
-          mkdir -p ~/.ssh
-          chmod 700 ~/.ssh
-          
-          # Write SSH private key
-          echo "${{ secrets.PROXMOX_SSH_KEY }}" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          
-          # Configure SSH to use cloudflared as ProxyCommand
-          cat >> ~/.ssh/config << EOF
-          Host ${{ secrets.PROXMOX_HOST }}
-            User ${{ secrets.PROXMOX_USER }}
-            IdentityFile ~/.ssh/deploy_key
-            StrictHostKeyChecking no
-            ProxyCommand cloudflared access ssh --hostname %h
-          EOF
-          chmod 600 ~/.ssh/config
-          
-          # If using Service Token (optional, more secure for automation)
-          # Uncomment and set secrets: CLOUDFLARE_ACCESS_CLIENT_ID and CLOUDFLARE_ACCESS_CLIENT_SECRET
-          # ProxyCommand cloudflared access ssh --hostname %h --service-token ${{ secrets.CLOUDFLARE_ACCESS_CLIENT_ID }}:${{ secrets.CLOUDFLARE_ACCESS_CLIENT_SECRET }}
-
-      - name: Deploy to Proxmox LXC via Cloudflare Tunnel
-        run: |
-          # Build deployment script with GitHub Actions variables expanded
-          DEPLOYMENT_PATH="${{ secrets.DEPLOYMENT_PATH || '/opt/training-coupon' }}"
-          DOCKER_HUB_TOKEN="${{ secrets.DOCKER_HUB_TOKEN }}"
-          DOCKER_HUB_USERNAME="${{ secrets.DOCKER_HUB_USERNAME }}"
-          BASE_IMAGE_NAME="${{ env.BASE_IMAGE_NAME }}"
+          # Prepare deployment payload
           BRANCH_NAME="${{ github.ref_name }}"
+          API_IMAGE_TAG="api-${BRANCH_NAME}"
+          CRAWLER_IMAGE_TAG="crawler-${BRANCH_NAME}"
+          BASE_IMAGE_NAME="${{ env.BASE_IMAGE_NAME }}"
+          WEBHOOK_URL="${{ secrets.WEBHOOK_URL }}"
+          WEBHOOK_SECRET="${{ secrets.WEBHOOK_SECRET_KEY }}"
           
-          # Execute deployment via SSH through Cloudflare Tunnel
-          ssh ${{ secrets.PROXMOX_HOST }} bash << EOF
-            set -e
-            # Navigate to deployment directory
-            cd ${DEPLOYMENT_PATH}
-            
-            # Login to Docker Hub (if using private repo)
-            echo "${DOCKER_HUB_TOKEN}" | docker login -u "${DOCKER_HUB_USERNAME}" --password-stdin
-            
-            # Pull latest images with service-prefixed tags
-            docker pull ${BASE_IMAGE_NAME}:api-${BRANCH_NAME}
-            docker pull ${BASE_IMAGE_NAME}:crawler-${BRANCH_NAME}
-            
-            # Also pull latest tags if on main branch
-            if [ "${BRANCH_NAME}" = "main" ]; then
-              docker pull ${BASE_IMAGE_NAME}:api-latest || true
-              docker pull ${BASE_IMAGE_NAME}:crawler-latest || true
-            fi
-            
-            # Restart services using production compose file with environment variables
-            BASE_IMAGE_NAME=${BASE_IMAGE_NAME} \
-            API_IMAGE_TAG=api-${BRANCH_NAME} \
-            CRAWLER_IMAGE_TAG=crawler-${BRANCH_NAME} \
-            docker-compose -f docker-compose.prod.yml pull
-            
-            BASE_IMAGE_NAME=${BASE_IMAGE_NAME} \
-            API_IMAGE_TAG=api-${BRANCH_NAME} \
-            CRAWLER_IMAGE_TAG=crawler-${BRANCH_NAME} \
-            docker-compose -f docker-compose.prod.yml up -d
-            
-            # Health check
-            sleep 10
-            docker-compose -f docker-compose.prod.yml ps
-            
-            # Optional: Run database migrations
-            # docker-compose -f docker-compose.prod.yml exec -T api-service ./gradlew flywayMigrate || true
-            
-            # Clean up old images to save space
-            docker image prune -f
-          EOF
+          # Call webhook endpoint
+          echo "Calling deployment webhook..."
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "${WEBHOOK_URL}/deploy" \
+            -H "Content-Type: application/json" \
+            -H "X-Webhook-Secret: ${WEBHOOK_SECRET}" \
+            -d "{
+              \"branch\": \"${BRANCH_NAME}\",
+              \"apiImageTag\": \"${API_IMAGE_TAG}\",
+              \"crawlerImageTag\": \"${CRAWLER_IMAGE_TAG}\",
+              \"baseImageName\": \"${BASE_IMAGE_NAME}\"
+            }")
+          
+          # Extract HTTP status code and body
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+          
+          # Display response
+          echo "HTTP Status: $HTTP_CODE"
+          echo "Response: $BODY"
+          
+          # Parse response
+          SUCCESS=$(echo "$BODY" | grep -o '"success":[^,]*' | cut -d':' -f2 | tr -d ' ')
+          
+          if [ "$HTTP_CODE" != "200" ] || [ "$SUCCESS" != "true" ]; then
+            echo "Deployment failed!"
+            echo "$BODY" | jq '.' || echo "$BODY"
+            exit 1
+          fi
+          
+          # Display deployment details
+          echo "$BODY" | jq -r '.details.steps[] | "\(.step): \(.status)"' || echo "$BODY"
+          
+          # Set output for other steps
+          echo "deployment_success=true" >> $GITHUB_OUTPUT
+          
+      - name: Display Deployment Summary
+        if: steps.deploy.outputs.deployment_success == 'true'
+        run: |
+          echo "✅ Deployment completed successfully!"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "API Image: ${{ env.BASE_IMAGE_NAME }}:api-${{ github.ref_name }}"
+          echo "Crawler Image: ${{ env.BASE_IMAGE_NAME }}:crawler-${{ github.ref_name }}"
 
