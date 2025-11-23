@@ -20,5 +20,11 @@ dependencies {
     implementation("com.mysql:mysql-connector-j:8.3.0")
     implementation("org.jsoup:jsoup:1.15.4")
     implementation("org.json:json:20231013")
+    
+    // Test dependencies
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("com.h2database:h2")
+    testImplementation("org.mockito:mockito-core")
+    testImplementation("org.mockito:mockito-junit-jupiter")
 }
 
