@@ -160,19 +160,55 @@ async function deployServices({ branch, apiImageTag, crawlerImageTag, baseImageN
     // Step 5: Start services with new images
     results.steps.push({ step: 'start_services', status: 'started' });
     try {
-      const envVars = {
+      // Only include specific environment variables needed for docker-compose
+      // Filter out PM2 internal variables and non-string values
+      const allowedEnvVars = [
+        'BASE_IMAGE_NAME',
+        'API_IMAGE_TAG',
+        'CRAWLER_IMAGE_TAG',
+        'SPRING_PROFILES_ACTIVE',
+        'SPRING_DATASOURCE_PASSWORD',
+        'SPRING_DATASOURCE_USERNAME',
+        'SPRING_SECURITY_USER_NAME',
+        'SPRING_SECURITY_USER_PASSWORD',
+        'CUSTOM_JWT_SECRET',
+        'CUSTOM_JWT_EXPIRATION',
+        'SPRING_DATA_REDIS_PASSWORD',
+        'PATH',
+        'HOME',
+        'USER'
+      ];
+
+      // Create a clean environment object with only necessary variables
+      const cleanEnv = {
         BASE_IMAGE_NAME: baseImageName,
         API_IMAGE_TAG: apiImageTag,
         CRAWLER_IMAGE_TAG: crawlerImageTag,
-        ...process.env
       };
 
-      const envString = Object.entries(envVars)
-        .map(([key, value]) => `${key}=${value}`)
-        .join(' ');
+      // Add allowed environment variables from process.env (only strings, no PM2 vars)
+      // Exclude PM2 variables that might have object values or special characters
+      const pm2Patterns = /^(PM_|pm_|NODE_APP_INSTANCE|exec_mode|exec_interpreter|instances|name|filter_env|namespace|merge_logs|vizion|autostart|autorestart|watch|instance_var|pmx|automation|treekill|username|windowsHide|kill_retry_time|prev_restart_delay|axm_|vizion_|km_)/i;
+      
+      allowedEnvVars.forEach(key => {
+        const value = process.env[key];
+        if (value !== undefined && 
+            typeof value === 'string' && 
+            !pm2Patterns.test(key) &&
+            !value.includes('[object Object]')) {
+          cleanEnv[key] = value;
+        }
+      });
 
-      const startCmd = `${envString} docker-compose -f docker-compose.prod.yml up -d`;
-      const { stdout, stderr } = await execAsync(startCmd);
+      // Always include PATH for docker/docker-compose to work
+      if (!cleanEnv.PATH) {
+        cleanEnv.PATH = process.env.PATH || '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin';
+      }
+
+      const startCmd = 'docker-compose -f docker-compose.prod.yml up -d';
+      const { stdout, stderr } = await execAsync(startCmd, {
+        env: cleanEnv
+      });
       
       results.steps.push({ 
         step: 'start_services', 
