@@ -42,11 +42,11 @@ jobs:
           images: ${{ env.BASE_IMAGE_NAME }}
           tags: |
             type=raw,value=api-{{branch}}
-            type=raw,value=api-pr-{{number}},enable={{is_pr}}
-            type=semver,pattern={{version}},value=api-v{{version}}
-            type=semver,pattern={{major}}.{{minor}},value=api-{{major}}.{{minor}}
-            type=sha,prefix=api-{{branch}}-
-            type=raw,value=api-latest,enable={{is_default_branch}}
+            type=raw,value=api-pr-{{number}},enable=${{ github.event_name == 'pull_request' }}
+            type=semver,pattern={{version}},value=api-v{{version}},enable=${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') }}
+            type=semver,pattern={{major}}.{{minor}},value=api-{{major}}.{{minor}},enable=${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') }}
+            type=sha,prefix=api-{{branch}}-,format=short
+            type=raw,value=api-latest,enable=${{ github.ref == 'refs/heads/main' }}
 
       - name: Extract metadata for Crawler service
         id: meta-crawler
@@ -55,11 +55,11 @@ jobs:
           images: ${{ env.BASE_IMAGE_NAME }}
           tags: |
             type=raw,value=crawler-{{branch}}
-            type=raw,value=crawler-pr-{{number}},enable={{is_pr}}
-            type=semver,pattern={{version}},value=crawler-v{{version}}
-            type=semver,pattern={{major}}.{{minor}},value=crawler-{{major}}.{{minor}}
-            type=sha,prefix=crawler-{{branch}}-
-            type=raw,value=crawler-latest,enable={{is_default_branch}}
+            type=raw,value=crawler-pr-{{number}},enable=${{ github.event_name == 'pull_request' }}
+            type=semver,pattern={{version}},value=crawler-v{{version}},enable=${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') }}
+            type=semver,pattern={{major}}.{{minor}},value=crawler-{{major}}.{{minor}},enable=${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') }}
+            type=sha,prefix=crawler-{{branch}}-,format=short
+            type=raw,value=crawler-latest,enable=${{ github.ref == 'refs/heads/main' }}
 
       - name: Build and push API service image
         uses: docker/build-push-action@v5
