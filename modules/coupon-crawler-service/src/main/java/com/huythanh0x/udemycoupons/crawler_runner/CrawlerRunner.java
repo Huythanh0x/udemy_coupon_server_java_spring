@@ -13,10 +13,8 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Component;
 
-import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -259,9 +257,8 @@ public class CrawlerRunner implements ApplicationRunner {
         Set<String> allExpiredUrls = expiredCouponRepository.findAllCouponUrls();
         
         LocalDateTime cutoffDate = LocalDateTime.now().minusDays(recheckExpiredDays);
-        Timestamp sinceTimestamp = Timestamp.from(cutoffDate.atZone(ZoneId.systemDefault()).toInstant());
         
-        Set<String> recentlyExpiredUrls = expiredCouponRepository.findCouponUrlsExpiredInLastDays(sinceTimestamp);
+        Set<String> recentlyExpiredUrls = expiredCouponRepository.findCouponUrlsExpiredInLastDays(cutoffDate);
         return newCouponUrls.stream()
                 .filter(couponUrl -> couponUrl != null && !couponUrl.trim().isEmpty())
                 .filter(couponUrl -> {

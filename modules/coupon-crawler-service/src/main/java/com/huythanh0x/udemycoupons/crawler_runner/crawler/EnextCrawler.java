@@ -3,6 +3,8 @@ package com.huythanh0x.udemycoupons.crawler_runner.crawler;
 
 import com.huythanh0x.udemycoupons.crawler_runner.base.CouponUrlCrawlerBase;
 import com.huythanh0x.udemycoupons.crawler_runner.fetcher.WebContentFetcher;
+import com.huythanh0x.udemycoupons.model.coupon.ScrapedUrlMapping;
+import com.huythanh0x.udemycoupons.repository.ScrapedUrlMappingRepository;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -28,14 +30,76 @@ public class EnextCrawler extends CouponUrlCrawlerBase {
 
     private final int maxCouponRequest;
     private final int numberOfThreads;
+    private final ScrapedUrlMappingRepository scrapedUrlMappingRepository;
+    private static final String CRAWLER_SOURCE = "enext";
 
     EnextCrawler(
             @Value("${custom.number-of-enext-coupon}") int maxCouponRequest,
-            @Value("${custom.number-of-request-thread}") int numberOfThreads) {
+            @Value("${custom.number-of-request-thread}") int numberOfThreads,
+            ScrapedUrlMappingRepository scrapedUrlMappingRepository) {
         this.maxCouponRequest = maxCouponRequest;
         this.numberOfThreads = numberOfThreads;
+        this.scrapedUrlMappingRepository = scrapedUrlMappingRepository;
     }
 
+    /**
+     * Maps a scraped Enext detail page URL to its corresponding Udemy coupon URL.
+     * First checks the mapping repository cache to avoid unnecessary API calls.
+     * If not found in cache, fetches the detail page and extracts the coupon URL.
+     * 
+     * This is an internal method used only within EnextCrawler.
+     *
+     * @param scrapedUrl The Enext detail page URL
+     * @return The Udemy coupon URL, or null if extraction fails
+     */
+    private String mapScrapedUrlToCouponUrl(String scrapedUrl) {
+        if (scrapedUrl == null || scrapedUrl.trim().isEmpty()) {
+            return null;
+        }
+        
+        if (scrapedUrl.startsWith("https://www.udemy.com") || scrapedUrl.startsWith("https://udemy.com/")) {
+            return scrapedUrl;
+        }
+        
+        ScrapedUrlMapping existingMapping = scrapedUrlMappingRepository.findByScrapedUrl(scrapedUrl);
+        if (existingMapping != null) {
+            return existingMapping.getCouponUrl();
+        }
+        
+        return extractCouponUrlFromDetailPage(scrapedUrl);
+    }
+
+    private String extractCouponUrlFromDetailPage(String scrapedUrl) {
+        try {
+            WebContentFetcher fetcher = new WebContentFetcher();
+            Document detailDoc = fetcher.getHtmlDocumentFrom(scrapedUrl);
+            if (detailDoc == null) {
+                return null;
+            }
+            
+            Element couponAnchor = detailDoc.selectFirst("a.btn.btn-primary[href*='udemy.com']");
+            if (couponAnchor == null) {
+                couponAnchor = detailDoc.selectFirst("a[href*='udemy.com/?couponCode=']");
+            }
+            
+            if (couponAnchor != null) {
+                String udemyUrl = couponAnchor.attr("href").trim();
+                if (!udemyUrl.isEmpty()) {
+                    ScrapedUrlMapping mapping = ScrapedUrlMapping.builder()
+                        .scrapedUrl(scrapedUrl)
+                        .couponUrl(udemyUrl)
+                        .crawlerSource(CRAWLER_SOURCE)
+                        .build();
+                    scrapedUrlMappingRepository.save(mapping);
+                    return udemyUrl;
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Error mapping scraped URL to coupon URL: " + e.getMessage());
+        }
+        return null;
+    }
+    
     /**
      * Retrieves all coupon URLs using a producer-consumer pattern:
      * - Producers: Fetch list pages concurrently and extract detail URLs
@@ -79,27 +143,14 @@ public class EnextCrawler extends CouponUrlCrawlerBase {
                                 break;
                             }
                             
-                            Document detailDoc = fetcher.getHtmlDocumentFrom(detailUrl);
-                            if (detailDoc == null) {
-                                System.out.println("Failed to fetch detail page: " + detailUrl);
-                                continue;
-                            }
-                            
-                            Element couponAnchor = detailDoc.selectFirst("a.btn.btn-primary[href*='udemy.com']");
-                            if (couponAnchor == null) {
-                                couponAnchor = detailDoc.selectFirst("a[href*='udemy.com/?couponCode=']");
-                            }
-                            
-                            if (couponAnchor != null) {
-                                String udemyUrl = couponAnchor.attr("href").trim();
-                                if (!udemyUrl.isEmpty()) {
-                                    synchronized (allUrls) {
-                                        if (collectedCount.get() < maxCouponRequest) {
-                                            allUrls.add(udemyUrl);
-                                            int current = collectedCount.incrementAndGet();
-                                            if (current >= maxCouponRequest) {
-                                                enoughCouponsCollected.set(true);
-                                            }
+                            String udemyUrl = mapScrapedUrlToCouponUrl(detailUrl);
+                            if (udemyUrl != null && !udemyUrl.isEmpty()) {
+                                synchronized (allUrls) {
+                                    if (collectedCount.get() < maxCouponRequest) {
+                                        allUrls.add(udemyUrl);
+                                        int current = collectedCount.incrementAndGet();
+                                        if (current >= maxCouponRequest) {
+                                            enoughCouponsCollected.set(true);
                                         }
                                     }
                                 }

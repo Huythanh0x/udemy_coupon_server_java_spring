@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Set;
 
 @Repository
@@ -24,10 +24,11 @@ public interface ExpiredCouponRepository extends JpaRepository<ExpiredCourseData
     /**
      * Retrieves coupon URLs that were marked as expired within the last N days.
      * These coupons may be reactivated, so they should be re-checked.
+     * Uses createdAt field for consistency with other entities.
      *
      * @param sinceDate The timestamp threshold (current time - N days)
      * @return Set of coupon URLs expired in the last N days
      */
-    @Query("SELECT e.couponUrl FROM ExpiredCourseData e WHERE e.timeStamp >= :sinceDate AND e.couponUrl IS NOT NULL")
-    Set<String> findCouponUrlsExpiredInLastDays(@Param("sinceDate") Timestamp sinceDate);
+    @Query("SELECT e.couponUrl FROM ExpiredCourseData e WHERE e.createdAt >= :sinceDate AND e.couponUrl IS NOT NULL")
+    Set<String> findCouponUrlsExpiredInLastDays(@Param("sinceDate") LocalDateTime sinceDate);
 }

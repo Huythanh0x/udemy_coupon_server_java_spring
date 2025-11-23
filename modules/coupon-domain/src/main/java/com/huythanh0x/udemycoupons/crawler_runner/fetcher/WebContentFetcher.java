@@ -21,31 +21,60 @@ public class WebContentFetcher {
      * Retrieves a JSONObject from a given URL by reading the raw HTML content and converting it into a JSONObject.
      *
      * @param urlString the URL from which to retrieve the JSON object
-     * @return the JSONObject obtained from the URL
+     * @return the JSONObject obtained from the URL, or null if the request failed or timed out
      */
     public static JSONObject getJsonObjectFrom(String urlString) {
-        return new JSONObject(getRawHTMLContentFrom(urlString));
+        String content = getRawHTMLContentFrom(urlString);
+        if (content == null || content.trim().isEmpty()) {
+            System.out.println("Warning: Failed to fetch content from " + urlString + ", returning null");
+            return null;
+        }
+        try {
+            return new JSONObject(content);
+        } catch (Exception e) {
+            System.out.println("Error parsing JSON from " + urlString + ": " + e.getMessage());
+            return null;
+        }
     }
 
     /**
      * Retrieves raw HTML content from a specified URL and converts it into a JSONArray object.
      *
      * @param urlString the URL from which to retrieve the raw HTML content
-     * @return a JSONArray object containing the parsed raw HTML content
+     * @return a JSONArray object containing the parsed raw HTML content, or null if the request failed
      */
     public JSONArray getJsonArrayFrom(String urlString) {
         String rawHtml = getRawHTMLContentFrom(urlString);
-        return new JSONArray(rawHtml);
+        if (rawHtml == null || rawHtml.trim().isEmpty()) {
+            System.out.println("Warning: Failed to fetch content from " + urlString + ", returning null");
+            return null;
+        }
+        try {
+            return new JSONArray(rawHtml);
+        } catch (Exception e) {
+            System.out.println("Error parsing JSON array from " + urlString + ": " + e.getMessage());
+            return null;
+        }
     }
 
     /**
      * Retrieves the raw HTML content from a specified URL and parses it into an HTML Document using Jsoup.
      *
      * @param urlString the URL of the webpage to retrieve HTML content from
-     * @return an HTML Document parsed from the raw HTML content of the specified URL
+     * @return an HTML Document parsed from the raw HTML content of the specified URL, or null if the request failed
      */
     public Document getHtmlDocumentFrom(String urlString) {
-        return Jsoup.parse(getRawHTMLContentFrom(urlString));
+        String rawHtml = getRawHTMLContentFrom(urlString);
+        if (rawHtml == null || rawHtml.trim().isEmpty()) {
+            System.out.println("Warning: Failed to fetch content from " + urlString + ", returning null");
+            return null;
+        }
+        try {
+            return Jsoup.parse(rawHtml);
+        } catch (Exception e) {
+            System.out.println("Error parsing HTML from " + urlString + ": " + e.getMessage());
+            return null;
+        }
     }
 
     /**

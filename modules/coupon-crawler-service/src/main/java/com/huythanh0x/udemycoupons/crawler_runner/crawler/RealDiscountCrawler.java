@@ -55,9 +55,19 @@ public class RealDiscountCrawler extends CouponUrlCrawlerBase {
      * Fetches a JSONArray from a given API URL.
      *
      * @param apiUrl the URL of the API to fetch the JSON data from
-     * @return a JSONArray containing the results fetched from the API
+     * @return a JSONArray containing the results fetched from the API, or an empty JSONArray if the request failed
      */
     public JSONArray fetchListJsonFromAPI(String apiUrl) {
-        return new JSONArray(WebContentFetcher.getJsonObjectFrom(apiUrl).getJSONArray("items"));
+        JSONObject jsonObject = WebContentFetcher.getJsonObjectFrom(apiUrl);
+        if (jsonObject == null) {
+            System.out.println("Warning: Failed to fetch JSON from " + apiUrl + ", returning empty array");
+            return new JSONArray();
+        }
+        try {
+            return jsonObject.getJSONArray("items");
+        } catch (Exception e) {
+            System.out.println("Error extracting 'items' array from JSON: " + e.getMessage());
+            return new JSONArray();
+        }
     }
 }
