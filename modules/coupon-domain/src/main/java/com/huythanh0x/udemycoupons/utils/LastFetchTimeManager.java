@@ -1,6 +1,8 @@
 package com.huythanh0x.udemycoupons.utils;
 
 import com.huythanh0x.udemycoupons.service.RedisService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -11,6 +13,7 @@ import java.time.ZoneId;
  * Stores time as epoch milliseconds for consistency and performance.
  */
 public class LastFetchTimeManager {
+    private static final Logger log = LoggerFactory.getLogger(LastFetchTimeManager.class);
     
     private static final String REDIS_KEY = Constant.REDIS_KEY_LAST_FETCH_TIME;
     
@@ -23,11 +26,11 @@ public class LastFetchTimeManager {
             RedisService redisService = RedisService.getInstance();
             long epochMillis = System.currentTimeMillis();
             redisService.set(REDIS_KEY, String.valueOf(epochMillis));
-            System.out.println("✓ Last fetch time saved to Redis: " + epochMillis + " (" + 
-                LocalDateTime.ofInstant(Instant.ofEpochMilli(epochMillis), ZoneId.systemDefault()) + ")");
+            log.info("Last fetch time saved to Redis: {} ({})",
+                    epochMillis, LocalDateTime.ofInstant(Instant.ofEpochMilli(epochMillis), ZoneId.systemDefault()));
         } catch (IllegalStateException e) {
             // Redis not available
-            System.err.println("Warning: Redis not available, cannot save fetch time. " + e.getMessage());
+            log.warn("Redis not available, cannot save fetch time: {}", e.getMessage());
         }
     }
 
@@ -52,11 +55,11 @@ public class LastFetchTimeManager {
             // Redis not available
             return (long) Integer.MIN_VALUE;
         } catch (NumberFormatException e) {
-            System.err.println("Error parsing last fetch time from Redis (expected epoch milliseconds): " + e.getMessage());
+            log.error("Error parsing last fetch time from Redis (expected epoch milliseconds): {}", e.getMessage());
             return (long) Integer.MIN_VALUE;
         } catch (Exception e) {
             // Other errors
-            System.err.println("Error reading last fetch time from Redis: " + e.getMessage());
+            log.error("Error reading last fetch time from Redis: {}", e.getMessage());
             return (long) Integer.MIN_VALUE;
         }
     }

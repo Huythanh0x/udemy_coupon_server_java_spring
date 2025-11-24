@@ -8,6 +8,8 @@ import com.huythanh0x.udemycoupons.model.coupon.CouponCourseHistory;
 import com.huythanh0x.udemycoupons.repository.CouponCourseHistoryRepository;
 import com.huythanh0x.udemycoupons.repository.CouponCourseRepository;
 import com.huythanh0x.udemycoupons.repository.ExpiredCouponRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class CourseResponseService {
+    private static final Logger log = LoggerFactory.getLogger(CourseResponseService.class);
     private final CouponCourseRepository couponCourseRepository;
     private final ExpiredCouponRepository expiredCouponRepository;
     private final CouponCourseHistoryRepository couponCourseHistoryRepository;
@@ -135,6 +138,7 @@ public class CourseResponseService {
             Integer.parseInt(pageIndex);
             Integer.parseInt(numberPerPage);
         } catch (Exception e) {
+            log.warn("Invalid paging parameters pageIndex={}, numberPerPage={}", pageIndex, numberPerPage, e);
             throw new BadRequestException(e.toString());
         }
         if (Integer.parseInt(pageIndex) < 0 || Integer.parseInt(numberPerPage) < 0) {

@@ -4,6 +4,8 @@ import com.huythanh0x.udemycoupons.crawler_runner.base.CouponUrlCrawlerBase;
 import com.huythanh0x.udemycoupons.crawler_runner.fetcher.WebContentFetcher;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -15,6 +17,7 @@ import java.util.List;
  */
 @Component
 public class RealDiscountCrawler extends CouponUrlCrawlerBase {
+    private static final Logger log = LoggerFactory.getLogger(RealDiscountCrawler.class);
     int maxCouponRequest;
     String apiUrl;
 
@@ -36,7 +39,7 @@ public class RealDiscountCrawler extends CouponUrlCrawlerBase {
             JSONObject jsonObject = (JSONObject) jo;
             allUrls.add(extractCouponUrl(jsonObject));
         }
-        System.out.println("Realdiscount jsonArray length: " + jsonArray.length() + " maxCouponRequest: " + maxCouponRequest);
+        log.info("Fetched {} coupons from RealDiscount (requested {})", jsonArray.length(), maxCouponRequest);
         return allUrls;
     }
 
@@ -60,13 +63,13 @@ public class RealDiscountCrawler extends CouponUrlCrawlerBase {
     public JSONArray fetchListJsonFromAPI(String apiUrl) {
         JSONObject jsonObject = WebContentFetcher.getJsonObjectFrom(apiUrl);
         if (jsonObject == null) {
-            System.out.println("Warning: Failed to fetch JSON from " + apiUrl + ", returning empty array");
+            log.warn("Failed to fetch JSON from {}, returning empty array", apiUrl);
             return new JSONArray();
         }
         try {
             return jsonObject.getJSONArray("items");
         } catch (Exception e) {
-            System.out.println("Error extracting 'items' array from JSON: " + e.getMessage());
+            log.warn("Error extracting 'items' array from JSON: {}", e.getMessage());
             return new JSONArray();
         }
     }

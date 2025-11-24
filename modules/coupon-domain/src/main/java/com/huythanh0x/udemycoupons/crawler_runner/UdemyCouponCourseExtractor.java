@@ -9,6 +9,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -19,6 +21,7 @@ import java.time.format.DateTimeParseException;
  * A class that extracts Udemy coupon course data from the provided coupon URL.
  */
 public class UdemyCouponCourseExtractor {
+    private static final Logger log = LoggerFactory.getLogger(UdemyCouponCourseExtractor.class);
     private final String couponUrl;
     private int courseId = 0;
     private String couponCode = "";
@@ -66,15 +69,24 @@ public class UdemyCouponCourseExtractor {
      */
     private int extractCourseId() {
         Document document = new WebContentFetcher().getHtmlDocumentFrom(couponUrl);
+        if (document == null || document.body() == null) {
+            log.warn("Unable to load document for coupon URL {}", couponUrl);
+            return -1;
+        }
         try {
             return Integer.parseInt(document.body().attr("data-clp-course-id"));
         } catch (Exception e) {
             Element udemyId = document.getElementById("udemy");
             if (udemyId != null) {
-                return Integer.parseInt(udemyId.attr("data-clp-course-id"));
+                try {
+                    return Integer.parseInt(udemyId.attr("data-clp-course-id"));
+                } catch (NumberFormatException nfe) {
+                    log.warn("Failed to parse course id from udemy element for {}: {}", couponUrl, nfe.getMessage());
+                }
             } else {
-                return -1;
+                log.warn("Course id not found in document for {}", couponUrl);
             }
+            return -1;
         }
     }
 
@@ -85,7 +97,15 @@ public class UdemyCouponCourseExtractor {
      * @return the extracted coupon code
      */
     private String extractCouponCode() {
-        return couponUrl.split("/?couponCode=")[1];
+        try {
+            String[] parts = couponUrl.split("/?couponCode=");
+            if (parts.length > 1) {
+                return parts[1];
+            }
+        } catch (Exception e) {
+            log.warn("Failed to extract coupon code from URL {}: {}", couponUrl, e.getMessage());
+        }
+        return "";
     }
 
     /**
@@ -166,6 +186,7 @@ public class UdemyCouponCourseExtractor {
                     .optJSONObject("pricing_result").optJSONObject("campaign").optString("end_time");
             expiredDate = parseExpiredDate(expiredDateStr);
         } catch (Exception e) {
+            log.warn("Failed to parse expired date for {}: {}", couponUrl, e.getMessage());
             expiredDate = Instant.parse("2030-05-19T17:24:00Z");
         }
 
@@ -223,6 +244,7 @@ public class UdemyCouponCourseExtractor {
             return OffsetDateTime.parse(dateStr, DateTimeFormatter.ISO_OFFSET_DATE_TIME).toInstant();
             
         } catch (DateTimeParseException e) {
+            log.debug("Failed to parse expired date string '{}', defaulting far future", dateStr, e);
             return Instant.parse("2030-05-19T17:24:00Z");
         }
     }

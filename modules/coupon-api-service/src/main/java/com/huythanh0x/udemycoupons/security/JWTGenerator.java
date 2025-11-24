@@ -3,6 +3,8 @@ package com.huythanh0x.udemycoupons.security;
 import com.huythanh0x.udemycoupons.exception.BadRequestException;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
@@ -18,6 +20,7 @@ import java.util.Date;
  */
 @Component
 public class JWTGenerator {
+    private static final Logger log = LoggerFactory.getLogger(JWTGenerator.class);
 
     //private static final KeyPair keyPair = Keys.keyPairFor(SignatureAlgorithm.RS256);
     String exceptionMessage;
@@ -96,10 +99,10 @@ public class JWTGenerator {
         } catch (SignatureException | MalformedJwtException | ExpiredJwtException | UnsupportedJwtException |
                  IllegalArgumentException | BadCredentialsException ex) {
             exceptionMessage = ex.getMessage();
-            System.out.println(ex.getMessage());
+            log.warn("JWT validation failed: {}", ex.getMessage());
         } catch (Exception ex) {
             exceptionMessage = "UNEXPECTED EXCEPTION " + ex.getMessage();
-            System.out.println("UNEXPECTED EXCEPTION " + ex.getMessage());
+            log.error("Unexpected exception validating JWT", ex);
         }
         return false;
     }

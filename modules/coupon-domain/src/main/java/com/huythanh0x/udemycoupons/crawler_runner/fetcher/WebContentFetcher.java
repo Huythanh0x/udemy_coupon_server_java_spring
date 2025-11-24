@@ -4,6 +4,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
@@ -16,6 +18,7 @@ import java.time.Duration;
  * A utility class for fetching and parsing web content.
  */
 public class WebContentFetcher {
+    private static final Logger log = LoggerFactory.getLogger(WebContentFetcher.class);
 
     /**
      * Retrieves a JSONObject from a given URL by reading the raw HTML content and converting it into a JSONObject.
@@ -26,13 +29,13 @@ public class WebContentFetcher {
     public static JSONObject getJsonObjectFrom(String urlString) {
         String content = getRawHTMLContentFrom(urlString);
         if (content == null || content.trim().isEmpty()) {
-            System.out.println("Warning: Failed to fetch content from " + urlString + ", returning null");
+            log.warn("Failed to fetch content from {}, returning null", urlString);
             return null;
         }
         try {
             return new JSONObject(content);
         } catch (Exception e) {
-            System.out.println("Error parsing JSON from " + urlString + ": " + e.getMessage());
+            log.warn("Error parsing JSON from {}: {}", urlString, e.getMessage());
             return null;
         }
     }
@@ -46,13 +49,13 @@ public class WebContentFetcher {
     public JSONArray getJsonArrayFrom(String urlString) {
         String rawHtml = getRawHTMLContentFrom(urlString);
         if (rawHtml == null || rawHtml.trim().isEmpty()) {
-            System.out.println("Warning: Failed to fetch content from " + urlString + ", returning null");
+            log.warn("Failed to fetch content from {}, returning null", urlString);
             return null;
         }
         try {
             return new JSONArray(rawHtml);
         } catch (Exception e) {
-            System.out.println("Error parsing JSON array from " + urlString + ": " + e.getMessage());
+            log.warn("Error parsing JSON array from {}: {}", urlString, e.getMessage());
             return null;
         }
     }
@@ -66,13 +69,13 @@ public class WebContentFetcher {
     public Document getHtmlDocumentFrom(String urlString) {
         String rawHtml = getRawHTMLContentFrom(urlString);
         if (rawHtml == null || rawHtml.trim().isEmpty()) {
-            System.out.println("Warning: Failed to fetch content from " + urlString + ", returning null");
+            log.warn("Failed to fetch content from {}, returning null", urlString);
             return null;
         }
         try {
             return Jsoup.parse(rawHtml);
         } catch (Exception e) {
-            System.out.println("Error parsing HTML from " + urlString + ": " + e.getMessage());
+            log.warn("Error parsing HTML from {}: {}", urlString, e.getMessage());
             return null;
         }
     }
@@ -94,9 +97,11 @@ public class WebContentFetcher {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             return response.body();
 
-        } catch (IOException | InterruptedException e) {
-//            throw new RuntimeException(e);
-            System.out.println(e);
+        } catch (IOException e) {
+            log.warn("Error fetching content from {}", urlString, e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.warn("Interrupted while fetching content from {}", urlString, e);
         }
         return null;
     }

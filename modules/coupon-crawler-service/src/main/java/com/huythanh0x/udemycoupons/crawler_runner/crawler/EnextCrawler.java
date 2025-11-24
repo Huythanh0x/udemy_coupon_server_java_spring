@@ -8,6 +8,8 @@ import com.huythanh0x.udemycoupons.repository.ScrapedUrlMappingRepository;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -24,6 +26,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @Component
 public class EnextCrawler extends CouponUrlCrawlerBase {
+    private static final Logger log = LoggerFactory.getLogger(EnextCrawler.class);
     private static final String LIST_PAGE_FORMAT = "https://jobs.e-next.in/course/udemy/%d";
     private static final String SITE_BASE = "https://jobs.e-next.in";
     private static final Integer COUPON_PER_PAGE = 12;
@@ -95,7 +98,7 @@ public class EnextCrawler extends CouponUrlCrawlerBase {
                 }
             }
         } catch (Exception e) {
-            System.out.println("Error mapping scraped URL to coupon URL: " + e.getMessage());
+            log.warn("Error mapping scraped URL {} to coupon URL: {}", scrapedUrl, e.getMessage());
         }
         return null;
     }
@@ -157,9 +160,10 @@ public class EnextCrawler extends CouponUrlCrawlerBase {
                             }
                         } catch (InterruptedException e) {
                             Thread.currentThread().interrupt();
+                            log.warn("Detail consumer interrupted", e);
                             break;
                         } catch (Exception e) {
-                            System.out.println("Error processing detail page: " + e.getMessage());
+                            log.warn("Error processing detail page {}: {}", detailUrl, e.getMessage());
                         }
                     }
                 } finally {
@@ -183,7 +187,7 @@ public class EnextCrawler extends CouponUrlCrawlerBase {
                         Document listDoc = fetcher.getHtmlDocumentFrom(listUrl);
                         
                         if (listDoc == null) {
-                            System.out.println("Failed to fetch list page: " + listUrl);
+                            log.warn("Failed to fetch list page: {}", listUrl);
                             // Mark as done if this is the first page (site might be down)
                             if (currentPage == 1) {
                                 allListPagesDone.set(true);
@@ -195,7 +199,7 @@ public class EnextCrawler extends CouponUrlCrawlerBase {
                         if (courseAnchors.isEmpty()) {
                             // No items on this page - we've reached the end
                             allListPagesDone.set(true);
-                            System.out.println("Enext page " + currentPage + " is empty, stopping list page fetching");
+                            log.info("Enext page {} is empty, stopping list page fetching", currentPage);
                             return;
                         }
                         
@@ -219,16 +223,17 @@ public class EnextCrawler extends CouponUrlCrawlerBase {
                                 detailUrlQueue.put(detailUrl);
                             } catch (InterruptedException e) {
                                 Thread.currentThread().interrupt();
+                                log.warn("Interrupted while queueing detail URL {}", detailUrl, e);
                                 return;
                             }
                         }
                         
                         int processed = listPagesProcessed.incrementAndGet();
-                        System.out.println("Enext page " + currentPage + " processed: " + detailUrlsThisPage.size() + 
-                                         " detail URLs queued, collected so far: " + collectedCount.get());
+                        log.info("Enext page {} processed: {} detail URLs queued, collected so far {}",
+                                currentPage, detailUrlsThisPage.size(), collectedCount.get());
                         
                     } catch (Exception e) {
-                        System.out.println("Error processing list page " + currentPage + ": " + e.getMessage());
+                        log.warn("Error processing list page {}: {}", currentPage, e.getMessage());
                     }
                 });
             }
@@ -240,8 +245,9 @@ public class EnextCrawler extends CouponUrlCrawlerBase {
                     listPageExecutor.shutdownNow();
                 }
             } catch (InterruptedException e) {
-                listPageExecutor.shutdownNow();
                 Thread.currentThread().interrupt();
+                log.warn("Interrupted while waiting for list page executor shutdown", e);
+                listPageExecutor.shutdownNow();
             }
             
             allListPagesDone.set(true);
@@ -250,6 +256,7 @@ public class EnextCrawler extends CouponUrlCrawlerBase {
                 detailConsumersLatch.await();
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
+                log.warn("Interrupted while waiting for detail consumers latch", e);
             }
             
             detailPageExecutor.shutdown();
@@ -258,8 +265,9 @@ public class EnextCrawler extends CouponUrlCrawlerBase {
                     detailPageExecutor.shutdownNow();
                 }
             } catch (InterruptedException e) {
-                detailPageExecutor.shutdownNow();
                 Thread.currentThread().interrupt();
+                log.warn("Interrupted while waiting for detail page executor shutdown", e);
+                detailPageExecutor.shutdownNow();
             }
         }
         

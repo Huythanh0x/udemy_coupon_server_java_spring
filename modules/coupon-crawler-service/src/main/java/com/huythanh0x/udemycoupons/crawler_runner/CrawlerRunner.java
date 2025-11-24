@@ -14,6 +14,8 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -36,6 +38,7 @@ import java.util.stream.Collectors;
 @Component
 @ComponentScan("com.huythanh0x.udemycoupons.repository")
 public class CrawlerRunner implements ApplicationRunner {
+    private static final Logger log = LoggerFactory.getLogger(CrawlerRunner.class);
     CouponCourseRepository couponCourseRepository;
     ExpiredCouponRepository expiredCouponRepository;
     CouponCourseHistoryRepository couponCourseHistoryRepository;
@@ -114,10 +117,8 @@ public class CrawlerRunner implements ApplicationRunner {
                         refreshMinUsesRemaining,
                         updatedBefore
                     );
-                    System.out.println("Found " + allCouponsNeedingRefresh.size() + 
-                                     " coupons needing refresh (expiring within " + refreshExpiringHours + 
-                                     " hours, uses remaining < " + refreshMinUsesRemaining + 
-                                     ", or not updated in last " + refreshOldHours + " hours)");
+                    log.info("Found {} coupons needing refresh (expiring within {} hours, uses remaining < {}, not updated in last {} hours)",
+                            allCouponsNeedingRefresh.size(), refreshExpiringHours, refreshMinUsesRemaining, refreshOldHours);
                     
                     Set<String> allUrlsToProcess = new HashSet<>(scrapedCouponUrls);
                     allUrlsToProcess.addAll(allCouponsNeedingRefresh);
@@ -133,7 +134,8 @@ public class CrawlerRunner implements ApplicationRunner {
                     delayUntilTheNextRound(startTime.get());
                 }
             } catch (InterruptedException e) {
-                System.out.println(e);
+                Thread.currentThread().interrupt();
+                log.warn("Crawler thread interrupted", e);
             }
         });
     }
@@ -148,7 +150,7 @@ public class CrawlerRunner implements ApplicationRunner {
     private void delayUntilTheNextRound(long startTime) throws InterruptedException {
         long runTime = System.currentTimeMillis() - startTime;
         long delayTime = Math.max(intervalTime - runTime, 0);
-        System.out.println("\u001B[32mWait for " + delayTime + " milliseconds until the next run\u001B[32m");
+        log.info("Waiting {} ms until the next run", delayTime);
         Thread.sleep(delayTime);
     }
 
@@ -162,7 +164,7 @@ public class CrawlerRunner implements ApplicationRunner {
      * @param numberOfThread Number of threads to execute concurrently within each batch
      */
     private void saveAllCouponData(List<String> allCouponUrls, int numberOfThread) {
-        System.out.println("Processing " + allCouponUrls.size() + " URLs in batches of " + batchProcessingSize);
+        log.info("Processing {} URLs in batches of {}", allCouponUrls.size(), batchProcessingSize);
         
         Set<String> allExpiredCouponUrls = new HashSet<>();
         int totalProcessed = 0;
@@ -173,9 +175,9 @@ public class CrawlerRunner implements ApplicationRunner {
                     .limit(batchProcessingSize)
                     .collect(Collectors.toList());
             
-            System.out.println("Processing batch: " + (totalProcessed + 1) + "-" + 
-                             Math.min(totalProcessed + batchProcessingSize, allCouponUrls.size()) + 
-                             " of " + allCouponUrls.size());
+            log.info("Processing batch {}-{} of {}", totalProcessed + 1,
+                    Math.min(totalProcessed + batchProcessingSize, allCouponUrls.size()),
+                    allCouponUrls.size());
             
             BatchResult batchResult = processBatch(batch, numberOfThread);
             
@@ -194,7 +196,7 @@ public class CrawlerRunner implements ApplicationRunner {
                     }
                 }
                 
-                System.out.println("✓ Saved " + batchResult.validCoupons.size() + " valid coupons to database");
+                log.info("Saved {} valid coupons to database", batchResult.validCoupons.size());
             }
 
             if (!batchResult.expiredCoupons.isEmpty()) {
@@ -244,15 +246,13 @@ public class CrawlerRunner implements ApplicationRunner {
                     .collect(Collectors.toSet());
                 allExpiredCouponUrls.addAll(expiredUrls);
                 
-                System.out.println("✓ Saved/Updated " + batchResult.expiredCoupons.size() + 
-                                 " expired coupons to database (" + 
-                                 expiredToCreate.size() + " new, " + 
-                                 existingExpiredUrls.size() + " updated)");
+                log.info("Saved/Updated {} expired coupons ({} new, {} updated)",
+                        batchResult.expiredCoupons.size(), expiredToCreate.size(), existingExpiredUrls.size());
                 LastFetchTimeManager.updateLastBulkRefreshCoupon();
             }
 
             if (!batchResult.failedToValidateCouponUrls.isEmpty()) {
-                System.out.println("⚠ " + batchResult.failedToValidateCouponUrls.size() + " URLs failed to validate");
+                log.warn("{} URLs failed to validate", batchResult.failedToValidateCouponUrls.size());
             }
 
             if (!batchResult.historyEntries.isEmpty()) {
@@ -260,15 +260,15 @@ public class CrawlerRunner implements ApplicationRunner {
             }
             
             totalProcessed += batch.size();
-            System.out.println("Progress: " + totalProcessed + "/" + allCouponUrls.size() + " URLs processed\n");
+            log.info("Progress: {}/{} URLs processed", totalProcessed, allCouponUrls.size());
         }
         
         if (!allExpiredCouponUrls.isEmpty()) {
             couponCourseRepository.deleteAllCouponsByUrl(allExpiredCouponUrls);
-            System.out.println("✓ Cleaned up " + allExpiredCouponUrls.size() + " expired coupons from main table");
+            log.info("Cleaned up {} expired coupons from main table", allExpiredCouponUrls.size());
         }
         
-        System.out.println("All batches finished. Total processed: " + totalProcessed);
+        log.info("All batches finished. Total processed: {}", totalProcessed);
         LastFetchTimeManager.updateLastBulkRefreshCoupon();
     }
 
@@ -330,7 +330,7 @@ public class CrawlerRunner implements ApplicationRunner {
                             .build());
                         courseIdCache.put(couponUrl, couponCodeData.getCourseId());
                         courseStateCache.put(couponUrl, CourseState.ACTIVE);
-                        System.out.println(couponCodeData.getTitle());
+                        log.debug("Validated coupon {}", couponCodeData.getTitle());
                     } else {
                         Integer courseId = resolveCourseIdForExpired(couponUrl, extractor, cachedCourseId);
                         String title = null;
@@ -360,7 +360,8 @@ public class CrawlerRunner implements ApplicationRunner {
                             .build());
                     }
                 } catch (Exception e) {
-                    failedToValidateCouponUrls.add(couponUrl + " " + e);
+                    failedToValidateCouponUrls.add(couponUrl + " " + e.getMessage());
+                    log.warn("Failed to validate coupon {}: {}", couponUrl, e.getMessage(), e);
                 }
             });
         }
