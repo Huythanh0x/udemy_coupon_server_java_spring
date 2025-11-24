@@ -17,8 +17,10 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -238,11 +240,27 @@ public class CrawlerRunner implements ApplicationRunner {
         Set<String> failedToValidateCouponUrls = Collections.synchronizedSet(new HashSet<>());
         Set<String> expiredCouponUrls = Collections.synchronizedSet(new HashSet<>());
         
+        // Pre-fetch courseIds from database to avoid expensive HTTP requests
+        // Map: couponUrl -> courseId (null if not found)
+        Map<String, Integer> courseIdCache = new HashMap<>();
+        for (String couponUrl : batch) {
+            Integer courseId = couponCourseRepository.findCourseIdByCouponUrl(couponUrl);
+            if (courseId != null) {
+                courseIdCache.put(couponUrl, courseId);
+            }
+        }
+        
         ExecutorService executor = Executors.newFixedThreadPool(numberOfThread);
         for (String couponUrl : batch) {
             executor.submit(() -> {
                 try {
-                    CouponCourseData couponCodeData = new UdemyCouponCourseExtractor(couponUrl).getFullCouponCodeData();
+                    // Use cached courseId if available, otherwise extract from HTML
+                    Integer cachedCourseId = courseIdCache.get(couponUrl);
+                    UdemyCouponCourseExtractor extractor = (cachedCourseId != null) 
+                        ? new UdemyCouponCourseExtractor(couponUrl, cachedCourseId)
+                        : new UdemyCouponCourseExtractor(couponUrl);
+                    
+                    CouponCourseData couponCodeData = extractor.getFullCouponCodeData();
                     if (couponCodeData != null) {
                         validCoupons.add(couponCodeData);
                         System.out.println(couponCodeData.getTitle());

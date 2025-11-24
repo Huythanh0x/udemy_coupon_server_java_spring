@@ -40,6 +40,24 @@ public interface CouponCourseRepository extends JpaRepository<CouponCourseData, 
     Set<String> findAllCouponUrls();
 
     /**
+     * Finds a coupon by its URL.
+     *
+     * @param couponUrl The coupon URL to find
+     * @return CouponCourseData if found, null otherwise
+     */
+    CouponCourseData findByCouponUrl(String couponUrl);
+
+    /**
+     * Efficiently retrieves courseId by couponUrl without loading full entity.
+     * Used to avoid expensive HTTP requests when courseId is already known.
+     *
+     * @param couponUrl The coupon URL
+     * @return CourseId if found, null otherwise
+     */
+    @Query("SELECT c.courseId FROM CouponCourseData c WHERE c.couponUrl = :couponUrl")
+    Integer findCourseIdByCouponUrl(@Param("couponUrl") String couponUrl);
+
+    /**
      * Finds coupon URLs that need to be refreshed based on multiple criteria:
      * - Expiring within the specified threshold, OR
      * - Have uses remaining less than the specified minimum, OR
