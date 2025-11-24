@@ -1,0 +1,21 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: "coupon-api-service"
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["host.docker.internal:8080"]
+    basic_auth:
+      username: "prometheus"
+      password: "prometheus"
+
+  - job_name: "coupon-crawler-service"
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["host.docker.internal:8081"]
+    basic_auth:
+      username: "prometheus"
+      password: "prometheus"
+

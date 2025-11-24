@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -13,6 +14,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 
 /**
  * Configures the security settings for the application.
@@ -31,35 +34,34 @@ public class SecurityConfig {
     }
 
     /**
-     * Deprecated security filter chain bean method.
+     * Main security filter chain for all non-actuator endpoints.
+     * This has a higher order than ActuatorSecurityConfig (which is @Order(0))
+     * so that actuator-specific requests are handled by the actuator chain first.
+     * The "any request" matcher requires this chain to be defined last (highest order).
      *
      * @param http The HttpSecurity object used to configure security settings.
      * @return The SecurityFilterChain object for managing security filters.
      * @throws Exception if an error occurs during configuration.
-     * @deprecated This method is deprecated since version 3.14 and will be removed in future versions.
-     * @SuppressWarnings("removal") Suppresses warnings related to removal.
      */
     @Bean
-    @Deprecated(since = "3.14", forRemoval = true)
-    @SuppressWarnings("removal")
+    @Order(100)
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        RequestMatcher nonActuatorMatcher = request -> !request.getRequestURI().startsWith("/actuator/");
+        
         http
-                .csrf().disable()
-                .exceptionHandling()
-                .authenticationEntryPoint(authEntryPoint)
-                .and()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .authorizeRequests()
-                .requestMatchers("/api/v1/auth/**").permitAll()
-                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                .requestMatchers("/error").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/v1/coupons/**").permitAll()
-                .requestMatchers("/*").permitAll()
-                .anyRequest().authenticated()
-                .and()
-                .httpBasic();
+                .securityMatcher(nonActuatorMatcher)
+                .csrf(AbstractHttpConfigurer::disable)
+                .exceptionHandling(ex -> ex.authenticationEntryPoint(authEntryPoint))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/error").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/coupons/**").permitAll()
+                        .requestMatchers("/*").permitAll()
+                        .anyRequest().authenticated()
+                )
+                .httpBasic(AbstractHttpConfigurer::disable);
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
