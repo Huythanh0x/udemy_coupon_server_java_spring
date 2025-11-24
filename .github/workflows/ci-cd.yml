@@ -111,6 +111,8 @@ jobs:
             -H "Content-Type: application/json" \
             -H "User-Agent: GitHub-Actions" \
             -H "X-Webhook-Secret: ${WEBHOOK_SECRET}" \
+            -H "CF-Access-Client-Id: ${{ secrets.CLOUDFLARE_ACCESS_CLIENT_ID }}" \
+            -H "CF-Access-Client-Secret: ${{ secrets.CLOUDFLARE_ACCESS_CLIENT_SECRET }}" \
             -d "{
               \"branch\": \"${BRANCH_NAME}\",
               \"apiImageTag\": \"${API_IMAGE_TAG}\",
@@ -124,38 +126,19 @@ jobs:
           
           # Display response
           echo "HTTP Status: $HTTP_CODE"
-          
-          # Check if response is HTML (Cloudflare challenge)
-          if echo "$BODY" | grep -q "<!DOCTYPE html>"; then
-            echo "ERROR: Cloudflare challenge detected. Webhook is blocked."
-            echo "Solutions:"
-            echo "1. Configure Cloudflare to allow GitHub Actions User-Agent"
-            echo "2. Add GitHub Actions IPs to Cloudflare allowlist"
-            echo "3. Use Cloudflare Access Service Token (set CLOUDFLARE_ACCESS_CLIENT_ID and CLOUDFLARE_ACCESS_CLIENT_SECRET secrets)"
-            echo "4. Temporarily disable Cloudflare Bot Fight Mode for webhook endpoint"
-            exit 1
-          fi
-          
-          # Try to parse JSON response
-          if ! echo "$BODY" | jq . > /dev/null 2>&1; then
-            echo "ERROR: Invalid JSON response from webhook"
-            echo "Response body: $BODY"
-            exit 1
-          fi
-          
-          echo "Response: $(echo "$BODY" | jq '.')"
+          echo "Response: $BODY"
           
           # Parse response
-          SUCCESS=$(echo "$BODY" | jq -r '.success // false')
+          SUCCESS=$(echo "$BODY" | grep -o '"success":[^,]*' | cut -d':' -f2 | tr -d ' ')
           
           if [ "$HTTP_CODE" != "200" ] || [ "$SUCCESS" != "true" ]; then
             echo "Deployment failed!"
-            echo "$BODY" | jq '.'
+            echo "$BODY" | jq '.' || echo "$BODY"
             exit 1
           fi
           
           # Display deployment details
-          echo "$BODY" | jq -r '.details.steps[]? | "\(.step): \(.status)"' || echo "No steps found"
+          echo "$BODY" | jq -r '.details.steps[] | "\(.step): \(.status)"' || echo "$BODY"
           
           # Set output for other steps
           echo "deployment_success=true" >> $GITHUB_OUTPUT
