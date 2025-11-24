@@ -105,22 +105,7 @@ async function deployServices({ branch, apiImageTag, crawlerImageTag, baseImageN
     process.chdir(deploymentPath);
     results.steps.push({ step: 'navigate', status: 'completed', path: deploymentPath });
 
-    // Step 2: Login to Docker Hub (if needed)
-    results.steps.push({ step: 'docker_login', status: 'started' });
-    if (process.env.DOCKER_HUB_TOKEN && process.env.DOCKER_HUB_USERNAME) {
-      try {
-        const loginCmd = `echo "${process.env.DOCKER_HUB_TOKEN}" | docker login -u "${process.env.DOCKER_HUB_USERNAME}" --password-stdin`;
-        await execAsync(loginCmd);
-        results.steps.push({ step: 'docker_login', status: 'completed' });
-      } catch (error) {
-        console.warn('Docker login failed, continuing anyway:', error.message);
-        results.steps.push({ step: 'docker_login', status: 'skipped', reason: error.message });
-      }
-    } else {
-      results.steps.push({ step: 'docker_login', status: 'skipped', reason: 'No credentials provided' });
-    }
-
-    // Step 3: Pull Docker images
+    // Step 2: Pull Docker images
     results.steps.push({ step: 'pull_images', status: 'started' });
     try {
       const pullApiCmd = `docker pull ${baseImageName}:${apiImageTag}`;
@@ -148,7 +133,7 @@ async function deployServices({ branch, apiImageTag, crawlerImageTag, baseImageN
       throw error;
     }
 
-    // Step 4: Stop existing services
+    // Step 3: Stop existing services
     results.steps.push({ step: 'stop_services', status: 'started' });
     try {
       await execAsync('docker-compose -f docker-compose.prod.yml down || true');
@@ -157,7 +142,7 @@ async function deployServices({ branch, apiImageTag, crawlerImageTag, baseImageN
       results.steps.push({ step: 'stop_services', status: 'warning', error: error.message });
     }
 
-    // Step 5: Start services with new images
+    // Step 4: Start services with new images
     results.steps.push({ step: 'start_services', status: 'started' });
     try {
       // Only include specific environment variables needed for docker-compose
@@ -221,7 +206,7 @@ async function deployServices({ branch, apiImageTag, crawlerImageTag, baseImageN
       throw error;
     }
 
-    // Step 6: Health check
+    // Step 5: Health check
     results.steps.push({ step: 'health_check', status: 'started' });
     await new Promise(resolve => setTimeout(resolve, 10000)); // Wait 10 seconds
     
@@ -234,15 +219,6 @@ async function deployServices({ branch, apiImageTag, crawlerImageTag, baseImageN
       });
     } catch (error) {
       results.steps.push({ step: 'health_check', status: 'warning', error: error.message });
-    }
-
-    // Step 7: Clean up old images
-    results.steps.push({ step: 'cleanup', status: 'started' });
-    try {
-      await execAsync('docker image prune -f');
-      results.steps.push({ step: 'cleanup', status: 'completed' });
-    } catch (error) {
-      results.steps.push({ step: 'cleanup', status: 'warning', error: error.message });
     }
 
     results.success = true;
