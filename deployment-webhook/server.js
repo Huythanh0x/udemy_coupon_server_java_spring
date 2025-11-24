@@ -136,7 +136,7 @@ async function deployServices({ branch, apiImageTag, crawlerImageTag, baseImageN
     // Step 3: Stop existing services
     results.steps.push({ step: 'stop_services', status: 'started' });
     try {
-      await execAsync('docker compose -f docker compose.prod.yml down || true');
+      await execAsync('docker compose -f docker-compose.prod.yml down || true');
       results.steps.push({ step: 'stop_services', status: 'completed' });
     } catch (error) {
       results.steps.push({ step: 'stop_services', status: 'warning', error: error.message });
@@ -190,7 +190,7 @@ async function deployServices({ branch, apiImageTag, crawlerImageTag, baseImageN
         cleanEnv.PATH = process.env.PATH || '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin';
       }
 
-      const startCmd = 'docker compose -f docker compose.prod.yml up -d';
+      const startCmd = 'docker compose -f docker-compose.prod.yml up -d';
       const { stdout, stderr } = await execAsync(startCmd, {
         env: cleanEnv
       });
@@ -211,7 +211,7 @@ async function deployServices({ branch, apiImageTag, crawlerImageTag, baseImageN
     await new Promise(resolve => setTimeout(resolve, 10000)); // Wait 10 seconds
     
     try {
-      const { stdout } = await execAsync('docker compose -f docker compose.prod.yml ps');
+      const { stdout } = await execAsync('docker compose -f docker-compose.prod.yml ps');
       results.steps.push({ 
         step: 'health_check', 
         status: 'completed',
