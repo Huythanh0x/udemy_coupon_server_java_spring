@@ -24,6 +24,15 @@ public class UdemyCouponCourseExtractor {
     private String couponCode = "";
 
     /**
+     * Gets the course ID. Returns 0 or -1 if not found.
+     *
+     * @return The course ID, or 0/-1 if not available
+     */
+    public int getCourseId() {
+        return courseId;
+    }
+
+    /**
      * Creates a new UdemyCouponCourseExtractor with the given coupon URL.
      * Will attempt to extract courseId from the URL's HTML page.
      *

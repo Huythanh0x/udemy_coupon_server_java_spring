@@ -51,4 +51,14 @@ public interface ExpiredCouponRepository extends JpaRepository<ExpiredCourseData
     @Transactional
     @Query("UPDATE ExpiredCourseData e SET e.updatedAt = CURRENT_TIMESTAMP WHERE e.couponUrl IN :couponUrls")
     void updateUpdatedAtForUrls(@Param("couponUrls") Set<String> couponUrls);
+
+    /**
+     * Efficiently retrieves courseId by couponUrl from expired table without loading full entity.
+     * Used to avoid expensive HTTP requests when courseId is already known in expired table.
+     *
+     * @param couponUrl The coupon URL
+     * @return CourseId if found, null otherwise
+     */
+    @Query("SELECT e.courseId FROM ExpiredCourseData e WHERE e.couponUrl = :couponUrl")
+    Integer findCourseIdByCouponUrl(@Param("couponUrl") String couponUrl);
 }
