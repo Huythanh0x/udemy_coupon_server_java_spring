@@ -134,10 +134,11 @@ public class EnextCrawler extends CouponUrlCrawlerBase {
                 try {
                     WebContentFetcher fetcher = new WebContentFetcher();
                     while (!enoughCouponsCollected.get() && (!allListPagesDone.get() || !detailUrlQueue.isEmpty())) {
+                        String currentDetailUrl = null;
                         try {
                             // Poll with timeout to allow checking conditions
-                            String detailUrl = detailUrlQueue.poll(1, TimeUnit.SECONDS);
-                            if (detailUrl == null) {
+                            currentDetailUrl = detailUrlQueue.poll(1, TimeUnit.SECONDS);
+                            if (currentDetailUrl == null) {
                                 continue; // Timeout, check conditions again
                             }
                             
@@ -146,7 +147,7 @@ public class EnextCrawler extends CouponUrlCrawlerBase {
                                 break;
                             }
                             
-                            String udemyUrl = mapScrapedUrlToCouponUrl(detailUrl);
+                            String udemyUrl = mapScrapedUrlToCouponUrl(currentDetailUrl);
                             if (udemyUrl != null && !udemyUrl.isEmpty()) {
                                 synchronized (allUrls) {
                                     if (collectedCount.get() < maxCouponRequest) {
@@ -163,7 +164,7 @@ public class EnextCrawler extends CouponUrlCrawlerBase {
                             log.warn("Detail consumer interrupted", e);
                             break;
                         } catch (Exception e) {
-                            log.warn("Error processing detail page {}: {}", detailUrl, e.getMessage());
+                            log.warn("Error processing detail page {}: {}", currentDetailUrl, e.getMessage());
                         }
                     }
                 } finally {
