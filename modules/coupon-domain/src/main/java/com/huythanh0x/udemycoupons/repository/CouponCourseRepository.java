@@ -40,22 +40,27 @@ public interface CouponCourseRepository extends JpaRepository<CouponCourseData, 
     Set<String> findAllCouponUrls();
 
     /**
-     * Finds coupon URLs that need to be refreshed based on expiration date or uses remaining.
-     * Returns coupon URLs for coupons that are:
-     * - Expiring within the specified hours threshold, OR
-     * - Have uses remaining less than the specified minimum
+     * Finds coupon URLs that need to be refreshed based on multiple criteria:
+     * - Expiring within the specified threshold, OR
+     * - Have uses remaining less than the specified minimum, OR
+     * - Haven't been updated since the specified timestamp
      * 
-     * Note: expiredDate is now stored as DATETIME, enabling simple and efficient date comparisons.
+     * This merged query is more efficient than calling separate methods.
      *
-     * @param expirationThresholdHours Hours from now to check expiration (e.g., 2 = expires within 2 hours)
+     * @param expirationThreshold Instant threshold for expiration (e.g., expires within 2 hours)
      * @param minUsesRemaining Minimum uses remaining threshold (e.g., 50 = less than 50 uses)
-     * @return Set of coupon URLs that need to be refreshed
+     * @param updatedBefore LocalDateTime threshold - coupons with updatedAt before this time
+     * @return Set of coupon URLs that need to be refreshed for any of the above reasons
      */
-    @Query("SELECT c.couponUrl FROM CouponCourseData c WHERE " +
+    @Query("SELECT DISTINCT c.couponUrl FROM CouponCourseData c WHERE " +
+           "c.couponUrl IS NOT NULL AND (" +
            "(c.expiredDate <= :expirationThreshold) OR " +
-           "(c.usesRemaining < :minUsesRemaining)")
+           "(c.usesRemaining < :minUsesRemaining) OR " +
+           "(c.updatedAt < :updatedBefore)" +
+           ")")
     Set<String> findCouponUrlsNeedingRefresh(
         @Param("expirationThreshold") java.time.Instant expirationThreshold,
-        @Param("minUsesRemaining") int minUsesRemaining
+        @Param("minUsesRemaining") int minUsesRemaining,
+        @Param("updatedBefore") java.time.LocalDateTime updatedBefore
     );
 }

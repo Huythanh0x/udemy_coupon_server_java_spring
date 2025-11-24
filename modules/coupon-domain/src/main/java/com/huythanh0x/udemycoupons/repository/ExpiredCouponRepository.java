@@ -1,7 +1,9 @@
 package com.huythanh0x.udemycoupons.repository;
 
 import com.huythanh0x.udemycoupons.model.coupon.ExpiredCourseData;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -22,13 +24,31 @@ public interface ExpiredCouponRepository extends JpaRepository<ExpiredCourseData
     Set<String> findAllCouponUrls();
 
     /**
-     * Retrieves coupon URLs that were marked as expired within the last N days.
-     * These coupons may be reactivated, so they should be re-checked.
-     * Uses createdAt field for consistency with other entities.
+     * Finds expired coupon URLs that were recently checked (updatedAt within the specified hours).
+     * These URLs can be skipped from validation to avoid redundant API calls.
      *
-     * @param sinceDate The timestamp threshold (current time - N days)
-     * @return Set of coupon URLs expired in the last N days
+     * @param updatedAfter The timestamp threshold (current time - X hours)
+     * @return Set of expired coupon URLs that were recently checked
      */
-    @Query("SELECT e.couponUrl FROM ExpiredCourseData e WHERE e.createdAt >= :sinceDate AND e.couponUrl IS NOT NULL")
-    Set<String> findCouponUrlsExpiredInLastDays(@Param("sinceDate") LocalDateTime sinceDate);
+    @Query("SELECT e.couponUrl FROM ExpiredCourseData e WHERE e.updatedAt >= :updatedAfter AND e.couponUrl IS NOT NULL")
+    Set<String> findRecentlyCheckedExpiredUrls(@Param("updatedAfter") LocalDateTime updatedAfter);
+
+    /**
+     * Finds an expired coupon by URL.
+     *
+     * @param couponUrl The coupon URL to find
+     * @return ExpiredCourseData if found, null otherwise
+     */
+    ExpiredCourseData findByCouponUrl(String couponUrl);
+
+    /**
+     * Updates the updatedAt timestamp for expired coupons with the given URLs.
+     * Used to track when we last validated expired coupons.
+     *
+     * @param couponUrls Set of coupon URLs to update
+     */
+    @Modifying
+    @Transactional
+    @Query("UPDATE ExpiredCourseData e SET e.updatedAt = CURRENT_TIMESTAMP WHERE e.couponUrl IN :couponUrls")
+    void updateUpdatedAtForUrls(@Param("couponUrls") Set<String> couponUrls);
 }

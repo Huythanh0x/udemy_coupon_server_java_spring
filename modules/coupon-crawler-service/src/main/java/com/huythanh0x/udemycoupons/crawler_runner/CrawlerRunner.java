@@ -38,12 +38,14 @@ public class CrawlerRunner implements ApplicationRunner {
     Integer intervalTime;
     @Value("${custom.number-of-request-thread}")
     Integer numberOfThread;
-    @Value("${custom.recheck-expired-days:3}")
-    Integer recheckExpiredDays;
+    @Value("${custom.skip-recently-checked-expired-hours:12}")
+    Integer skipRecentlyCheckedExpiredHours;
     @Value("${custom.refresh-expiring-hours:2}")
     Integer refreshExpiringHours;
     @Value("${custom.refresh-min-uses-remaining:50}")
     Integer refreshMinUsesRemaining;
+    @Value("${custom.refresh-old-hours:1}")
+    Integer refreshOldHours;
     @Value("${custom.enable-smart-refresh:true}")
     Boolean enableSmartRefresh;
     @Value("${custom.batch-processing-size:100}")
@@ -87,22 +89,29 @@ public class CrawlerRunner implements ApplicationRunner {
                     scrapedCouponUrls.addAll(enextCrawler.getAllCouponUrls());
                     scrapedCouponUrls.addAll(realDiscountCrawler.getAllCouponUrls());
                     
-                    Set<String> couponsNeedingRefresh = new HashSet<>();
-                    if (enableSmartRefresh) {
-                        Instant expirationThreshold = Instant.now().plusSeconds(refreshExpiringHours * 3600L);
-                        couponsNeedingRefresh = couponCourseRepository.findCouponUrlsNeedingRefresh(
-                            expirationThreshold, 
-                            refreshMinUsesRemaining
-                        );
-                        System.out.println("Found " + couponsNeedingRefresh.size() + 
-                                         " coupons needing refresh (expiring within " + refreshExpiringHours + 
-                                         " hours or uses remaining < " + refreshMinUsesRemaining + ")");
-                    }
+                    Set<String> allCouponsNeedingRefresh = new HashSet<>();
+                    Instant expirationThreshold = Instant.now().plusSeconds(refreshExpiringHours * 3600L);
+                    LocalDateTime updatedBefore = LocalDateTime.now().minusHours(refreshOldHours);
+                    
+                    allCouponsNeedingRefresh = couponCourseRepository.findCouponUrlsNeedingRefresh(
+                        expirationThreshold, 
+                        refreshMinUsesRemaining,
+                        updatedBefore
+                    );
+                    System.out.println("Found " + allCouponsNeedingRefresh.size() + 
+                                     " coupons needing refresh (expiring within " + refreshExpiringHours + 
+                                     " hours, uses remaining < " + refreshMinUsesRemaining + 
+                                     ", or not updated in last " + refreshOldHours + " hours)");
                     
                     Set<String> allUrlsToProcess = new HashSet<>(scrapedCouponUrls);
-                    allUrlsToProcess.addAll(couponsNeedingRefresh);
+                    allUrlsToProcess.addAll(allCouponsNeedingRefresh);
                     
-                    List<String> filterCouponUrls = filterValidCouponUrls(new ArrayList<>(allUrlsToProcess));
+                    Set<String> newlyScrapedUrls = new HashSet<>(scrapedCouponUrls);
+                    List<String> filterCouponUrls = filterValidCouponUrls(
+                        new ArrayList<>(allUrlsToProcess), 
+                        allCouponsNeedingRefresh,
+                        newlyScrapedUrls
+                    );
                     
                     saveAllCouponData(filterCouponUrls, numberOfThread);
                     delayUntilTheNextRound(startTime.get());
@@ -156,16 +165,47 @@ public class CrawlerRunner implements ApplicationRunner {
             
             if (!batchResult.validCoupons.isEmpty()) {
                 couponCourseRepository.saveAll(batchResult.validCoupons);
+                
+                Set<String> validUrls = batchResult.validCoupons.stream()
+                    .map(CouponCourseData::getCouponUrl)
+                    .filter(url -> url != null)
+                    .collect(Collectors.toSet());
+                
+                for (String validUrl : validUrls) {
+                    ExpiredCourseData expiredEntry = expiredCouponRepository.findByCouponUrl(validUrl);
+                    if (expiredEntry != null) {
+                        expiredCouponRepository.delete(expiredEntry);
+                    }
+                }
+                
                 System.out.println("✓ Saved " + batchResult.validCoupons.size() + " valid coupons to database");
             }
 
             if (!batchResult.expiredCouponUrls.isEmpty()) {
-                List<ExpiredCourseData> batchExpired = batchResult.expiredCouponUrls.stream()
-                        .map(ExpiredCourseData::new)
-                        .collect(Collectors.toList());
-                expiredCouponRepository.saveAll(batchExpired);
+                Set<String> existingExpiredUrls = new HashSet<>();
+                List<ExpiredCourseData> expiredToCreate = new ArrayList<>();
+                
+                for (String expiredUrl : batchResult.expiredCouponUrls) {
+                    ExpiredCourseData existingExpired = expiredCouponRepository.findByCouponUrl(expiredUrl);
+                    if (existingExpired != null) {
+                        existingExpiredUrls.add(expiredUrl);
+                    } else {
+                        expiredToCreate.add(new ExpiredCourseData(expiredUrl));
+                    }
+                }
+                
+                if (!existingExpiredUrls.isEmpty()) {
+                    expiredCouponRepository.updateUpdatedAtForUrls(existingExpiredUrls);
+                }
+                
+                if (!expiredToCreate.isEmpty()) {
+                    expiredCouponRepository.saveAll(expiredToCreate);
+                }
+                
                 allExpiredCouponUrls.addAll(batchResult.expiredCouponUrls);
-                System.out.println("✓ Saved " + batchResult.expiredCouponUrls.size() + " expired coupons to database");
+                System.out.println("✓ Saved/Updated " + batchResult.expiredCouponUrls.size() + 
+                                 " expired coupons to database (" + expiredToCreate.size() + " new, " + 
+                                 existingExpiredUrls.size() + " updated)");
             }
 
             if (!batchResult.failedToValidateCouponUrls.isEmpty()) {
@@ -238,37 +278,43 @@ public class CrawlerRunner implements ApplicationRunner {
 
     /**
      * Filters coupon URLs using smart pre-validation
-     * - Skips URLs already in DB (and still valid)
-     * - Re-checks recently expired coupons (last N days) as they may be reactivated
-     * - Skips old expired coupons (> N days)
+     * - For newly scraped URLs: Skip only if recently checked as expired (within X hours)
+     *   Otherwise validate even if expired before (might have new coupons)
+     * - For refresh URLs: Skip if already in DB (and still valid), or if expired
+     * - Allows coupons needing refresh to pass through even if they exist in DB
      * 
-     * This reduces API calls by avoiding unnecessary fetches for URLs we already know about.
+     * This reduces API calls while ensuring we don't miss reactivated coupons.
      *
-     * @param newCouponUrls the list of new coupon URLs scraped from crawlers
+     * @param newCouponUrls the list of new coupon URLs (scraped + refresh URLs)
+     * @param couponsNeedingRefresh set of coupon URLs that need to be refreshed (should not be filtered out)
+     * @param newlyScrapedUrls set of URLs that were newly scraped from crawlers
      * @return a list of coupon URLs that need to be fetched and validated
      */
-    private List<String> filterValidCouponUrls(List<String> newCouponUrls) {
+    private List<String> filterValidCouponUrls(List<String> newCouponUrls, Set<String> couponsNeedingRefresh, Set<String> newlyScrapedUrls) {
         if (newCouponUrls == null || newCouponUrls.isEmpty()) {
             return new ArrayList<>();
         }
 
         Set<String> existingCouponUrls = couponCourseRepository.findAllCouponUrls();
         
-        Set<String> allExpiredUrls = expiredCouponRepository.findAllCouponUrls();
+        LocalDateTime recentlyCheckedThreshold = LocalDateTime.now().minusHours(skipRecentlyCheckedExpiredHours);
+        Set<String> recentlyCheckedExpiredUrls = expiredCouponRepository.findRecentlyCheckedExpiredUrls(recentlyCheckedThreshold);
         
-        LocalDateTime cutoffDate = LocalDateTime.now().minusDays(recheckExpiredDays);
-        
-        Set<String> recentlyExpiredUrls = expiredCouponRepository.findCouponUrlsExpiredInLastDays(cutoffDate);
         return newCouponUrls.stream()
                 .filter(couponUrl -> couponUrl != null && !couponUrl.trim().isEmpty())
                 .filter(couponUrl -> {
-                    if (existingCouponUrls.contains(couponUrl)) {
-                        return false;
-                    }
-                    if (recentlyExpiredUrls.contains(couponUrl)) {
+                    if (couponsNeedingRefresh != null && couponsNeedingRefresh.contains(couponUrl)) {
                         return true;
                     }
-                    if (allExpiredUrls.contains(couponUrl)) {
+                    
+                    if (newlyScrapedUrls != null && newlyScrapedUrls.contains(couponUrl)) {
+                        if (recentlyCheckedExpiredUrls.contains(couponUrl)) {
+                            return false;
+                        }
+                        return true;
+                    }
+                    
+                    if (existingCouponUrls.contains(couponUrl)) {
                         return false;
                     }
                     return true;
