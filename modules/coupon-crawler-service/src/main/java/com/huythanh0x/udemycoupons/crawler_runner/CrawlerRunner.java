@@ -206,6 +206,7 @@ public class CrawlerRunner implements ApplicationRunner {
                 System.out.println("✓ Saved/Updated " + batchResult.expiredCouponUrls.size() + 
                                  " expired coupons to database (" + expiredToCreate.size() + " new, " + 
                                  existingExpiredUrls.size() + " updated)");
+                LastFetchTimeManager.updateLastBulkRefreshCoupon();
             }
 
             if (!batchResult.failedToValidateCouponUrls.isEmpty()) {
@@ -222,7 +223,7 @@ public class CrawlerRunner implements ApplicationRunner {
         }
         
         System.out.println("All batches finished. Total processed: " + totalProcessed);
-        LastFetchTimeManager.dumpFetchedTimeJsonToFile();
+        LastFetchTimeManager.updateLastBulkRefreshCoupon();
     }
 
     /**

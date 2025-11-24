@@ -18,7 +18,7 @@ public class LastFetchTimeManager {
      * Saves the current time to Redis as epoch milliseconds.
      * Falls back gracefully if Redis is not available.
      */
-    public static void dumpFetchedTimeJsonToFile() {
+    public static void updateLastBulkRefreshCoupon() {
         try {
             RedisService redisService = RedisService.getInstance();
             long epochMillis = System.currentTimeMillis();
