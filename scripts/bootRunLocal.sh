@@ -1,5 +1,17 @@
 #!/bin/bash
 
+# Load environment variables from .env (or file specified via ENV_FILE)
+ENV_FILE="${ENV_FILE:-.env}"
+if [ -f "$ENV_FILE" ]; then
+    echo "🔐 Loading environment variables from $ENV_FILE"
+    set -a
+    # shellcheck disable=SC1090
+    source "$ENV_FILE"
+    set +a
+else
+    echo "ℹ️  $ENV_FILE not found. Using default inline configuration values."
+fi
+
 # Function to check if a port is in use
 check_port() {
     local port=$1
