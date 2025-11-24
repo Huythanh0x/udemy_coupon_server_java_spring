@@ -111,8 +111,6 @@ jobs:
             -H "Content-Type: application/json" \
             -H "User-Agent: GitHub-Actions" \
             -H "X-Webhook-Secret: ${WEBHOOK_SECRET}" \
-            -H "CF-Access-Client-Id: ${{ secrets.CLOUDFLARE_ACCESS_CLIENT_ID }}" \
-            -H "CF-Access-Client-Secret: ${{ secrets.CLOUDFLARE_ACCESS_CLIENT_SECRET }}" \
             -d "{
               \"branch\": \"${BRANCH_NAME}\",
               \"apiImageTag\": \"${API_IMAGE_TAG}\",
