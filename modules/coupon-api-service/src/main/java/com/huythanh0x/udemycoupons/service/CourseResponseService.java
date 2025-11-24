@@ -4,7 +4,10 @@ import com.huythanh0x.udemycoupons.crawler_runner.UdemyCouponCourseExtractor;
 import com.huythanh0x.udemycoupons.dto.PagedCouponResponseDTO;
 import com.huythanh0x.udemycoupons.exception.BadRequestException;
 import com.huythanh0x.udemycoupons.model.coupon.CouponCourseData;
+import com.huythanh0x.udemycoupons.model.coupon.CouponCourseHistory;
+import com.huythanh0x.udemycoupons.repository.CouponCourseHistoryRepository;
 import com.huythanh0x.udemycoupons.repository.CouponCourseRepository;
+import com.huythanh0x.udemycoupons.repository.ExpiredCouponRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -17,11 +20,17 @@ import org.springframework.stereotype.Service;
 @Service
 public class CourseResponseService {
     private final CouponCourseRepository couponCourseRepository;
+    private final ExpiredCouponRepository expiredCouponRepository;
+    private final CouponCourseHistoryRepository couponCourseHistoryRepository;
 
 
     @Autowired
-    public CourseResponseService(CouponCourseRepository couponCourseRepository) {
+    public CourseResponseService(CouponCourseRepository couponCourseRepository,
+                                 ExpiredCouponRepository expiredCouponRepository,
+                                 CouponCourseHistoryRepository couponCourseHistoryRepository) {
         this.couponCourseRepository = couponCourseRepository;
+        this.expiredCouponRepository = expiredCouponRepository;
+        this.couponCourseHistoryRepository = couponCourseHistoryRepository;
     }
 
     /**
@@ -82,7 +91,24 @@ public class CourseResponseService {
      * @return the saved CouponCourseData object containing the full coupon code data
      */
     public CouponCourseData saveNewCouponUrl(String couponUrl, String remoteAddr) {
-        return couponCourseRepository.save(new UdemyCouponCourseExtractor(couponUrl).getFullCouponCodeData());
+        UdemyCouponCourseExtractor extractor = new UdemyCouponCourseExtractor(couponUrl);
+        CouponCourseData couponData = extractor.getFullCouponCodeData();
+        if (couponData == null) {
+            throw new BadRequestException("Coupon is invalid or expired");
+        }
+
+        boolean existedBefore = couponCourseRepository.findByCouponUrl(couponUrl) != null
+                || expiredCouponRepository.findByCouponUrl(couponUrl) != null;
+        couponData.setNew(!existedBefore);
+
+        CouponCourseData saved = couponCourseRepository.save(couponData);
+        couponCourseHistoryRepository.save(CouponCourseHistory.builder()
+            .courseId(saved.getCourseId())
+            .title(saved.getTitle())
+            .couponUrl(saved.getCouponUrl())
+            .status(existedBefore ? "reactivated" : "new")
+            .build());
+        return saved;
     }
 
     /**

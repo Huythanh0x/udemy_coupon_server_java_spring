@@ -41,6 +41,9 @@ public class CouponCourseData {
     private String description;
     private String previewVideo;
     private String language;
+    @Builder.Default
+    @Column(name = "is_new", nullable = false)
+    private boolean isNew = true;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

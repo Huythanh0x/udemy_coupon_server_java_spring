@@ -3,7 +3,9 @@ package com.huythanh0x.udemycoupons.crawler_runner;
 import com.huythanh0x.udemycoupons.crawler_runner.crawler.EnextCrawler;
 import com.huythanh0x.udemycoupons.crawler_runner.crawler.RealDiscountCrawler;
 import com.huythanh0x.udemycoupons.model.coupon.CouponCourseData;
+import com.huythanh0x.udemycoupons.model.coupon.CouponCourseHistory;
 import com.huythanh0x.udemycoupons.model.coupon.ExpiredCourseData;
+import com.huythanh0x.udemycoupons.repository.CouponCourseHistoryRepository;
 import com.huythanh0x.udemycoupons.repository.CouponCourseRepository;
 import com.huythanh0x.udemycoupons.repository.ExpiredCouponRepository;
 import com.huythanh0x.udemycoupons.utils.LastFetchTimeManager;
@@ -21,6 +23,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -35,6 +38,7 @@ import java.util.stream.Collectors;
 public class CrawlerRunner implements ApplicationRunner {
     CouponCourseRepository couponCourseRepository;
     ExpiredCouponRepository expiredCouponRepository;
+    CouponCourseHistoryRepository couponCourseHistoryRepository;
     EnextCrawler enextCrawler;
     RealDiscountCrawler realDiscountCrawler;
     Integer intervalTime;
@@ -52,6 +56,10 @@ public class CrawlerRunner implements ApplicationRunner {
     Boolean enableSmartRefresh;
     @Value("${custom.batch-processing-size:100}")
     Integer batchProcessingSize;
+    private static final String HISTORY_STATUS_NEW = "new";
+    private static final String HISTORY_STATUS_REACTIVATED = "reactivated";
+    private static final String HISTORY_STATUS_REFRESHED = "refreshed";
+    private static final String HISTORY_STATUS_EXPIRED = "expired";
 
     /**
      * Executes the method to start the crawler when the application runs.
@@ -63,9 +71,15 @@ public class CrawlerRunner implements ApplicationRunner {
         startCrawler();
     }
 
-    public CrawlerRunner(CouponCourseRepository couponCourseRepository, ExpiredCouponRepository expiredCouponRepository, EnextCrawler enextCrawler, RealDiscountCrawler realDiscountCrawler, @Value("${custom.interval-time}") Integer intervalTime) {
+    public CrawlerRunner(CouponCourseRepository couponCourseRepository,
+                         ExpiredCouponRepository expiredCouponRepository,
+                         CouponCourseHistoryRepository couponCourseHistoryRepository,
+                         EnextCrawler enextCrawler,
+                         RealDiscountCrawler realDiscountCrawler,
+                         @Value("${custom.interval-time}") Integer intervalTime) {
         this.couponCourseRepository = couponCourseRepository;
         this.expiredCouponRepository = expiredCouponRepository;
+        this.couponCourseHistoryRepository = couponCourseHistoryRepository;
         this.enextCrawler = enextCrawler;
         this.realDiscountCrawler = realDiscountCrawler;
         this.intervalTime = intervalTime;
@@ -192,7 +206,6 @@ public class CrawlerRunner implements ApplicationRunner {
                     ExpiredCourseData existingExpired = expiredCouponRepository.findByCouponUrl(expiredInfo.couponUrl);
                     if (existingExpired != null) {
                         existingExpiredUrls.add(expiredInfo.couponUrl);
-                        // Update courseId and title if not already set or if new data is available
                         boolean needsUpdate = false;
                         if (existingExpired.getCourseId() == null && expiredInfo.courseId != null) {
                             existingExpired.setCourseId(expiredInfo.courseId);
@@ -206,7 +219,6 @@ public class CrawlerRunner implements ApplicationRunner {
                             expiredToUpdate.add(existingExpired);
                         }
                     } else {
-                        // Create new expired entry with available data
                         expiredToCreate.add(new ExpiredCourseData(
                             expiredInfo.couponUrl, 
                             expiredInfo.courseId, 
@@ -234,13 +246,17 @@ public class CrawlerRunner implements ApplicationRunner {
                 
                 System.out.println("✓ Saved/Updated " + batchResult.expiredCoupons.size() + 
                                  " expired coupons to database (" + 
-                                 (expiredToCreate.size() - existingExpiredUrls.size()) + " new, " + 
+                                 expiredToCreate.size() + " new, " + 
                                  existingExpiredUrls.size() + " updated)");
                 LastFetchTimeManager.updateLastBulkRefreshCoupon();
             }
 
             if (!batchResult.failedToValidateCouponUrls.isEmpty()) {
                 System.out.println("⚠ " + batchResult.failedToValidateCouponUrls.size() + " URLs failed to validate");
+            }
+
+            if (!batchResult.historyEntries.isEmpty()) {
+                couponCourseHistoryRepository.saveAll(batchResult.historyEntries);
             }
             
             totalProcessed += batch.size();
@@ -267,18 +283,23 @@ public class CrawlerRunner implements ApplicationRunner {
         Set<CouponCourseData> validCoupons = Collections.synchronizedSet(new HashSet<>());
         Set<String> failedToValidateCouponUrls = Collections.synchronizedSet(new HashSet<>());
         Set<ExpiredCouponInfo> expiredCoupons = Collections.synchronizedSet(new HashSet<>());
+        List<CouponCourseHistory> historyEntries = Collections.synchronizedList(new ArrayList<>());
         
-        // Pre-fetch courseIds from database to avoid expensive HTTP requests
         Map<String, Integer> courseIdCache = new HashMap<>();
+        Map<String, CourseState> courseStateCache = new HashMap<>();
         for (String couponUrl : batch) {
-            // First check main coupon table
             Integer courseId = couponCourseRepository.findCourseIdByCouponUrl(couponUrl);
-            if (courseId == null) {
-                // If not found, check expired table
-                courseId = expiredCouponRepository.findCourseIdByCouponUrl(couponUrl);
-            }
             if (courseId != null) {
                 courseIdCache.put(couponUrl, courseId);
+                courseStateCache.put(couponUrl, CourseState.ACTIVE);
+                continue;
+            }
+            courseId = expiredCouponRepository.findCourseIdByCouponUrl(couponUrl);
+            if (courseId != null) {
+                courseIdCache.put(couponUrl, courseId);
+                courseStateCache.put(couponUrl, CourseState.EXPIRED);
+            } else {
+                courseStateCache.put(couponUrl, CourseState.NEW);
             }
         }
         
@@ -287,25 +308,31 @@ public class CrawlerRunner implements ApplicationRunner {
             executor.submit(() -> {
                 try {
                     Integer cachedCourseId = courseIdCache.get(couponUrl);
-                    UdemyCouponCourseExtractor extractor = (cachedCourseId != null) 
+                    UdemyCouponCourseExtractor extractor = (cachedCourseId != null)
                         ? new UdemyCouponCourseExtractor(couponUrl, cachedCourseId)
                         : new UdemyCouponCourseExtractor(couponUrl);
                     
                     CouponCourseData couponCodeData = extractor.getFullCouponCodeData();
                     if (couponCodeData != null) {
+                        CourseState state = courseStateCache.getOrDefault(couponUrl, CourseState.NEW);
+                        boolean isFirstTime = state == CourseState.NEW;
+                        couponCodeData.setNew(isFirstTime);
                         validCoupons.add(couponCodeData);
+                        historyEntries.add(CouponCourseHistory.builder()
+                            .courseId(couponCodeData.getCourseId())
+                            .title(couponCodeData.getTitle())
+                            .couponUrl(couponUrl)
+                            .status(switch (state) {
+                                case NEW -> HISTORY_STATUS_NEW;
+                                case EXPIRED -> HISTORY_STATUS_REACTIVATED;
+                                case ACTIVE -> HISTORY_STATUS_REFRESHED;
+                            })
+                            .build());
+                        courseIdCache.put(couponUrl, couponCodeData.getCourseId());
+                        courseStateCache.put(couponUrl, CourseState.ACTIVE);
                         System.out.println(couponCodeData.getTitle());
                     } else {
-                        Integer courseId = null;
-                        int extractedCourseId = extractor.getCourseId();
-                        if (extractedCourseId > 0) {
-                            courseId = extractedCourseId;
-                        } else if (cachedCourseId != null) {
-                            courseId = cachedCourseId;
-                        } else {
-                            courseId = couponCourseRepository.findCourseIdByCouponUrl(couponUrl);
-                        }
-                        
+                        Integer courseId = resolveCourseIdForExpired(couponUrl, extractor, cachedCourseId);
                         String title = null;
                         CouponCourseData existing = couponCourseRepository.findByCouponUrl(couponUrl);
                         if (existing != null) {
@@ -314,8 +341,23 @@ public class CrawlerRunner implements ApplicationRunner {
                                 courseId = existing.getCourseId();
                             }
                         }
+                        if (title == null) {
+                            ExpiredCourseData expiredData = expiredCouponRepository.findByCouponUrl(couponUrl);
+                            if (expiredData != null) {
+                                title = expiredData.getTitle();
+                                if (courseId == null) {
+                                    courseId = expiredData.getCourseId();
+                                }
+                            }
+                        }
                         
                         expiredCoupons.add(new ExpiredCouponInfo(couponUrl, courseId, title));
+                        historyEntries.add(CouponCourseHistory.builder()
+                            .courseId(courseId)
+                            .title(title)
+                            .couponUrl(couponUrl)
+                            .status(HISTORY_STATUS_EXPIRED)
+                            .build());
                     }
                 } catch (Exception e) {
                     failedToValidateCouponUrls.add(couponUrl + " " + e);
@@ -327,7 +369,7 @@ public class CrawlerRunner implements ApplicationRunner {
             // Wait until all threads are finished
         }
         
-        return new BatchResult(validCoupons, failedToValidateCouponUrls, expiredCoupons);
+        return new BatchResult(validCoupons, failedToValidateCouponUrls, expiredCoupons, historyEntries);
     }
 
     /**
@@ -337,12 +379,38 @@ public class CrawlerRunner implements ApplicationRunner {
         final Set<CouponCourseData> validCoupons;
         final Set<String> failedToValidateCouponUrls;
         final Set<ExpiredCouponInfo> expiredCoupons;
+        final List<CouponCourseHistory> historyEntries;
 
-        BatchResult(Set<CouponCourseData> validCoupons, Set<String> failedToValidateCouponUrls, Set<ExpiredCouponInfo> expiredCoupons) {
+        BatchResult(Set<CouponCourseData> validCoupons,
+                    Set<String> failedToValidateCouponUrls,
+                    Set<ExpiredCouponInfo> expiredCoupons,
+                    List<CouponCourseHistory> historyEntries) {
             this.validCoupons = validCoupons;
             this.failedToValidateCouponUrls = failedToValidateCouponUrls;
             this.expiredCoupons = expiredCoupons;
+            this.historyEntries = historyEntries;
         }
+    }
+
+    private Integer resolveCourseIdForExpired(String couponUrl, UdemyCouponCourseExtractor extractor, Integer cachedCourseId) {
+        int extractedCourseId = extractor.getCourseId();
+        if (extractedCourseId > 0) {
+            return extractedCourseId;
+        }
+        if (cachedCourseId != null) {
+            return cachedCourseId;
+        }
+        Integer courseId = couponCourseRepository.findCourseIdByCouponUrl(couponUrl);
+        if (courseId != null) {
+            return courseId;
+        }
+        return expiredCouponRepository.findCourseIdByCouponUrl(couponUrl);
+    }
+
+    private enum CourseState {
+        NEW,
+        ACTIVE,
+        EXPIRED
     }
 
     /**
@@ -357,6 +425,18 @@ public class CrawlerRunner implements ApplicationRunner {
             this.couponUrl = couponUrl;
             this.courseId = courseId;
             this.title = title;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof ExpiredCouponInfo that)) return false;
+            return Objects.equals(couponUrl, that.couponUrl);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(couponUrl);
         }
     }
 
