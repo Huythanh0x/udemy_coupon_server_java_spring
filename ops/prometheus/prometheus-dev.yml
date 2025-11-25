@@ -1,0 +1,27 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: "coupon-api-service-dev"
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["api-service:8080"]
+    basic_auth:
+      # NOTE: These credentials should match PROM_ACTUATOR_USER and PROM_ACTUATOR_PASSWORD
+      # from your .env file. Prometheus doesn't support environment variable substitution
+      # in config files, so update manually if you change those values.
+      username: "prometheus"
+      password: "prometheus"
+
+  - job_name: "coupon-crawler-service-dev"
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["crawler-service:8081"]
+    basic_auth:
+      # NOTE: These credentials should match PROM_ACTUATOR_USER and PROM_ACTUATOR_PASSWORD
+      # from your .env file. Prometheus doesn't support environment variable substitution
+      # in config files, so update manually if you change those values.
+      username: "prometheus"
+      password: "prometheus"
+
