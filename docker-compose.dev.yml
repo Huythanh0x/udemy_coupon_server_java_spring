@@ -49,6 +49,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      tempo:
+        condition: service_started
     ports:
       - "8080:8080"
     environment:
@@ -80,6 +82,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      tempo:
+        condition: service_started
     ports:
       - "8081:8081"
     environment:
@@ -109,6 +113,21 @@ services:
     networks:
       - app-network-dev
 
+  tempo:
+    image: grafana/tempo:latest
+    container_name: training-coupon-tempo-dev
+    command: ["-config.file=/etc/tempo/tempo-config.yml"]
+    volumes:
+      - ./ops/tempo/tempo-config.yml:/etc/tempo/tempo-config.yml:ro
+      - tempo-data-dev:/var/tempo/blocks
+    ports:
+      - "3201:3200"   # HTTP
+      - "4319:4317"   # OTLP gRPC
+      - "4320:4318"   # OTLP HTTP
+    restart: always
+    networks:
+      - app-network-dev
+
   grafana:
     image: grafana/grafana:10.4.3
     container_name: training-coupon-grafana-dev
@@ -119,6 +138,7 @@ services:
       - "3001:3000"
     depends_on:
       - prometheus
+      - tempo
     restart: always
     networks:
       - app-network-dev
@@ -126,6 +146,7 @@ services:
 volumes:
   mysql-data-dev:
   redis-data-dev:
+  tempo-data-dev:
 
 networks:
   app-network-dev:
