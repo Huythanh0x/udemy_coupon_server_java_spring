@@ -116,10 +116,12 @@ services:
     volumes:
       - ./ops/tempo/tempo-config.yml:/etc/tempo/tempo-config.yml:ro
       - tempo-data:/var/tempo/blocks
-    ports:
-      - "3200:3200"   # HTTP
-      - "4317:4317"   # OTLP gRPC
-      - "4318:4318"   # OTLP HTTP
+    # SECURITY: Ports not exposed externally - Tempo has no built-in authentication
+    # Access is restricted to Docker network only (services & Grafana can still access)
+    # ports:
+    #   - "3200:3200"   # HTTP
+    #   - "4317:4317"   # OTLP gRPC
+    #   - "4318:4318"   # OTLP HTTP
     restart: always
     networks:
       - app-network
