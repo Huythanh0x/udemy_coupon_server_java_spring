@@ -104,6 +104,7 @@ services:
     container_name: training-coupon-prometheus-dev
     volumes:
       - ./ops/prometheus/prometheus-dev.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data-dev:/prometheus
     ports:
       - "9091:9090"
     restart: always
@@ -134,6 +135,8 @@ services:
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER_DEV:-admin}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD_DEV:-admin}
+    volumes:
+      - grafana-data-dev:/var/lib/grafana
     ports:
       - "3001:3000"
     depends_on:
@@ -147,6 +150,8 @@ volumes:
   mysql-data-dev:
   redis-data-dev:
   tempo-data-dev:
+  prometheus-data-dev:
+  grafana-data-dev:
 
 networks:
   app-network-dev:

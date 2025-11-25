@@ -99,6 +99,7 @@ services:
     container_name: training-coupon-prometheus-prod
     volumes:
       - ./ops/prometheus/prometheus-prod.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
     ports:
       - "9090:9090"
     restart: always
@@ -129,6 +130,8 @@ services:
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER_PROD:-admin}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD_PROD:-admin}
+    volumes:
+      - grafana-data:/var/lib/grafana
     ports:
       - "3000:3000"
     depends_on:
@@ -142,6 +145,8 @@ volumes:
   mysql-data:
   redis-data:
   tempo-data:
+  prometheus-data:
+  grafana-data:
 
 networks:
   app-network:
