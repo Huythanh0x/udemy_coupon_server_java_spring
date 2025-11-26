@@ -136,6 +136,17 @@ services:
     labels:
       - "logging=promtail"
 
+  loki-init:
+    image: alpine:latest
+    container_name: training-coupon-loki-init-dev
+    user: "root"
+    volumes:
+      - loki-data-dev:/var/loki
+    command: sh -c "mkdir -p /var/loki/rules && chown -R 10001:10001 /var/loki"
+    networks:
+      - app-network-dev
+    restart: "no"
+
   loki:
     user: "10001:10001"  # Fix permission issues (Loki's default user)
     image: grafana/loki:latest
@@ -149,6 +160,9 @@ services:
     restart: always
     networks:
       - app-network-dev
+    depends_on:
+      loki-init:
+        condition: service_completed_successfully
 
   promtail:
     image: grafana/promtail:latest

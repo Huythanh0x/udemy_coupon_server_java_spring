@@ -129,6 +129,17 @@ services:
     networks:
       - app-network
 
+  loki-init:
+    image: alpine:latest
+    container_name: training-coupon-loki-init-prod
+    user: "root"
+    volumes:
+      - loki-data:/var/loki
+    command: sh -c "mkdir -p /var/loki/rules && chown -R 10001:10001 /var/loki"
+    networks:
+      - app-network
+    restart: "no"
+
   loki:
     image: grafana/loki:latest
     container_name: training-coupon-loki-prod
@@ -142,6 +153,9 @@ services:
     restart: always
     networks:
       - app-network
+    depends_on:
+      loki-init:
+        condition: service_completed_successfully
 
   promtail:
     image: grafana/promtail:latest
