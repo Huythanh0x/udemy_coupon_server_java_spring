@@ -132,6 +132,7 @@ services:
   loki:
     image: grafana/loki:latest
     container_name: training-coupon-loki-prod
+    user: "10001:10001"  # Fix permission issues (Loki's default user)
     command: -config.file=/etc/loki/loki-config.yml
     volumes:
       - ./ops/loki/loki-config.yml:/etc/loki/loki-config.yml:ro

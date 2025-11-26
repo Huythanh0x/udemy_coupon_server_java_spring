@@ -137,6 +137,7 @@ services:
       - "logging=promtail"
 
   loki:
+    user: "10001:10001"  # Fix permission issues (Loki's default user)
     image: grafana/loki:latest
     container_name: training-coupon-loki-dev
     command: -config.file=/etc/loki/loki-config.yml
