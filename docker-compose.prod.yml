@@ -112,6 +112,7 @@ services:
   tempo:
     image: grafana/tempo:latest
     container_name: training-coupon-tempo-prod
+    user: "10001:10001"  # Fix permission warnings (Tempo's default user)
     command: ["-config.file=/etc/tempo/tempo-config.yml"]
     volumes:
       - ./ops/tempo/tempo-config.yml:/etc/tempo/tempo-config.yml:ro
