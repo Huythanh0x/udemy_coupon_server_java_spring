@@ -65,6 +65,8 @@ services:
       retries: 5
     networks:
       - app-network
+    labels:
+      - "logging=promtail"
 
   crawler-service:
     # Pull from Docker Hub using service-prefixed tag
@@ -93,6 +95,8 @@ services:
       retries: 5
     networks:
       - app-network
+    labels:
+      - "logging=promtail"
 
   prometheus:
     image: prom/prometheus:latest
@@ -125,6 +129,36 @@ services:
     networks:
       - app-network
 
+  loki:
+    image: grafana/loki:latest
+    container_name: training-coupon-loki-prod
+    command: -config.file=/etc/loki/loki-config.yml
+    volumes:
+      - ./ops/loki/loki-config.yml:/etc/loki/loki-config.yml:ro
+      - loki-data:/var/loki
+    ports:
+      - "3100:3100"
+    restart: always
+    networks:
+      - app-network
+
+  promtail:
+    image: grafana/promtail:latest
+    container_name: training-coupon-promtail-prod
+    command: -config.file=/etc/promtail/promtail-config.yml
+    volumes:
+      - ./ops/promtail/promtail-config.yml:/etc/promtail/promtail-config.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - promtail-data:/var/promtail
+    ports:
+      - "9080:9080"
+    restart: always
+    depends_on:
+      - loki
+    networks:
+      - app-network
+
   grafana:
     image: grafana/grafana:10.4.3
     container_name: training-coupon-grafana-prod
@@ -138,6 +172,7 @@ services:
     depends_on:
       - prometheus
       - tempo
+      - loki
     restart: always
     networks:
       - app-network
@@ -148,6 +183,8 @@ volumes:
   tempo-data:
   prometheus-data:
   grafana-data:
+  loki-data:
+  promtail-data:
 
 networks:
   app-network:
