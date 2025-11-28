@@ -16,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import com.huythanh0x.udemycoupons.utils.Constant;
 
 /**
  * Service class for handling course response operations.
@@ -52,7 +53,7 @@ public class CourseResponseService {
         String remoteAddr
     ) {
         handlePagingParameters(pageIndex, numberPerPage);
-        Pageable pageable = PageRequest.of(Integer.parseInt(pageIndex), Integer.parseInt(numberPerPage));
+        Pageable pageable = PageRequest.of(Integer.parseInt(pageIndex), Math.min(Integer.parseInt(numberPerPage), Constant.MAX_PAGE_SIZE));
 
         boolean hasQuery = query != null && !query.isBlank();
         boolean hasStructuredFilters =
