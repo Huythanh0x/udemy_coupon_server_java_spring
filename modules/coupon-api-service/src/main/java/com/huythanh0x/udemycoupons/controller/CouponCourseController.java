@@ -49,7 +49,7 @@ public class CouponCourseController {
      * @param request       HTTP servlet request
      * @return a paginated coupon response
      */
-    @GetMapping({"", "/"})
+    @GetMapping
     public PagedCouponResponseDTO listCoupons(
         @RequestParam(required = false, defaultValue = "") String category,
         @RequestParam(required = false, defaultValue = "-1") String rating,
@@ -81,7 +81,7 @@ public class CouponCourseController {
      * @param request     the HTTP servlet request
      * @return the saved course data with the new coupon
      */
-    @PostMapping({"", "/"})
+    @PostMapping
     public CouponCourseData createCoupon(@RequestBody CouponRequestDTO requestBody, HttpServletRequest request) {
         return courseResponseService.saveNewCouponUrl(requestBody.getCouponUrl(), request.getRemoteAddr());
     }
