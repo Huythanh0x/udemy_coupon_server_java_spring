@@ -1,20 +1,31 @@
 package com.huythanh0x.udemycoupons.controller;
 
+import com.huythanh0x.udemycoupons.dto.CouponRequestDTO;
+import com.huythanh0x.udemycoupons.dto.CouponUpdateRequestDTO;
 import com.huythanh0x.udemycoupons.dto.PagedCouponResponseDTO;
 import com.huythanh0x.udemycoupons.model.coupon.CouponCourseData;
 import com.huythanh0x.udemycoupons.service.CourseResponseService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Controller class for managing coupons related endpoints
+ * Controller class for managing coupon-related endpoints.
  */
 @CrossOrigin(origins = "*")
 @RestController
 @RequestMapping(value = "api/v1/coupons")
 public class CouponCourseController {
-    CourseResponseService courseResponseService;
+    private final CourseResponseService courseResponseService;
 
     @Autowired
     public CouponCourseController(CourseResponseService courseResponseService) {
@@ -22,86 +33,85 @@ public class CouponCourseController {
     }
 
     /**
-     * Retrieves a paged list of coupons based on the specified page index and number of coupons per page.
-     * If no parameters are provided, defaults to returning the first page with 10 coupons.
+     * Retrieves a paged list of coupons with optional filtering and search criteria.
+     * <p>
+     * This endpoint merges the previous "list", "filter" and "search" endpoints into a single,
+     * flexible query API.
      *
-     * @param pageIndex The index of the page to retrieve. Defaults to 0 if not provided.
-     * @param numberPerPage The number of coupons to display per page. Defaults to 10 if not provided.
-     * @param request The HTTP servlet request containing client information.
-     * @return A PagedCouponResponseDTO object containing the paged list of coupons.
+     * @param category      optional category filter
+     * @param rating        optional minimum rating filter
+     * @param contentLength optional minimum content length filter
+     * @param level         optional level filter
+     * @param language      optional language filter
+     * @param query         optional free-text search query
+     * @param pageIndex     page index (0-based), defaults to 0
+     * @param numberPerPage number of items per page, defaults to 10
+     * @param request       HTTP servlet request
+     * @return a paginated coupon response
      */
-    @GetMapping({"/", ""})
-    @ResponseBody
-    public PagedCouponResponseDTO getCoupons(@RequestParam(required = false, defaultValue = "0") String pageIndex, @RequestParam(required = false, defaultValue = "10") String numberPerPage, HttpServletRequest request) {
-        return courseResponseService.getPagedCoupons(pageIndex, numberPerPage, request.getRemoteAddr());
+    @GetMapping({"", "/"})
+    public PagedCouponResponseDTO listCoupons(
+        @RequestParam(required = false, defaultValue = "") String category,
+        @RequestParam(required = false, defaultValue = "-1") String rating,
+        @RequestParam(required = false, defaultValue = "-1") String contentLength,
+        @RequestParam(required = false, defaultValue = "") String level,
+        @RequestParam(required = false, defaultValue = "") String language,
+        @RequestParam(required = false, defaultValue = "") String query,
+        @RequestParam(required = false, defaultValue = "0") String pageIndex,
+        @RequestParam(required = false, defaultValue = "10") String numberPerPage,
+        HttpServletRequest request
+    ) {
+        return courseResponseService.listCoupons(
+            category,
+            rating,
+            contentLength,
+            level,
+            language,
+            query,
+            pageIndex,
+            numberPerPage,
+            request.getRemoteAddr()
+        );
     }
 
     /**
-     * Post method for creating a new coupon url.
+     * Creates a new coupon based on the provided Udemy coupon URL.
      *
-     * @param couponUrl the url of the coupon being created
-     * @param request the HTTP servlet request
-     * @return the saved course data with the new coupon url
+     * @param requestBody request body containing the coupon URL
+     * @param request     the HTTP servlet request
+     * @return the saved course data with the new coupon
      */
-    @PostMapping({"/", ""})
-    @ResponseBody
-    public CouponCourseData postNewCouponUrl(@RequestParam String couponUrl, HttpServletRequest request) {
-        return courseResponseService.saveNewCouponUrl(couponUrl, request.getRemoteAddr());
+    @PostMapping({"", "/"})
+    public CouponCourseData createCoupon(@RequestBody CouponRequestDTO requestBody, HttpServletRequest request) {
+        return courseResponseService.saveNewCouponUrl(requestBody.getCouponUrl(), request.getRemoteAddr());
     }
 
     /**
-     * Handles HTTP DELETE requests to delete a coupon.
-     * @param couponUrl the URL of the coupon to be deleted
-     * @param request the HTTP request
-     */
-    @DeleteMapping({"/", ""})
-    @ResponseBody
-    public void deleteCoupon(@RequestParam String couponUrl, HttpServletRequest request) {
-        courseResponseService.deleteCoupon(couponUrl, request.getRemoteAddr());
-    }
-
-
-    /**
-     * Update the coupon with the given coupon ID.
-     * @param couponId The unique identifier of the coupon to be updated.
-     */
-    @PutMapping({"/", ""})
-    @ResponseBody
-    public void updateCoupon(@RequestParam String couponId) {
-//        TODO implement later
-    }
-
-    /**
-     * Retrieves a paginated list of coupons based on the specified filters.
+     * Deletes a coupon by its course identifier.
      *
-     * @param category the category of the coupons to filter by (default empty string)
-     * @param rating the minimum rating of the coupons to filter by (default -1)
-     * @param contentLength the content length of the coupons to filter by (default -1)
-     * @param level the level of the coupons to filter by (default empty string)
-     * @param language the language of the coupons to filter by (default empty string)
-     * @param pageIndex the index of the page to retrieve (default 0)
-     * @param numberPerPage the number of items per page (default 10)
-     * @param request the HttpServletRequest containing the request information
-     * @return a PaginatedCouponResponseDTO object containing the paginated list of filtered coupons
+     * @param courseId the course identifier of the coupon to be deleted
      */
-    @GetMapping("/filter")
-    public PagedCouponResponseDTO filterCoupons(@RequestParam(defaultValue = "") String category, @RequestParam(defaultValue = "-1") String rating, @RequestParam(defaultValue = "-1") String contentLength, @RequestParam(defaultValue = "") String level, @RequestParam(defaultValue = "") String language, @RequestParam(required = false, defaultValue = "0") String pageIndex, @RequestParam(required = false, defaultValue = "10") String numberPerPage, HttpServletRequest request) {
-        return courseResponseService.filterCoupons(rating, contentLength, level, category, language, pageIndex, numberPerPage, request.getRemoteAddr());
+    @DeleteMapping("/{courseId}")
+    public void deleteCoupon(@PathVariable("courseId") Integer courseId) {
+        courseResponseService.deleteCouponByCourseId(courseId);
     }
 
-
     /**
-     * Retrieves a paginated list of coupons based on the given search query.
+     * Updates an existing coupon.
+     * <p>
+     * Currently this endpoint is intentionally minimal and can be extended with more
+     * updatable fields as needed.
      *
-     * @param querySearch The search query used to filter coupons.
-     * @param pageIndex The page index of the paginated results (default: 0).
-     * @param numberPerPage The number of coupons per page (default: 10).
-     * @param request The HTTP servlet request.
-     * @return A PagedCouponResponseDTO object containing the paginated list of coupons.
+     * @param courseId     the identifier of the coupon to update
+     * @param requestBody  details of the update
+     * @return the updated coupon data
      */
-    @GetMapping("/search")
-    public PagedCouponResponseDTO searchCoupons(@RequestParam String querySearch, @RequestParam(required = false, defaultValue = "0") String pageIndex, @RequestParam(required = false, defaultValue = "10") String numberPerPage, HttpServletRequest request) {
-        return courseResponseService.searchCoupons(querySearch, pageIndex, numberPerPage, request.getRemoteAddr());
+    @PutMapping("/{courseId}")
+    public CouponCourseData updateCoupon(
+        @PathVariable("courseId") Integer courseId,
+        @RequestBody CouponUpdateRequestDTO requestBody
+    ) {
+        return courseResponseService.updateCoupon(courseId, requestBody);
     }
 
     /**
@@ -110,8 +120,9 @@ public class CouponCourseController {
      * @param courseId The unique identifier of the course.
      * @return The CouponCourseData object containing details of the course's coupon.
      */
-    @GetMapping("{courseId}")
+    @GetMapping("/{courseId}")
     public CouponCourseData getCouponDetail(@PathVariable("courseId") String courseId) {
         return courseResponseService.getCouponDetail(courseId);
     }
 }
+

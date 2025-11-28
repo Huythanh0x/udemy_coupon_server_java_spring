@@ -1,6 +1,7 @@
 package com.huythanh0x.udemycoupons.service;
 
 import com.huythanh0x.udemycoupons.crawler_runner.UdemyCouponCourseExtractor;
+import com.huythanh0x.udemycoupons.dto.CouponUpdateRequestDTO;
 import com.huythanh0x.udemycoupons.dto.PagedCouponResponseDTO;
 import com.huythanh0x.udemycoupons.exception.BadRequestException;
 import com.huythanh0x.udemycoupons.model.coupon.CouponCourseData;
@@ -37,59 +38,62 @@ public class CourseResponseService {
     }
 
     /**
-     * Retrieves a paged list of coupons based on the specified page index and number of items per page.
-     * @param pageIndex The index of the page to retrieve.
-     * @param numberPerPage The number of items to display per page.
-     * @param remoteAddr The remote address of the client making the request.
-     * @return A PagedCouponResponseDTO object containing the requested coupons.
+     * Unified listing endpoint that supports basic pagination, structured filters and free-text search.
      */
-    public PagedCouponResponseDTO getPagedCoupons(String pageIndex, String numberPerPage, String remoteAddr) {
+    public PagedCouponResponseDTO listCoupons(
+        String category,
+        String rating,
+        String contentLength,
+        String level,
+        String language,
+        String query,
+        String pageIndex,
+        String numberPerPage,
+        String remoteAddr
+    ) {
         handlePagingParameters(pageIndex, numberPerPage);
         Pageable pageable = PageRequest.of(Integer.parseInt(pageIndex), Integer.parseInt(numberPerPage));
-        Page<CouponCourseData> allCouponCourses = couponCourseRepository.findAll(pageable);
-        return new PagedCouponResponseDTO(allCouponCourses);
-    }
 
-    /**
-     * Filters coupons based on the provided parameters such as rating, content length, level, category, language, page index, number per page,
-     * and remote address.
-     *
-     * @param rating the minimum rating value for the coupons
-     * @param contentLength the minimum content length for the coupons
-     * @param level the level of the coupons
-     * @param category the category of the coupons
-     * @param language the language of the coupons
-     * @param pageIndex the index of the page
-     * @param numberPerPage the number of coupons to display per page
-     * @param remoteAddr the remote address of the user
-     * @return a PagedCouponResponseDTO containing filtered coupon courses based on the provided parameters
-     */
-    public PagedCouponResponseDTO filterCoupons(String rating, String contentLength, String level, String category, String language, String pageIndex, String numberPerPage, String remoteAddr) {
-        handlePagingParameters(pageIndex, numberPerPage);
-        Pageable pageable = PageRequest.of(Integer.parseInt(pageIndex), Integer.parseInt(numberPerPage));
-        Page<CouponCourseData> filterCouponCourses = couponCourseRepository.findByRatingGreaterThanAndContentLengthGreaterThanAndLevelContainingAndCategoryIsContainingIgnoreCaseAndLanguageContaining(Float.parseFloat(rating), Integer.parseInt(contentLength), level, category, language, pageable);
-        return new PagedCouponResponseDTO(filterCouponCourses);
-    }
+        boolean hasQuery = query != null && !query.isBlank();
+        boolean hasStructuredFilters =
+            (rating != null && !rating.equals("-1")) ||
+                (contentLength != null && !contentLength.equals("-1")) ||
+                (level != null && !level.isBlank()) ||
+                (category != null && !category.isBlank()) ||
+                (language != null && !language.isBlank());
 
-    /**
-     * Searches for coupons based on a query string and returns a paged response.
-     *
-     * @param querySearch The query string to search for in coupon titles, descriptions, and headings.
-     * @param pageIndex The index of the page to fetch.
-     * @param numberPerPage The number of items to display per page.
-     * @param remoteAddr The remote address of the user making the request.
-     * @return PagedCouponResponseDTO The paged response containing the searched coupon courses.
-     */
-    public PagedCouponResponseDTO searchCoupons(String querySearch, String pageIndex, String numberPerPage, String remoteAddr) {
-        handlePagingParameters(pageIndex, numberPerPage);
-        Pageable pageable = PageRequest.of(Integer.parseInt(pageIndex), Integer.parseInt(numberPerPage));
-        Page<CouponCourseData> searchedCouponCourses = couponCourseRepository.findByTitleContainingOrDescriptionContainingOrHeadingContaining(querySearch, querySearch, querySearch, pageable);
-        return new PagedCouponResponseDTO(searchedCouponCourses);
+        Page<CouponCourseData> page;
+
+        if (hasQuery && hasStructuredFilters) {
+            // For now, prefer full-text style search when a query is present.
+            page = couponCourseRepository.findByTitleContainingOrDescriptionContainingOrHeadingContaining(
+                query, query, query, pageable
+            );
+        } else if (hasQuery) {
+            page = couponCourseRepository.findByTitleContainingOrDescriptionContainingOrHeadingContaining(
+                query, query, query, pageable
+            );
+        } else if (hasStructuredFilters) {
+            page = couponCourseRepository
+                .findByRatingGreaterThanAndContentLengthGreaterThanAndLevelContainingAndCategoryIsContainingIgnoreCaseAndLanguageContaining(
+                    Float.parseFloat(rating),
+                    Integer.parseInt(contentLength),
+                    level,
+                    category,
+                    language,
+                    pageable
+                );
+        } else {
+            page = couponCourseRepository.findAll(pageable);
+        }
+
+        return new PagedCouponResponseDTO(page);
     }
 
     /**
      * Saves a new coupon URL to the database with the provided remote address.
-     * @param couponUrl the URL of the coupon to save
+     *
+     * @param couponUrl  the URL of the coupon to save
      * @param remoteAddr the remote address of the user saving the coupon
      * @return the saved CouponCourseData object containing the full coupon code data
      */
@@ -115,21 +119,37 @@ public class CourseResponseService {
     }
 
     /**
-     * Deletes a coupon based on its URL if it cannot be extracted.
+     * Deletes a coupon by its course identifier.
      *
-     * @param couponUrl The URL of the coupon to be deleted.
-     * @param remoteAddr The IP address of the client making the request.
+     * @param courseId the ID of the course to delete
      */
-    public void deleteCoupon(String couponUrl, String remoteAddr) {
-        if (new UdemyCouponCourseExtractor(couponUrl).getFullCouponCodeData() == null) {
-            couponCourseRepository.deleteByCouponUrl(couponUrl);
+    public void deleteCouponByCourseId(Integer courseId) {
+        couponCourseRepository.deleteById(courseId);
+    }
+
+    /**
+     * Updates a coupon.
+     * <p>
+     * Currently this performs a simple existence check and returns the existing entity,
+     * but it provides a clear extension point to modify fields in the future.
+     *
+     * @param courseId the ID of the coupon to update
+     * @param request  the update request payload
+     * @return updated coupon data
+     */
+    public CouponCourseData updateCoupon(Integer courseId, CouponUpdateRequestDTO request) {
+        CouponCourseData existing = couponCourseRepository.findByCourseId(courseId);
+        if (existing == null) {
+            throw new BadRequestException("Course id not found");
         }
+        // In the future, copy allowed fields from request into existing before saving.
+        return couponCourseRepository.save(existing);
     }
 
     /**
      * Validates and handles paging parameters for pagination.
      *
-     * @param pageIndex the page index to be validated
+     * @param pageIndex     the page index to be validated
      * @param numberPerPage the number of items per page to be validated
      * @throws BadRequestException if the pageIndex or numberPerPage is not a valid integer, or if they are negative
      */
@@ -162,3 +182,4 @@ public class CourseResponseService {
         }
     }
 }
+

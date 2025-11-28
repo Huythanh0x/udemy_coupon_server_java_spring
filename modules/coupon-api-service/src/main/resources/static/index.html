@@ -454,7 +454,7 @@
     async function fetchAllCourses() {
         showLoading();
         try {
-            const response = await fetch(`${BASE_URL}/api/v1/coupons/filter?numberPerPage=1000&pageIndex=0`);
+            const response = await fetch(`${BASE_URL}/api/v1/coupons?numberPerPage=1000&pageIndex=0`);
             const statusTag = document.getElementById('statusTag');
             const totalCoupons = document.getElementById('totalCoupons');
             const lastUpdateTime = document.getElementById('lastUpdateTime');
