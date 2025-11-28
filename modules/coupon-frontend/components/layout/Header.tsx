@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { Github } from 'lucide-react'
 
 export function Header() {
   return (
@@ -8,14 +9,15 @@ export function Header() {
           <Link href="/" className="text-2xl font-bold text-primary">
             Udemy Coupons
           </Link>
-          <nav className="flex gap-6">
-            <Link href="/coupons" className="hover:text-primary transition-colors">
-              Browse Courses
-            </Link>
-            <Link href="/about" className="hover:text-primary transition-colors">
-              About
-            </Link>
-          </nav>
+          <a
+            href="https://github.com/Huythanh0x/udemy_coupon_server_java_spring"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-primary transition-colors"
+            aria-label="GitHub Repository"
+          >
+            <Github className="w-6 h-6" />
+          </a>
         </div>
       </div>
     </header>
