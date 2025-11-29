@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import com.huythanh0x.udemycoupons.utils.Constant;
 
@@ -39,7 +40,16 @@ public class CourseResponseService {
     }
 
     /**
-     * Unified listing endpoint that supports basic pagination, structured filters and free-text search.
+     * Unified listing endpoint that supports basic pagination, structured filters, free-text search, and sorting.
+     * 
+     * Supported sort fields:
+     * - students: Sort by number of students (most popular)
+     * - rating: Sort by course rating
+     * - createdAt: Sort by creation date (newest first)
+     * - contentLength: Sort by course content length
+     * - usesRemaining: Sort by remaining coupon uses
+     * 
+     * Sort order: asc (ascending) or desc (descending)
      */
     public PagedCouponResponseDTO listCoupons(
         String category,
@@ -48,12 +58,21 @@ public class CourseResponseService {
         String level,
         String language,
         String query,
+        String sortBy,
+        String sortOrder,
         String pageIndex,
         String numberPerPage,
         String remoteAddr
     ) {
         handlePagingParameters(pageIndex, numberPerPage);
-        Pageable pageable = PageRequest.of(Integer.parseInt(pageIndex), Math.min(Integer.parseInt(numberPerPage), Constant.MAX_PAGE_SIZE));
+        
+        // Validate and create sort
+        Sort sort = createSort(sortBy, sortOrder);
+        Pageable pageable = PageRequest.of(
+            Integer.parseInt(pageIndex), 
+            Math.min(Integer.parseInt(numberPerPage), Constant.MAX_PAGE_SIZE),
+            sort
+        );
 
         boolean hasQuery = query != null && !query.isBlank();
         boolean hasStructuredFilters =
@@ -89,6 +108,54 @@ public class CourseResponseService {
         }
 
         return new PagedCouponResponseDTO(page);
+    }
+
+    /**
+     * Creates a Sort object based on the provided sort field and order.
+     * 
+     * @param sortBy    the field to sort by (students, rating, createdAt, contentLength, usesRemaining)
+     * @param sortOrder the sort order (asc or desc)
+     * @return Sort object for the specified field and order
+     */
+    private Sort createSort(String sortBy, String sortOrder) {
+        if (sortBy == null || sortBy.isBlank()) {
+            sortBy = "createdAt"; // Default sort
+        }
+        
+        // Normalize sort order
+        Sort.Direction direction = Sort.Direction.DESC; // Default to descending
+        if (sortOrder != null && sortOrder.equalsIgnoreCase("asc")) {
+            direction = Sort.Direction.ASC;
+        }
+        
+        // Map sort field names to entity field names
+        String sortField;
+        switch (sortBy.toLowerCase()) {
+            case "students":
+                sortField = "students";
+                break;
+            case "rating":
+                sortField = "rating";
+                break;
+            case "createdat":
+            case "created_at":
+            case "newest":
+                sortField = "createdAt";
+                break;
+            case "contentlength":
+            case "content_length":
+                sortField = "contentLength";
+                break;
+            case "usesremaining":
+            case "uses_remaining":
+                sortField = "usesRemaining";
+                break;
+            default:
+                log.warn("Unknown sort field: {}, defaulting to createdAt", sortBy);
+                sortField = "createdAt";
+        }
+        
+        return Sort.by(direction, sortField);
     }
 
     /**

@@ -33,10 +33,10 @@ public class CouponCourseController {
     }
 
     /**
-     * Retrieves a paged list of coupons with optional filtering and search criteria.
+     * Retrieves a paged list of coupons with optional filtering, search, and sorting criteria.
      * <p>
      * This endpoint merges the previous "list", "filter" and "search" endpoints into a single,
-     * flexible query API.
+     * flexible query API with sorting support.
      *
      * @param category      optional category filter
      * @param rating        optional minimum rating filter
@@ -44,6 +44,8 @@ public class CouponCourseController {
      * @param level         optional level filter
      * @param language      optional language filter
      * @param query         optional free-text search query
+     * @param sortBy        optional sort field: students, rating, createdAt, contentLength, usesRemaining (default: createdAt)
+     * @param sortOrder     optional sort order: asc, desc (default: desc)
      * @param pageIndex     page index (0-based), defaults to 0
      * @param numberPerPage number of items per page, defaults to 10
      * @param request       HTTP servlet request
@@ -57,6 +59,8 @@ public class CouponCourseController {
         @RequestParam(required = false, defaultValue = "") String level,
         @RequestParam(required = false, defaultValue = "") String language,
         @RequestParam(required = false, defaultValue = "") String query,
+        @RequestParam(required = false, defaultValue = "createdAt") String sortBy,
+        @RequestParam(required = false, defaultValue = "desc") String sortOrder,
         @RequestParam(required = false, defaultValue = "0") String pageIndex,
         @RequestParam(required = false, defaultValue = "10") String numberPerPage,
         HttpServletRequest request
@@ -68,6 +72,8 @@ public class CouponCourseController {
             level,
             language,
             query,
+            sortBy,
+            sortOrder,
             pageIndex,
             numberPerPage,
             request.getRemoteAddr()
