@@ -9,7 +9,7 @@ export function Hero() {
             100% Off Udemy Coupons
           </h1>
           <p className="text-xl text-muted-foreground mb-8">
-            Discover thousands of free online courses. Get premium Udemy courses
+            Discover thousands of premium online courses. Get premium Udemy courses
             completely free with our validated 100% off coupons.
           </p>
           <div className="flex gap-4 justify-center">
@@ -17,7 +17,7 @@ export function Hero() {
               href="/coupons"
               className="bg-primary text-primary-foreground px-8 py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors"
             >
-              Browse Free Courses
+              Browse Active Courses
             </Link>
             <Link
               href="/about"

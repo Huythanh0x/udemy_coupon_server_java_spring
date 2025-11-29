@@ -6,9 +6,9 @@ export default function CouponsPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-4">Browse Free Courses</h1>
+        <h1 className="text-4xl font-bold mb-4">Browse Courses</h1>
         <p className="text-muted-foreground">
-          Discover 100% off Udemy coupons for thousands of free online courses
+          Discover 100% off Udemy coupons for thousands of premium online courses for free
         </p>
       </div>
       

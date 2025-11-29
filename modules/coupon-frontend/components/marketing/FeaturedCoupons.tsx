@@ -12,7 +12,7 @@ export function FeaturedCoupons() {
     <section className="py-16 bg-muted/30">
       <div className="container mx-auto px-4">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold mb-2">Featured Free Courses</h2>
+          <h2 className="text-3xl font-bold mb-2">Featured Active Courses</h2>
           <p className="text-muted-foreground">Top 10 most popular courses by student enrollment</p>
         </div>
         
@@ -40,7 +40,7 @@ export function FeaturedCoupons() {
                 href="/coupons"
                 className="inline-flex items-center px-6 py-3 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-colors shadow-lg hover:shadow-xl"
               >
-                Browse All Free Courses
+                Browse All Active Courses
               </Link>
             </div>
           </>

@@ -11,8 +11,8 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: '100% Off Udemy Coupons - Free Online Courses',
-  description: 'Discover 100% off Udemy coupons for free online courses. Browse thousands of free courses in development, business, design, and more.',
-  keywords: ['udemy coupons', 'free courses', 'online learning', 'udemy discount'],
+  description: 'Discover 100% off Udemy coupons for free online courses. Browse thousands of premium courses in development, business, design, and more for free.',
+  keywords: ['udemy coupons', 'free courses', 'online learning', 'udemy discount', '100% off'],
   openGraph: {
     title: '100% Off Udemy Coupons',
     description: 'Discover 100% off Udemy coupons for free online courses',
