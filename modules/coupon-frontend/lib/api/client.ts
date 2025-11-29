@@ -1,9 +1,9 @@
 import axios from 'axios'
-import { API_ENDPOINTS } from '../constants'
+import { API_BASE_URL } from '../constants'
 import type { PagedCouponResponse, CouponCourseData, CouponListParams } from '@/types/coupon'
 
 const apiClient = axios.create({
-  baseURL: API_ENDPOINTS.coupons.list.replace('/api/v1/coupons', ''),
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -35,7 +35,7 @@ export const couponApi = {
    */
   getById: async (courseId: string | number): Promise<CouponCourseData> => {
     const response = await apiClient.get<CouponCourseData>(
-      API_ENDPOINTS.coupons.detail(courseId)
+      `/api/v1/coupons/${courseId}`
     )
     return response.data
   },

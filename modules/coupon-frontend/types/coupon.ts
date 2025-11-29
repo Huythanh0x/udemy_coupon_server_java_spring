@@ -31,6 +31,9 @@ export interface PagedCouponResponse {
   courses: CouponCourseData[]
 }
 
+export type SortField = 'students' | 'rating' | 'createdAt' | 'contentLength' | 'usesRemaining'
+export type SortOrder = 'asc' | 'desc'
+
 export interface CouponListParams {
   category?: string
   rating?: string
@@ -38,6 +41,8 @@ export interface CouponListParams {
   level?: string
   language?: string
   query?: string
+  sortBy?: SortField
+  sortOrder?: SortOrder
   pageIndex?: string
   numberPerPage?: string
 }
