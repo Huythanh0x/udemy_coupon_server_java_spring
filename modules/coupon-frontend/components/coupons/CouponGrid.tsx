@@ -1,7 +1,7 @@
 'use client'
 
 import { useCoupons } from '@/hooks/useCoupons'
-import { CouponCard } from '@/components/coupons/CouponCard'
+import { FeaturedCouponCard } from '@/components/coupons/FeaturedCouponCard'
 import { Loader2, ChevronLeft, ChevronRight } from 'lucide-react'
 import type { CouponListParams, SortField } from '@/types/coupon'
 
@@ -194,7 +194,7 @@ export function CouponGrid({ filters, onPageChange, onFilterChange }: CouponGrid
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
             {data.courses.map((course) => (
-              <CouponCard key={course.courseId} course={course} />
+              <FeaturedCouponCard key={course.courseId} course={course} />
             ))}
           </div>
 

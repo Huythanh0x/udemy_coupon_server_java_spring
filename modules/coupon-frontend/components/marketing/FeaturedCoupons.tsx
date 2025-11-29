@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useFeaturedCoupons } from '@/hooks/useCoupons'
-import { CouponCard } from '@/components/coupons/CouponCard'
+import { FeaturedCouponCard } from '@/components/coupons/FeaturedCouponCard'
 import { Loader2 } from 'lucide-react'
 
 export function FeaturedCoupons() {
@@ -32,7 +32,7 @@ export function FeaturedCoupons() {
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
               {data.courses.map((course) => (
-                <CouponCard key={course.courseId} course={course} />
+                <FeaturedCouponCard key={course.courseId} course={course} />
               ))}
             </div>
             <div className="text-center">

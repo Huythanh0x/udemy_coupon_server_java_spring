@@ -7,7 +7,7 @@ import type { CouponCourseData } from '@/types/coupon'
 import { getCategoryColor, getCategoryIcon } from '@/lib/course-utils'
 import { formatRelativeTime } from '@/lib/utils'
 
-interface CouponCardProps {
+interface FeaturedCouponCardProps {
   course: CouponCourseData
 }
 
@@ -28,7 +28,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   'book': Book,
 }
 
-export function CouponCard({ course }: CouponCardProps) {
+export function FeaturedCouponCard({ course }: FeaturedCouponCardProps) {
   const categoryColor = getCategoryColor(course.category)
   const categoryIconName = getCategoryIcon(course.category)
   const IconComponent = iconMap[categoryIconName] || Book
