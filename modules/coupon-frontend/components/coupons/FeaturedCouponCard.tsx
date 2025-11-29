@@ -76,11 +76,19 @@ export function FeaturedCouponCard({ course }: FeaturedCouponCardProps) {
         
         <div className="flex flex-wrap gap-2.5 mb-2.5">
           <span
-            className="inline-block px-2.5 py-1.5 rounded-[20px] text-xs text-white font-medium"
-            style={{ backgroundColor: categoryColor }}
+            className="text-xs font-bold"
+            style={{ color: categoryColor }}
           >
-            {course.category}
+            #{course.category}
           </span>
+          {course.subCategory && course.subCategory.toLowerCase() !== 'unknown' && (
+            <span
+              className="text-xs font-bold"
+              style={{ color: categoryColor }}
+            >
+              #{course.subCategory}
+            </span>
+          )}
         </div>
         
         <div className="flex justify-between items-center mb-2.5">
