@@ -200,23 +200,23 @@ export function CouponGrid({ filters, onPageChange, onFilterChange }: CouponGrid
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex justify-center items-center gap-2 mt-8">
+            <div className="flex justify-center items-center gap-1.5 mt-8">
               <button
                 onClick={() => onPageChange(0)}
                 disabled={currentPage === 0}
-                className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                className="p-1.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-card hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                 aria-label="First page"
               >
-                <ChevronsLeft className="w-4 h-4" />
+                <ChevronsLeft className="w-3.5 h-3.5" />
               </button>
               
               <button
                 onClick={() => onPageChange(currentPage - 1)}
                 disabled={currentPage === 0}
-                className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                className="p-1.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-card hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                 aria-label="Previous page"
               >
-                <ChevronLeft className="w-4 h-4" />
+                <ChevronLeft className="w-3.5 h-3.5" />
               </button>
               
               <div className="flex items-center gap-1">
@@ -236,7 +236,7 @@ export function CouponGrid({ filters, onPageChange, onFilterChange }: CouponGrid
                     <button
                       key={pageNum}
                       onClick={() => onPageChange(pageNum)}
-                      className={`px-4 py-2 border rounded-lg ${
+                      className={`px-2.5 py-1.5 text-sm border rounded-md ${
                         currentPage === pageNum
                           ? 'bg-primary text-primary-foreground border-primary'
                           : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-card hover:bg-gray-50 dark:hover:bg-gray-800'
@@ -251,19 +251,19 @@ export function CouponGrid({ filters, onPageChange, onFilterChange }: CouponGrid
               <button
                 onClick={() => onPageChange(currentPage + 1)}
                 disabled={currentPage >= totalPages - 1}
-                className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                className="p-1.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-card hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                 aria-label="Next page"
               >
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="w-3.5 h-3.5" />
               </button>
 
               <button
                 onClick={() => onPageChange(totalPages - 1)}
                 disabled={currentPage >= totalPages - 1}
-                className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                className="p-1.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-card hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                 aria-label="Last page"
               >
-                <ChevronsRight className="w-4 h-4" />
+                <ChevronsRight className="w-3.5 h-3.5" />
               </button>
             </div>
           )}
