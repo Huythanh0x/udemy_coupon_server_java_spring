@@ -34,22 +34,110 @@ export function CouponGrid({ filters, onPageChange, onFilterChange }: CouponGrid
     onPageChange(0) // Reset to first page when sorting changes
   }
 
+  // Build filter conditions array for display
+  const getFilterConditions = () => {
+    const conditions: { label: string; value: string; color: string }[] = []
+    
+    if (filters.query) {
+      conditions.push({
+        label: 'query',
+        value: filters.query,
+        color: '#3b82f6', // blue
+      })
+    }
+    
+    if (filters.category) {
+      conditions.push({
+        label: 'category',
+        value: filters.category,
+        color: '#10b981', // green
+      })
+    }
+    
+    if (filters.level) {
+      conditions.push({
+        label: 'level',
+        value: filters.level,
+        color: '#f59e0b', // amber
+      })
+    }
+    
+    if (filters.language) {
+      conditions.push({
+        label: 'language',
+        value: filters.language,
+        color: '#8b5cf6', // purple
+      })
+    }
+    
+    if (filters.rating) {
+      conditions.push({
+        label: 'rating',
+        value: `${filters.rating}+ ⭐`,
+        color: '#ef4444', // red
+      })
+    }
+    
+    return conditions
+  }
+
+  const renderResultsText = () => {
+    if (isLoading) {
+      return <span>Loading...</span>
+    }
+    
+    if (!data) {
+      return <span>No results</span>
+    }
+
+    const conditions = getFilterConditions()
+    
+    if (conditions.length === 0) {
+      return (
+        <span>
+          <span className="font-bold text-lg underline" style={{ color: '#3b82f6' }}>
+            {totalCoupons}
+          </span>
+          <span className="text-sm text-muted-foreground ml-1">courses</span>
+        </span>
+      )
+    }
+
+    // Format conditions with highlights
+    const conditionElements = conditions.map((condition, index) => (
+      <span key={index}>
+        {index > 0 && <span className="text-muted-foreground"> and </span>}
+        <span
+          className="font-semibold px-2 py-0.5 rounded"
+          style={{
+            backgroundColor: `${condition.color}20`,
+            color: condition.color,
+          }}
+        >
+          {condition.value}
+        </span>
+      </span>
+    ))
+
+    return (
+      <span>
+        <span className="font-bold text-lg underline" style={{ color: '#3b82f6' }}>
+          {totalCoupons}
+        </span>
+        <span className="text-sm text-muted-foreground ml-1">
+          courses of {conditionElements}
+        </span>
+      </span>
+    )
+  }
+
   return (
     <div>
       {/* Header with sort and results count */}
       <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <p className="text-sm text-muted-foreground">
-            {isLoading ? (
-              'Loading...'
-            ) : data ? (
-              <>
-                Showing {data.courses.length} of {totalCoupons} courses
-                {filters.query && ` for "${filters.query}"`}
-              </>
-            ) : (
-              'No results'
-            )}
+            {renderResultsText()}
           </p>
         </div>
         
