@@ -39,3 +39,39 @@ export function useCouponDetail(courseId: string | number) {
   })
 }
 
+export function useCourseDetails(courseId: string | number, couponCode?: string) {
+  return useQuery({
+    queryKey: ['coupons', 'details', courseId, couponCode],
+    queryFn: () => couponApi.getDetails(courseId, couponCode),
+    enabled: !!courseId,
+    staleTime: 60 * 60 * 1000, // 1 hour (matches backend cache)
+  })
+}
+
+export function useCourseReviews(courseId: string | number, page: number = 1) {
+  return useQuery({
+    queryKey: ['coupons', 'reviews', courseId, page],
+    queryFn: () => couponApi.getReviews(courseId, page),
+    enabled: !!courseId,
+    staleTime: 30 * 60 * 1000, // 30 minutes
+  })
+}
+
+export function useCourseCurriculum(courseId: string | number, couponCode?: string) {
+  return useQuery({
+    queryKey: ['coupons', 'curriculum', courseId, couponCode],
+    queryFn: () => couponApi.getCurriculum(courseId, couponCode),
+    enabled: !!courseId,
+    staleTime: 60 * 60 * 1000, // 1 hour
+  })
+}
+
+export function useRelatedCourses(courseId: string | number) {
+  return useQuery({
+    queryKey: ['coupons', 'related', courseId],
+    queryFn: () => couponApi.getRelated(courseId),
+    enabled: !!courseId,
+    staleTime: 30 * 60 * 1000, // 30 minutes
+  })
+}
+
