@@ -5,6 +5,8 @@ services:
     image: mysql:8.3.0
     container_name: training-coupon-mysql-local
     environment:
+      # For local development, always use 'password' as default to match application-local.properties
+      # Override with SPRING_DATASOURCE_PASSWORD env var if needed
       MYSQL_ROOT_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-password}
       MYSQL_DATABASE: training_coupon
     ports:
