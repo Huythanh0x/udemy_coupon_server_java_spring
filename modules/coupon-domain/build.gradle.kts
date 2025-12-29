@@ -19,6 +19,6 @@ dependencies {
     api("org.springframework.boot:spring-boot-starter-data-jpa")
     api("org.springframework.boot:spring-boot-starter-data-redis")
     implementation("org.jsoup:jsoup:1.15.4")
-    implementation("org.json:json:20231013")
+    api("org.json:json:20231013")
 }
 
