@@ -42,6 +42,75 @@ public class UrlUtils {
     }
 
     /**
+     * Returns the API URL for getting course reviews.
+     *
+     * @param courseId the ID of the course
+     * @param page the page number (1-indexed)
+     * @return the API URL for course reviews
+     */
+    public static String getReviewsAPI(int courseId, int page) {
+        return "https://www.udemy.com/api-2.0/courses/" + courseId + "/reviews/"
+                + "?courseId=" + courseId
+                + "&page=" + page
+                + "&is_text_review=1"
+                + "&ordering=course_review_score__rank,-created"
+                + "&fields[course_review]=@default,response,content_html,created_formatted_with_time_since"
+                + "&fields[user]=@min,image_50x50,initials,public_display_name,tracking_id"
+                + "&fields[course_review_response]=@min,user,content_html,created_formatted_with_time_since";
+    }
+
+    /**
+     * Returns the API URL for getting related/recommended courses.
+     *
+     * @param courseId the ID of the course
+     * @return the API URL for related courses
+     */
+    public static String getDiscoveryUnitsAPI(int courseId) {
+        return "https://www.udemy.com/api-2.0/discovery-units/"
+                + "?context=clp-bundle"
+                + "&from=0"
+                + "&page_size=3"
+                + "&item_count=12"
+                + "&course_id=" + courseId
+                + "&source_page=course_landing_page"
+                + "&locale=en_US"
+                + "&currency=vnd"
+                + "&navigation_locale=en_US"
+                + "&skip_price=true"
+                + "&funnel_context=landing-page";
+    }
+
+    /**
+     * Returns the API URL for getting detailed information about a specific asset
+     * (e.g. the course preview video).
+     *
+     * @param assetId the ID of the asset
+     * @return the API URL for the asset with media sources, captions, and thumbnails
+     */
+    public static String getAssetAPI(long assetId) {
+        return "https://www.udemy.com/api-2.0/assets/" + assetId
+                + "/?fields[asset]=@min,status,delayed_asset_message,processing_errors,time_estimation,"
+                + "media_license_token,media_sources,thumbnail_url,captions,thumbnail_sprite,created"
+                + "&fields[caption]=@default,is_translation";
+    }
+
+    /**
+     * Returns the preview page URL for a course.
+     * This page contains embedded JSON with preview video data.
+     *
+     * @param courseId the ID of the course
+     * @param startPreviewId optional preview ID to start with (can be null)
+     * @return the preview page URL
+     */
+    public static String getPreviewPageURL(int courseId, Long startPreviewId) {
+        String url = "https://www.udemy.com/course/" + courseId + "/preview/";
+        if (startPreviewId != null && startPreviewId > 0) {
+            url += "?startPreviewId=" + startPreviewId + "&uiRegion=sidebar.introductionAsset";
+        }
+        return url;
+    }
+
+    /**
      * Decodes a Base64 encoded string into a UTF-8 encoded string.
      *
      * @param encodedBase64String the Base64 encoded string to be decoded
