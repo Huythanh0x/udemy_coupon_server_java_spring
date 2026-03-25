@@ -94,6 +94,25 @@ services:
     labels:
       - "logging=promtail"
 
+  frontend-service:
+    # Pull from Docker Hub using service-prefixed tag
+    # Format: {BASE_IMAGE_NAME}:frontend-{branch}
+    image: ${BASE_IMAGE_NAME:-yourusername/training-coupon-services}:${FRONTEND_IMAGE_TAG:-frontend-main}
+    container_name: training-coupon-frontend
+    depends_on:
+      api-service:
+        condition: service_started
+    ports:
+      # FE on host port 80 (Cloudflare tunnel can forward to this)
+      - "80:3000"
+    environment:
+      PORT: 3000
+    restart: always
+    networks:
+      - app-network
+    labels:
+      - "logging=promtail"
+
 volumes:
   mysql-data:
   redis-data:

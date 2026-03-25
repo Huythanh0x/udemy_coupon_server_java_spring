@@ -45,15 +45,16 @@ app.post('/deploy', async (req, res) => {
     const { 
       branch, 
       apiImageTag, 
-      crawlerImageTag, 
+      crawlerImageTag,
+      frontendImageTag,
       baseImageName 
     } = req.body;
 
     // Validate required parameters
-    if (!branch || !apiImageTag || !crawlerImageTag || !baseImageName) {
+    if (!branch || !apiImageTag || !crawlerImageTag || !frontendImageTag || !baseImageName) {
       return res.status(400).json({ 
         success: false, 
-        error: 'Missing required parameters: branch, apiImageTag, crawlerImageTag, baseImageName' 
+        error: 'Missing required parameters: branch, apiImageTag, crawlerImageTag, frontendImageTag, baseImageName' 
       });
     }
 
@@ -62,6 +63,7 @@ app.post('/deploy', async (req, res) => {
       branch,
       apiImageTag,
       crawlerImageTag,
+      frontendImageTag,
       baseImageName,
       deploymentPath: DEPLOYMENT_PATH
     });
@@ -92,7 +94,7 @@ app.post('/deploy', async (req, res) => {
 });
 
 // Deployment function
-async function deployServices({ branch, apiImageTag, crawlerImageTag, baseImageName, deploymentPath }) {
+async function deployServices({ branch, apiImageTag, crawlerImageTag, frontendImageTag, baseImageName, deploymentPath }) {
   const results = {
     success: false,
     steps: [],
@@ -110,18 +112,23 @@ async function deployServices({ branch, apiImageTag, crawlerImageTag, baseImageN
     try {
       const pullApiCmd = `docker pull ${baseImageName}:${apiImageTag}`;
       const pullCrawlerCmd = `docker pull ${baseImageName}:${crawlerImageTag}`;
+      const pullFrontendCmd = `docker pull ${baseImageName}:${frontendImageTag}`;
       
       await execAsync(pullApiCmd);
       results.steps.push({ step: 'pull_api_image', status: 'completed', image: `${baseImageName}:${apiImageTag}` });
       
       await execAsync(pullCrawlerCmd);
       results.steps.push({ step: 'pull_crawler_image', status: 'completed', image: `${baseImageName}:${crawlerImageTag}` });
+
+      await execAsync(pullFrontendCmd);
+      results.steps.push({ step: 'pull_frontend_image', status: 'completed', image: `${baseImageName}:${frontendImageTag}` });
       
       // Pull latest tags if on main branch
       if (branch === 'main') {
         try {
           await execAsync(`docker pull ${baseImageName}:api-latest || true`);
           await execAsync(`docker pull ${baseImageName}:crawler-latest || true`);
+          await execAsync(`docker pull ${baseImageName}:frontend-latest || true`);
           results.steps.push({ step: 'pull_latest_tags', status: 'completed' });
         } catch (error) {
           results.steps.push({ step: 'pull_latest_tags', status: 'skipped', reason: error.message });
@@ -151,6 +158,7 @@ async function deployServices({ branch, apiImageTag, crawlerImageTag, baseImageN
         'BASE_IMAGE_NAME',
         'API_IMAGE_TAG',
         'CRAWLER_IMAGE_TAG',
+        'FRONTEND_IMAGE_TAG',
         'SPRING_PROFILES_ACTIVE',
         'SPRING_DATASOURCE_PASSWORD',
         'SPRING_DATASOURCE_USERNAME',
@@ -169,6 +177,7 @@ async function deployServices({ branch, apiImageTag, crawlerImageTag, baseImageN
         BASE_IMAGE_NAME: baseImageName,
         API_IMAGE_TAG: apiImageTag,
         CRAWLER_IMAGE_TAG: crawlerImageTag,
+        FRONTEND_IMAGE_TAG: frontendImageTag,
       };
 
       // Add allowed environment variables from process.env (only strings, no PM2 vars)
@@ -181,7 +190,10 @@ async function deployServices({ branch, apiImageTag, crawlerImageTag, baseImageN
             typeof value === 'string' && 
             !pm2Patterns.test(key) &&
             !value.includes('[object Object]')) {
-          cleanEnv[key] = value;
+          // Don't override values we set explicitly from the webhook payload.
+          if (cleanEnv[key] === undefined) {
+            cleanEnv[key] = value;
+          }
         }
       });
 

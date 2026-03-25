@@ -61,6 +61,19 @@ jobs:
             type=sha,prefix=crawler-{{branch}}-,format=short
             type=raw,value=crawler-latest,enable=${{ github.ref == 'refs/heads/main' }}
 
+      - name: Extract metadata for Frontend service
+        id: meta-frontend
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.BASE_IMAGE_NAME }}
+          tags: |
+            type=raw,value=frontend-{{branch}}
+            type=raw,value=frontend-pr-{{number}},enable=${{ github.event_name == 'pull_request' }}
+            type=semver,pattern={{version}},value=frontend-v{{version}},enable=${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') }}
+            type=semver,pattern={{major}}.{{minor}},value=frontend-{{major}}.{{minor}},enable=${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') }}
+            type=sha,prefix=frontend-{{branch}}-,format=short
+            type=raw,value=frontend-latest,enable=${{ github.ref == 'refs/heads/main' }}
+
       - name: Build and push API service image
         uses: docker/build-push-action@v5
         with:
@@ -87,6 +100,19 @@ jobs:
           cache-from: type=registry,ref=${{ env.BASE_IMAGE_NAME }}:crawler-buildcache
           cache-to: type=registry,ref=${{ env.BASE_IMAGE_NAME }}:crawler-buildcache,mode=max
 
+      - name: Build and push Frontend service image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./modules/coupon-frontend
+          file: ./modules/coupon-frontend/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          build-args: |
+            NEXT_PUBLIC_API_URL=
+          tags: ${{ steps.meta-frontend.outputs.tags }}
+          labels: ${{ steps.meta-frontend.outputs.labels }}
+          cache-from: type=registry,ref=${{ env.BASE_IMAGE_NAME }}:frontend-buildcache
+          cache-to: type=registry,ref=${{ env.BASE_IMAGE_NAME }}:frontend-buildcache,mode=max
+
   deploy:
     name: Deploy via Webhook
     needs: build-and-push
@@ -101,6 +127,7 @@ jobs:
           BRANCH_NAME="${{ github.ref_name }}"
           API_IMAGE_TAG="api-${BRANCH_NAME}"
           CRAWLER_IMAGE_TAG="crawler-${BRANCH_NAME}"
+          FRONTEND_IMAGE_TAG="frontend-${BRANCH_NAME}"
           BASE_IMAGE_NAME="${{ env.BASE_IMAGE_NAME }}"
           WEBHOOK_URL="${{ secrets.WEBHOOK_URL }}"
           WEBHOOK_SECRET="${{ secrets.WEBHOOK_SECRET_KEY }}"
@@ -117,6 +144,7 @@ jobs:
               \"branch\": \"${BRANCH_NAME}\",
               \"apiImageTag\": \"${API_IMAGE_TAG}\",
               \"crawlerImageTag\": \"${CRAWLER_IMAGE_TAG}\",
+              \"frontendImageTag\": \"${FRONTEND_IMAGE_TAG}\",
               \"baseImageName\": \"${BASE_IMAGE_NAME}\"
             }")
           

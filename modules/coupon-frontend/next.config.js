@@ -21,7 +21,11 @@ const nextConfig = {
   },
   // Environment variables
   env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080',
+    // In production we prefer same-origin relative calls (Cloudflare tunnel routes /api/v1).
+    // Locally you can set NEXT_PUBLIC_API_URL via .env.local.
+    NEXT_PUBLIC_API_URL:
+      process.env.NEXT_PUBLIC_API_URL ||
+      (process.env.NODE_ENV === 'production' ? '' : 'http://localhost:8080'),
   },
   // Output configuration (for static export if needed)
   // output: 'standalone', // Uncomment for Docker deployment

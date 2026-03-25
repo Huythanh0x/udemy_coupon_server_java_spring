@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { CouponGrid } from '@/components/coupons/CouponGrid'
 import { FilterSidebar } from '@/components/coupons/FilterSidebar'
 import { SearchBar } from '@/components/coupons/SearchBar'
 import type { CouponListParams } from '@/types/coupon'
 
-export default function CouponsPage() {
+function CouponsPageInner() {
   const searchParams = useSearchParams()
   const router = useRouter()
   
@@ -119,6 +119,15 @@ export default function CouponsPage() {
         </main>
       </div>
     </div>
+  )
+}
+
+export default function CouponsPage() {
+  // Next.js requires useSearchParams to be wrapped in Suspense during prerendering.
+  return (
+    <Suspense fallback={<div className="container mx-auto px-4 py-8">Loading...</div>}>
+      <CouponsPageInner />
+    </Suspense>
   )
 }
 
