@@ -35,11 +35,13 @@ cd udemy_coupon_server_java_spring
 ```
 
 ### Start the Services
-1. Docker Compose (API + MySQL) - recommended for parity with production:
+1. Full stack via Docker Compose (published images - CI parity) - recommended:
 
 ```shell
-docker compose up
+docker compose -f docker-compose.prod.yml up
 ```
+
+This pulls the API/crawler images built by GitHub Actions (and starts MySQL/Redis plus the observability stack).
 
 2. Local development (run services from source, MySQL via local compose):
 

@@ -19,11 +19,11 @@ git clone https://github.com/huythanh0x/udemy_coupon_server_java_spring
 cd udemy_coupon_server_java_spring
 ```
 
-### Option A: Full stack via Docker Compose (recommended)
+### Option A: Full stack via Docker Compose (published images)
 ```bash
-docker compose up
+docker compose -f docker-compose.prod.yml up
 ```
-This brings up the MySQL container plus the Spring Boot service with the default `application.properties` profile (DB host is `mysql`).
+This pulls the API/crawler images built by GitHub Actions (and starts MySQL/Redis plus the observability stack).
 
 ### Option B: Run the API locally, keep MySQL in Docker
 ```bash
