@@ -12,7 +12,9 @@ export interface CouponCourseData {
   couponCode: string
   previewImage: string
   couponUrl: string
-  expiredDate: string
+  // Backend returns epoch seconds as a number (e.g. 1777014000.0).
+  // It may also return ISO strings depending on endpoint/config.
+  expiredDate: string | number
   usesRemaining: number
   heading: string
   description: string

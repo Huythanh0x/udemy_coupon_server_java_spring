@@ -29,8 +29,8 @@ export function CouponGrid({ filters, onPageChange, onFilterChange }: CouponGrid
   const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const [sortBy, sortOrder] = e.target.value.split('-') as [SortField, 'asc' | 'desc']
     // Update both sort fields without resetting page
-    onFilterChange('sortBy', sortBy, false)
-    onFilterChange('sortOrder', sortOrder, false)
+    onFilterChange('sortBy', sortBy)
+    onFilterChange('sortOrder', sortOrder)
     onPageChange(0) // Reset to first page when sorting changes
   }
 
