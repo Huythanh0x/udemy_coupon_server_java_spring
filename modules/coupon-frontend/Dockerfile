@@ -15,6 +15,10 @@ ARG NEXT_PUBLIC_API_URL=""
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NODE_ENV=production
 
+# Next.js can run without a public/ dir, but our Dockerfile copies it.
+# Create an empty one when missing to keep the image build stable.
+RUN mkdir -p public
+
 RUN npm run build
 
 FROM node:20-alpine AS runner
@@ -29,5 +33,6 @@ COPY --from=builder /app/public ./public
 
 EXPOSE 3000
 
+# Use shell form for PORT env substitution.
 CMD sh -c "npm start -- -p ${PORT:-3000} -H 0.0.0.0"
 
