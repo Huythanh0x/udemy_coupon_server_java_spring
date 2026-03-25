@@ -8,7 +8,6 @@ import com.huythanh0x.udemycoupons.utils.UrlUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,10 +61,9 @@ public class UdemyCouponCourseExtractor {
 
     /**
      * Extracts the course ID from the HTML document retrieved from a given coupon URL.
-     * If the data-clp-course-id attribute is found in the body of the document, it is parsed
-     * and returned as an integer. If not found, it checks for the element with the id "udemy"
-     * and retrieves the data-clp-course-id attribute from it. If neither is found, returns -1.
-     * @return The course ID as an integer if found, -1 otherwise.
+     *
+     * Udemy embeds the courseId inside a native deeplink string, e.g.:
+     * {@code udemy://discover?courseId=6643369}
      */
     private int extractCourseId() {
         Document document = new WebContentFetcher().getHtmlDocumentFrom(couponUrl);
@@ -73,19 +71,35 @@ public class UdemyCouponCourseExtractor {
             log.warn("Unable to load document for coupon URL {}", couponUrl);
             return -1;
         }
+
+        String html = document.html();
+        int idFromDiscover = extractCourseIdFromDiscoverDeeplink(html);
+        if (idFromDiscover > 0) return idFromDiscover;
+
+        log.warn("Course id not found in HTML for {}", couponUrl);
+        return -1;
+    }
+
+    private int extractCourseIdFromDiscoverDeeplink(String html) {
+        if (html == null || html.isEmpty()) return -1;
+
+        String token = "udemy://discover?courseId=";
+        int idx = html.indexOf(token);
+        if (idx < 0) return -1;
+
+        int start = idx + token.length();
+        if (start >= html.length()) return -1;
+
+        int end = start;
+        while (end < html.length() && Character.isDigit(html.charAt(end))) {
+            end++;
+        }
+
+        if (end <= start) return -1;
+
         try {
-            return Integer.parseInt(document.body().attr("data-clp-course-id"));
-        } catch (Exception e) {
-            Element udemyId = document.getElementById("udemy");
-            if (udemyId != null) {
-                try {
-                    return Integer.parseInt(udemyId.attr("data-clp-course-id"));
-                } catch (NumberFormatException nfe) {
-                    log.warn("Failed to parse course id from udemy element for {}: {}", couponUrl, nfe.getMessage());
-                }
-            } else {
-                log.warn("Course id not found in document for {}", couponUrl);
-            }
+            return Integer.parseInt(html.substring(start, end));
+        } catch (Exception ignored) {
             return -1;
         }
     }
@@ -116,12 +130,11 @@ public class UdemyCouponCourseExtractor {
      * @return CouponCourseData object containing both coupon data and course data
      */
     public CouponCourseData getFullCouponCodeData() {
-        CouponJsonData couponDataResult = extractDataCouponFromOfficialAPI(
-                WebContentFetcher.getJsonObjectFrom(UrlUtils.getCouponAPI(courseId, couponCode))
-        );
-        CourseJsonData courseDataResult = extractCourseDataFromOfficialAPI(
-                WebContentFetcher.getJsonObjectFrom(UrlUtils.getCourseAPI(courseId))
-        );
+        JSONObject couponJson = WebContentFetcher.getJsonObjectFrom(UrlUtils.getCouponAPI(courseId, couponCode));
+        JSONObject courseJson = WebContentFetcher.getJsonObjectFrom(UrlUtils.getCourseAPI(courseId));
+
+        CouponJsonData couponDataResult = extractDataCouponFromOfficialAPI(couponJson);
+        CourseJsonData courseDataResult = extractCourseDataFromOfficialAPI(courseJson);
         return combineCourseAndCouponData(couponDataResult, courseDataResult);
     }
 
@@ -132,6 +145,8 @@ public class UdemyCouponCourseExtractor {
      * @return CourseJsonData object with extracted course information
      */
     private CourseJsonData extractCourseDataFromOfficialAPI(JSONObject courseObjectJson) {
+        if (courseObjectJson == null) return null;
+
         String author = "Unknown";
         String category = "Unknown";
         String subCategory = "Unknown";
@@ -154,7 +169,10 @@ public class UdemyCouponCourseExtractor {
         if (primarySubCategory != null) {
             subCategory = primarySubCategory.optString("title", "Unknown");
         }
-        String language = courseObjectJson.optJSONObject("locale").optString("simple_english_title", "");
+        JSONObject localeObj = courseObjectJson.optJSONObject("locale");
+        String language = (localeObj != null)
+                ? localeObj.optString("simple_english_title", "")
+                : "";
         String instructionalLevel = courseObjectJson.optString("instructional_level", "");
         String level = instructionalLevel.contains("Levels") ? instructionalLevel : instructionalLevel.replace(" Level", "");
         int students = courseObjectJson.optInt("num_subscribers", 0);
@@ -175,33 +193,57 @@ public class UdemyCouponCourseExtractor {
      * @return CouponJsonData object with extracted data
      */
     private CouponJsonData extractDataCouponFromOfficialAPI(JSONObject couponJsonObject) {
-        int usesRemaining = 0;
+        if (couponJsonObject == null) return null;
 
-        float price = couponJsonObject.optJSONObject("price_text").optJSONObject("data")
-                .optJSONObject("pricing_result").optJSONObject("price").optFloat("amount");
+        // Udemy now sometimes returns payloads like: {"detail":"Not found"}
+        String detail = couponJsonObject.optString("detail", null);
+        if (detail != null) {
+            return null;
+        }
 
+        JSONObject priceTextObj = couponJsonObject.optJSONObject("price_text");
+        if (priceTextObj == null) return null;
+
+        JSONObject dataObj = priceTextObj.optJSONObject("data");
+        if (dataObj == null) return null;
+
+        JSONObject pricingResultObj = dataObj.optJSONObject("pricing_result");
+        if (pricingResultObj == null) return null;
+
+        JSONObject priceObj = pricingResultObj.optJSONObject("price");
+        if (priceObj == null) return null;
+
+        float price = priceObj.optFloat("amount", Float.NaN);
+        if (Float.isNaN(price)) return null;
+
+        JSONObject campaignObj = pricingResultObj.optJSONObject("campaign");
+        String expiredDateStr = (campaignObj != null) ? campaignObj.optString("end_time", null) : null;
         Instant expiredDate;
         try {
-            String expiredDateStr = couponJsonObject.optJSONObject("price_text").optJSONObject("data")
-                    .optJSONObject("pricing_result").optJSONObject("campaign").optString("end_time");
             expiredDate = parseExpiredDate(expiredDateStr);
         } catch (Exception e) {
             log.warn("Failed to parse expired date for {}: {}", couponUrl, e.getMessage());
             expiredDate = Instant.parse("2030-05-19T17:24:00Z");
         }
 
-        String previewImage = couponJsonObject.optJSONObject("sidebar_container").optJSONObject("componentProps")
-                .optJSONObject("introductionAsset").optJSONObject("images").optString("image_750x422");
-
-        String previewVideo = couponJsonObject.optJSONObject("sidebar_container").optJSONObject("componentProps")
-                .optJSONObject("introductionAsset").optString("course_preview_path");
-
-        try {
-            usesRemaining = couponJsonObject.optJSONObject("price_text").optJSONObject("data")
-                    .optJSONObject("pricing_result").optJSONObject("campaign").optInt("uses_remaining");
-        } catch (Exception ignored) {
+        String previewImage = "";
+        String previewVideo = "";
+        JSONObject sidebarContainerObj = couponJsonObject.optJSONObject("sidebar_container");
+        if (sidebarContainerObj != null) {
+            JSONObject componentPropsObj = sidebarContainerObj.optJSONObject("componentProps");
+            if (componentPropsObj != null) {
+                JSONObject introductionAssetObj = componentPropsObj.optJSONObject("introductionAsset");
+                if (introductionAssetObj != null) {
+                    JSONObject imagesObj = introductionAssetObj.optJSONObject("images");
+                    if (imagesObj != null) {
+                        previewImage = imagesObj.optString("image_750x422", "");
+                    }
+                    previewVideo = introductionAssetObj.optString("course_preview_path", "");
+                }
+            }
         }
 
+        int usesRemaining = (campaignObj != null) ? campaignObj.optInt("uses_remaining", 0) : 0;
         return new CouponJsonData(price, expiredDate, previewImage, previewVideo, usesRemaining);
     }
 
@@ -258,6 +300,7 @@ public class UdemyCouponCourseExtractor {
      * @return A new CouponCourseData object with combined data from course and coupon
      */
     private CouponCourseData combineCourseAndCouponData(CouponJsonData couponData, CourseJsonData courseData) {
+        if (couponData == null || courseData == null) return null;
         if (couponData.getPrice() != 0f) return null;
         return CouponCourseData.builder()
                 .courseId(courseId)

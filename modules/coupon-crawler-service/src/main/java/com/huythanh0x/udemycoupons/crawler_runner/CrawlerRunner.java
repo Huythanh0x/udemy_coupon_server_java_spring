@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
 @ComponentScan("com.huythanh0x.udemycoupons.repository")
 public class CrawlerRunner implements ApplicationRunner {
     private static final Logger log = LoggerFactory.getLogger(CrawlerRunner.class);
+    private static final Logger urlLog = LoggerFactory.getLogger("crawler.urls");
     CouponCourseRepository couponCourseRepository;
     ExpiredCouponRepository expiredCouponRepository;
     CouponCourseHistoryRepository couponCourseHistoryRepository;
@@ -307,6 +308,8 @@ public class CrawlerRunner implements ApplicationRunner {
         for (String couponUrl : batch) {
             executor.submit(() -> {
                 try {
+                    urlLog.info("START|url={}", couponUrl);
+
                     Integer cachedCourseId = courseIdCache.get(couponUrl);
                     UdemyCouponCourseExtractor extractor = (cachedCourseId != null)
                         ? new UdemyCouponCourseExtractor(couponUrl, cachedCourseId)
@@ -331,6 +334,12 @@ public class CrawlerRunner implements ApplicationRunner {
                         courseIdCache.put(couponUrl, couponCodeData.getCourseId());
                         courseStateCache.put(couponUrl, CourseState.ACTIVE);
                         log.debug("Validated coupon {}", couponCodeData.getTitle());
+                        urlLog.info(
+                            "OK|url={}|courseId={}|title={}",
+                            couponUrl,
+                            couponCodeData.getCourseId(),
+                            couponCodeData.getTitle()
+                        );
                     } else {
                         Integer courseId = resolveCourseIdForExpired(couponUrl, extractor, cachedCourseId);
                         String title = null;
@@ -358,10 +367,21 @@ public class CrawlerRunner implements ApplicationRunner {
                             .couponUrl(couponUrl)
                             .status(HISTORY_STATUS_EXPIRED)
                             .build());
+                        urlLog.info(
+                            "EXPIRED|url={}|courseId={}|title={}",
+                            couponUrl,
+                            courseId,
+                            title
+                        );
                     }
                 } catch (Exception e) {
                     failedToValidateCouponUrls.add(couponUrl + " " + e.getMessage());
                     log.warn("Failed to validate coupon {}: {}", couponUrl, e.getMessage(), e);
+                    urlLog.info(
+                        "FAILED|url={}|error={}",
+                        couponUrl,
+                        e.getClass().getSimpleName() + ":" + String.valueOf(e.getMessage())
+                    );
                 }
             });
         }

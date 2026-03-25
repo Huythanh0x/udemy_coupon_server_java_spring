@@ -5,6 +5,8 @@ plugins {
     kotlin("jvm")
 }
 
+import org.gradle.api.tasks.JavaExec
+
 java {
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
@@ -53,5 +55,22 @@ dependencies {
     implementation("com.mysql:mysql-connector-j:8.3.0")
     implementation("org.jsoup:jsoup:1.15.4")
     implementation("org.json:json:20231013")
+}
+
+// Run extractor against a single URL without starting the web server.
+tasks.register<JavaExec>("debugExtractor") {
+    group = "application"
+    description = "Runs UdemyCouponCourseExtractor for one URL (via --url or UDEMY_DEBUG_URL)"
+
+    // Ensure logback loads our crawler logback config even without Spring Boot.
+    jvmArgs("-Dlogback.configurationFile=classpath:logback-spring.xml")
+
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass.set("com.huythanh0x.udemycoupons.tools.ExtractorDebugMain")
+
+    // URL is read by the main() method from:
+    // - command line args: --url=<couponUrl>
+    // - env var: UDEMY_DEBUG_URL
+    // - system property: udemy.debugUrl
 }
 
