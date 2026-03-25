@@ -98,6 +98,7 @@ export function CouponDetail({ courseId }: CouponDetailProps) {
               src={course.previewImage}
               alt={course.title}
               fill
+              unoptimized
               className="object-cover"
             />
             <div className="absolute top-4 right-4 bg-white/90 dark:bg-black/90 backdrop-blur-sm px-3 py-1.5 rounded-lg text-xs shadow-lg">

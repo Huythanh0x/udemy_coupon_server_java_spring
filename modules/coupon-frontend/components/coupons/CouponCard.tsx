@@ -44,11 +44,13 @@ export function CouponCard({ course }: CouponCardProps) {
   return (
     <Link href={`/coupons/${course.courseId}`} className="block">
       <div className="bg-white dark:bg-card border border-gray-200 dark:border-border rounded-[10px] shadow-[0_4px_6px_rgba(0,0,0,0.1)] overflow-hidden transition-transform duration-300 hover:-translate-y-[5px] hover:shadow-lg relative cursor-pointer">
-        <div className="relative h-[200px] w-full">
+        <div className="relative w-full aspect-[16/9]">
           <Image
             src={course.previewImage}
             alt={course.title}
             fill
+            unoptimized
+            sizes="(max-width: 768px) 100vw, 50vw"
             className="object-cover"
           />
           <div className="absolute top-[10px] right-[10px] bg-white/80 dark:bg-black/80 backdrop-blur-sm px-[10px] py-[5px] rounded-[20px] text-xs shadow-[0_2px_4px_rgba(0,0,0,0.1)]">
