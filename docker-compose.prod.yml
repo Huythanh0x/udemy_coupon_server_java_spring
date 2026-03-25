@@ -49,8 +49,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      tempo:
-        condition: service_started
     ports:
       - "8080:8080"
     environment:
