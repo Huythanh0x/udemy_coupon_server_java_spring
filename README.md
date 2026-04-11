@@ -62,6 +62,8 @@ docker compose -f docker-compose.local.yml up -d
 ## API Documentation
 Once the server is running, navigate to [Swagger UI](http://localhost:8080/swagger-ui/index.html) for interactive docs or fetch the OpenAPI JSON at `/v3/api-docs`. See `docs/getting-started.md` for setup instructions and `docs/business-logic.md` for flow details.
 
+You can also view the live Swagger API documentation at [swagger-ui/index.html](https://coupons-api.thanh0x.com/swagger-ui/index.html).
+
 ## Contributing
 We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for more details.
 
