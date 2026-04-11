@@ -46,7 +46,7 @@ This pulls the API/crawler images built by GitHub Actions (and starts MySQL/Redi
 2. Local development (run services from source, MySQL via local compose):
 
 ```shell
-docker compose -f docker-compose.local.yml up -d mysql
+docker compose -f docker-compose.local.yml up -d
 ./gradlew :modules:coupon-api-service:bootRun --args='--spring.profiles.active=local'
 # optional crawler worker
 ./gradlew :modules:coupon-crawler-service:bootRun --args='--spring.profiles.active=local'
