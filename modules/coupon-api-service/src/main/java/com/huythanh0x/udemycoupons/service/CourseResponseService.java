@@ -36,17 +36,20 @@ public class CourseResponseService {
     private final ExpiredCouponRepository expiredCouponRepository;
     private final CouponCourseHistoryRepository couponCourseHistoryRepository;
     private final CouponMapper couponMapper;
+    private final UdemyScraperService udemyScraperService;
 
 
     @Autowired
     public CourseResponseService(CouponCourseRepository couponCourseRepository,
                                  ExpiredCouponRepository expiredCouponRepository,
                                  CouponCourseHistoryRepository couponCourseHistoryRepository,
-                                 CouponMapper couponMapper) {
+                                 CouponMapper couponMapper,
+                                 UdemyScraperService udemyScraperService) {
         this.couponCourseRepository = couponCourseRepository;
         this.expiredCouponRepository = expiredCouponRepository;
         this.couponCourseHistoryRepository = couponCourseHistoryRepository;
         this.couponMapper = couponMapper;
+        this.udemyScraperService = udemyScraperService;
     }
 
     /**
@@ -157,6 +160,16 @@ public class CourseResponseService {
         }
         
         return Sort.by(direction, sortField);
+    }
+
+    /**
+     * Saves a new coupon URL asynchronously.
+     * 
+     * @param couponUrl  the URL of the coupon to save
+     * @param remoteAddr the remote address of the user saving the coupon
+     */
+    public void saveNewCouponUrlAsync(String couponUrl, String remoteAddr) {
+        udemyScraperService.validateAndSaveCouponAsync(couponUrl, remoteAddr);
     }
 
     /**

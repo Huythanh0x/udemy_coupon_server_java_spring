@@ -7,6 +7,7 @@ import com.huythanh0x.udemycoupons.dto.PagedCouponResponseDTO;
 import com.huythanh0x.udemycoupons.service.CourseResponseService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -64,10 +65,12 @@ public class CouponCourseController {
 
     /**
      * Creates a new coupon based on the provided Udemy coupon URL.
+     * Returns 202 Accepted as validation is performed asynchronously.
      */
     @PostMapping
-    public CouponDetailDTO createCoupon(@RequestBody CouponRequestDTO requestBody, HttpServletRequest request) {
-        return courseResponseService.saveNewCouponUrl(requestBody.getCouponUrl(), request.getRemoteAddr());
+    public ResponseEntity<String> createCoupon(@RequestBody CouponRequestDTO requestBody, HttpServletRequest request) {
+        courseResponseService.saveNewCouponUrlAsync(requestBody.getCouponUrl(), request.getRemoteAddr());
+        return ResponseEntity.accepted().body("Coupon submission received and is being processed.");
     }
 
     /**

@@ -61,9 +61,6 @@ public class UdemyCouponCourseExtractor {
 
     /**
      * Extracts the course ID from the HTML document retrieved from a given coupon URL.
-     *
-     * Udemy embeds the courseId inside a native deeplink string, e.g.:
-     * {@code udemy://discover?courseId=6643369}
      */
     private int extractCourseId() {
         Document document = new WebContentFetcher().getHtmlDocumentFrom(couponUrl);
@@ -72,6 +69,15 @@ public class UdemyCouponCourseExtractor {
             return -1;
         }
 
+        // Try extracting from body data attribute (modern Udemy pages)
+        String bodyId = document.body().attr("data-clp-course-id");
+        if (!bodyId.isEmpty()) {
+            try {
+                return Integer.parseInt(bodyId);
+            } catch (NumberFormatException ignored) {}
+        }
+
+        // Fallback to searching the whole HTML for the native deeplink token
         String html = document.html();
         int idFromDiscover = extractCourseIdFromDiscoverDeeplink(html);
         if (idFromDiscover > 0) return idFromDiscover;
