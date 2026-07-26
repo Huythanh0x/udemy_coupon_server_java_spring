@@ -4,8 +4,6 @@
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.1.1-brightgreen)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
-<a href="https://coupons.thanh0x.com/"> <img alt="Spring Boot Coupon Server" src="https://raw.githubusercontent.com/datacenter0x/static/main/uPic/RqCLnh.png"></a>
-
 The Spring Boot Course Deal Server is a robust application designed to crawl 100% off coupons from various websites and validate them using the official Udemy API. It provides several API endpoints for fetching, searching, and filtering these free coupons, with built-in authentication and authorization.
 ## Features
 

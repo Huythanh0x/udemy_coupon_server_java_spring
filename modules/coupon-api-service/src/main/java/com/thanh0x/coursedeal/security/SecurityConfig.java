@@ -109,7 +109,6 @@ public class SecurityConfig {
 
     /**
      * Configures CORS (Cross-Origin Resource Sharing) settings.
-     * Allows requests from the Next.js frontend.
      *
      * @return CorsConfigurationSource with CORS configuration
      */
@@ -117,8 +116,6 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList(
-            "http://localhost:3000",
-            "http://127.0.0.1:3000",
             "https://coupons.thanh0x.com"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
