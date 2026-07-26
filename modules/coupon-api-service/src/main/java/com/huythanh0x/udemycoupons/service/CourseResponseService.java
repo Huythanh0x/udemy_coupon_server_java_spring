@@ -1,14 +1,18 @@
 package com.huythanh0x.udemycoupons.service;
 
 import com.huythanh0x.udemycoupons.crawler_runner.UdemyCouponCourseExtractor;
+import com.huythanh0x.udemycoupons.dto.CouponDetailDTO;
+import com.huythanh0x.udemycoupons.dto.CouponSummaryDTO;
 import com.huythanh0x.udemycoupons.dto.CouponUpdateRequestDTO;
 import com.huythanh0x.udemycoupons.dto.PagedCouponResponseDTO;
 import com.huythanh0x.udemycoupons.exception.BadRequestException;
+import com.huythanh0x.udemycoupons.mapper.CouponMapper;
 import com.huythanh0x.udemycoupons.model.coupon.CouponCourseData;
 import com.huythanh0x.udemycoupons.model.coupon.CouponCourseHistory;
 import com.huythanh0x.udemycoupons.repository.CouponCourseHistoryRepository;
 import com.huythanh0x.udemycoupons.repository.CouponCourseRepository;
 import com.huythanh0x.udemycoupons.repository.ExpiredCouponRepository;
+import com.huythanh0x.udemycoupons.utils.LastFetchTimeManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +23,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import com.huythanh0x.udemycoupons.utils.Constant;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * Service class for handling course response operations.
  */
@@ -28,28 +35,22 @@ public class CourseResponseService {
     private final CouponCourseRepository couponCourseRepository;
     private final ExpiredCouponRepository expiredCouponRepository;
     private final CouponCourseHistoryRepository couponCourseHistoryRepository;
+    private final CouponMapper couponMapper;
 
 
     @Autowired
     public CourseResponseService(CouponCourseRepository couponCourseRepository,
                                  ExpiredCouponRepository expiredCouponRepository,
-                                 CouponCourseHistoryRepository couponCourseHistoryRepository) {
+                                 CouponCourseHistoryRepository couponCourseHistoryRepository,
+                                 CouponMapper couponMapper) {
         this.couponCourseRepository = couponCourseRepository;
         this.expiredCouponRepository = expiredCouponRepository;
         this.couponCourseHistoryRepository = couponCourseHistoryRepository;
+        this.couponMapper = couponMapper;
     }
 
     /**
      * Unified listing endpoint that supports basic pagination, structured filters, free-text search, and sorting.
-     * 
-     * Supported sort fields:
-     * - students: Sort by number of students (most popular)
-     * - rating: Sort by course rating
-     * - createdAt: Sort by creation date (newest first)
-     * - contentLength: Sort by course content length
-     * - usesRemaining: Sort by remaining coupon uses
-     * 
-     * Sort order: asc (ascending) or desc (descending)
      */
     public PagedCouponResponseDTO listCoupons(
         String category,
@@ -66,7 +67,6 @@ public class CourseResponseService {
     ) {
         handlePagingParameters(pageIndex, numberPerPage);
         
-        // Validate and create sort
         Sort sort = createSort(sortBy, sortOrder);
         Pageable pageable = PageRequest.of(
             Integer.parseInt(pageIndex), 
@@ -84,51 +84,52 @@ public class CourseResponseService {
 
         Page<CouponCourseData> page;
 
-        if (hasQuery && hasStructuredFilters) {
-            // For now, prefer full-text style search when a query is present.
-            page = couponCourseRepository.findByTitleContainingOrDescriptionContainingOrHeadingContaining(
-                query, query, query, pageable
-            );
-        } else if (hasQuery) {
-            page = couponCourseRepository.findByTitleContainingOrDescriptionContainingOrHeadingContaining(
-                query, query, query, pageable
-            );
-        } else if (hasStructuredFilters) {
-            page = couponCourseRepository
-                .findByRatingGreaterThanAndContentLengthGreaterThanAndLevelContainingAndCategoryIsContainingIgnoreCaseAndLanguageContaining(
-                    Float.parseFloat(rating),
-                    Integer.parseInt(contentLength),
-                    level,
-                    category,
-                    language,
-                    pageable
+        if (hasQuery || hasStructuredFilters) {
+             if (hasQuery) {
+                page = couponCourseRepository.findByTitleContainingOrDescriptionContainingOrHeadingContaining(
+                    query, query, query, pageable
                 );
+            } else {
+                page = couponCourseRepository
+                    .findByRatingGreaterThanAndContentLengthGreaterThanAndLevelContainingAndCategoryIsContainingIgnoreCaseAndLanguageContaining(
+                        Float.parseFloat(rating),
+                        Integer.parseInt(contentLength),
+                        level,
+                        category,
+                        language,
+                        pageable
+                    );
+            }
         } else {
             page = couponCourseRepository.findAll(pageable);
         }
 
-        return new PagedCouponResponseDTO(page);
+        List<CouponSummaryDTO> dtos = page.getContent().stream()
+                .map(couponMapper::toSummaryDto)
+                .collect(Collectors.toList());
+
+        return new PagedCouponResponseDTO(
+                LastFetchTimeManager.loadLasFetchedTimeInMilliSecond(),
+                page.getTotalElements(),
+                page.getTotalPages(),
+                page.getPageable().getPageNumber(),
+                dtos
+        );
     }
 
     /**
      * Creates a Sort object based on the provided sort field and order.
-     * 
-     * @param sortBy    the field to sort by (students, rating, createdAt, contentLength, usesRemaining)
-     * @param sortOrder the sort order (asc or desc)
-     * @return Sort object for the specified field and order
      */
     private Sort createSort(String sortBy, String sortOrder) {
         if (sortBy == null || sortBy.isBlank()) {
             sortBy = "createdAt"; // Default sort
         }
         
-        // Normalize sort order
-        Sort.Direction direction = Sort.Direction.DESC; // Default to descending
+        Sort.Direction direction = Sort.Direction.DESC; 
         if (sortOrder != null && sortOrder.equalsIgnoreCase("asc")) {
             direction = Sort.Direction.ASC;
         }
         
-        // Map sort field names to entity field names
         String sortField;
         switch (sortBy.toLowerCase()) {
             case "students":
@@ -159,13 +160,9 @@ public class CourseResponseService {
     }
 
     /**
-     * Saves a new coupon URL to the database with the provided remote address.
-     *
-     * @param couponUrl  the URL of the coupon to save
-     * @param remoteAddr the remote address of the user saving the coupon
-     * @return the saved CouponCourseData object containing the full coupon code data
+     * Saves a new coupon URL to the database.
      */
-    public CouponCourseData saveNewCouponUrl(String couponUrl, String remoteAddr) {
+    public CouponDetailDTO saveNewCouponUrl(String couponUrl, String remoteAddr) {
         UdemyCouponCourseExtractor extractor = new UdemyCouponCourseExtractor(couponUrl);
         CouponCourseData couponData = extractor.getFullCouponCodeData();
         if (couponData == null) {
@@ -183,13 +180,11 @@ public class CourseResponseService {
             .couponUrl(saved.getCouponUrl())
             .status(existedBefore ? "reactivated" : "new")
             .build());
-        return saved;
+        return couponMapper.toDetailDto(saved);
     }
 
     /**
      * Deletes a coupon by its course identifier.
-     *
-     * @param courseId the ID of the course to delete
      */
     public void deleteCouponByCourseId(Integer courseId) {
         couponCourseRepository.deleteById(courseId);
@@ -197,29 +192,17 @@ public class CourseResponseService {
 
     /**
      * Updates a coupon.
-     * <p>
-     * Currently this performs a simple existence check and returns the existing entity,
-     * but it provides a clear extension point to modify fields in the future.
-     *
-     * @param courseId the ID of the coupon to update
-     * @param request  the update request payload
-     * @return updated coupon data
      */
-    public CouponCourseData updateCoupon(Integer courseId, CouponUpdateRequestDTO request) {
+    public CouponDetailDTO updateCoupon(Integer courseId, CouponUpdateRequestDTO request) {
         CouponCourseData existing = couponCourseRepository.findByCourseId(courseId);
         if (existing == null) {
             throw new BadRequestException("Course id not found");
         }
-        // In the future, copy allowed fields from request into existing before saving.
-        return couponCourseRepository.save(existing);
+        return couponMapper.toDetailDto(couponCourseRepository.save(existing));
     }
 
     /**
      * Validates and handles paging parameters for pagination.
-     *
-     * @param pageIndex     the page index to be validated
-     * @param numberPerPage the number of items per page to be validated
-     * @throws BadRequestException if the pageIndex or numberPerPage is not a valid integer, or if they are negative
      */
     public void handlePagingParameters(String pageIndex, String numberPerPage) {
         try {
@@ -236,18 +219,13 @@ public class CourseResponseService {
 
     /**
      * Retrieves the coupon course data by course ID.
-     *
-     * @param courseId The ID of the course to retrieve coupon data for.
-     * @return The coupon course data for the specified course ID.
-     * @throws BadRequestException if the course ID is not found.
      */
-    public CouponCourseData getCouponDetail(String courseId) {
+    public CouponDetailDTO getCouponDetail(String courseId) {
         CouponCourseData couponCourseData = couponCourseRepository.findByCourseId(Integer.parseInt(courseId));
         if (couponCourseData != null) {
-            return couponCourseData;
+            return couponMapper.toDetailDto(couponCourseData);
         } else {
             throw new BadRequestException("Course id not found");
         }
     }
 }
-
