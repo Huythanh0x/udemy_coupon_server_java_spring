@@ -6,7 +6,7 @@ export function Footer() {
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <h3 className="font-semibold mb-4">Udemy Coupons</h3>
+            <h3 className="font-semibold mb-4">Course Deals</h3>
             <p className="text-sm text-muted-foreground">
               Your source for 100% off Udemy coupons and free online courses.
             </p>
@@ -46,7 +46,7 @@ export function Footer() {
             <ul className="space-y-2 text-sm">
               <li>
                 <a
-                  href="https://github.com/Huythanh0x/udemy_coupon_server_java_spring"
+                  href="https://github.com/huythanh0x/course-deal-server"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-primary"
@@ -58,7 +58,7 @@ export function Footer() {
           </div>
         </div>
         <div className="mt-8 pt-8 border-t text-center text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} Udemy Coupons. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Course Deals. All rights reserved.</p>
         </div>
       </div>
     </footer>

@@ -7,10 +7,10 @@ export function Header() {
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <Link href="/" className="text-2xl font-bold text-primary">
-            Udemy Coupons
+            Course Deals
           </Link>
           <a
-            href="https://github.com/Huythanh0x/udemy_coupon_server_java_spring"
+            href="https://github.com/huythanh0x/course-deal-server"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="GitHub Repository"

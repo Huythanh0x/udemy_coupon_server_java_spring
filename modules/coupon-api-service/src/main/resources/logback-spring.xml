@@ -45,7 +45,7 @@
     </appender>
 
     <!-- Application-specific loggers -->
-    <logger name="com.huythanh0x.udemycoupons" level="INFO"/>
+    <logger name="com.thanh0x.coursedeal" level="INFO"/>
     
     <!-- Spring Framework loggers -->
     <logger name="org.springframework" level="INFO"/>
@@ -69,7 +69,7 @@
 
     <!-- Profile-specific configurations -->
     <springProfile name="local,dev">
-        <logger name="com.huythanh0x.udemycoupons" level="DEBUG"/>
+        <logger name="com.thanh0x.coursedeal" level="DEBUG"/>
         <logger name="org.springframework.web" level="DEBUG"/>
     </springProfile>
 

@@ -7,7 +7,7 @@ plugins {
 }
 
 allprojects {
-    group = "com.huythanh0x"
+    group = "com.thanh0x.coursedeal"
     version = "0.0.1-SNAPSHOT"
 }
 

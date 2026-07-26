@@ -1,6 +1,6 @@
-# Contributing to Spring Boot Coupon Server
+# Contributing to Spring Boot Course Deal Server
 
-First off, thank you for considering contributing to the Spring Boot Coupon Server! It's people like you that make this project possible.
+First off, thank you for considering contributing to the Spring Boot Course Deal Server! It's people like you that make this project possible.
 
 ## How Can I Contribute?
 
@@ -19,8 +19,8 @@ If you have an idea for an enhancement or new feature, please open an issue on G
 2. **Clone Your Fork**: Clone your forked repository to your local machine.
 
 ```shell
-    git clone https://github.com/huythanh0x/udemy_coupon_server_java_spring.git
-    cd udemy_coupon_server_java_spring
+    git clone https://github.com/huythanh0x/course-deal-server.git
+    cd course-deal-server
 ```
 
 3. **Create a Branch**: Create a new branch for your feature or bugfix.

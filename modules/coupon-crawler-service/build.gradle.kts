@@ -66,7 +66,7 @@ tasks.register<JavaExec>("debugExtractor") {
     jvmArgs("-Dlogback.configurationFile=classpath:logback-spring.xml")
 
     classpath = sourceSets["main"].runtimeClasspath
-    mainClass.set("com.huythanh0x.udemycoupons.tools.ExtractorDebugMain")
+    mainClass.set("com.thanh0x.coursedeal.tools.ExtractorDebugMain")
 
     // URL is read by the main() method from:
     // - command line args: --url=<couponUrl>

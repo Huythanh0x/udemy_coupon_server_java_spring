@@ -1,7 +1,7 @@
 # Getting Started
 
 ## Overview
-- `Spring Boot Coupon Server` now ships as a multi-module monorepo:
+- `Spring Boot Course Deal Server` now ships as a multi-module monorepo:
   - `modules/coupon-domain`: shared entities, DTOs, repositories, and Flyway migrations.
   - `modules/coupon-api-service`: REST controllers, auth/security, OpenAPI.
   - `modules/coupon-crawler-service`: scheduled crawlers and validators.
@@ -15,8 +15,8 @@
 
 ## Bootstrap the Project
 ```bash
-git clone https://github.com/huythanh0x/udemy_coupon_server_java_spring
-cd udemy_coupon_server_java_spring
+git clone https://github.com/huythanh0x/course-deal-server
+cd course-deal-server
 ```
 
 ### Option A: Full stack via Docker Compose (published images)

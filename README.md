@@ -1,4 +1,4 @@
-# Spring Boot: 100% Off Udemy Coupon Server
+# Spring Boot: 100% Off Course Deal Server
 
 ![Java](https://img.shields.io/badge/Java-17-blue)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.1.1-brightgreen)
@@ -6,7 +6,7 @@
 
 <a href="https://coupons.thanh0x.com/"> <img alt="Spring Boot Coupon Server" src="https://raw.githubusercontent.com/datacenter0x/static/main/uPic/RqCLnh.png"></a>
 
-The Spring Boot Coupon Server is a robust application designed to crawl 100% off coupons from various websites and validate them using the official Udemy API. It provides several API endpoints for fetching, searching, and filtering these free coupons, with built-in authentication and authorization.
+The Spring Boot Course Deal Server is a robust application designed to crawl 100% off coupons from various websites and validate them using the official Udemy API. It provides several API endpoints for fetching, searching, and filtering these free coupons, with built-in authentication and authorization.
 ## Features
 
 - **Coupon Crawling**: Automatically fetch coupons from multiple sources.
@@ -30,8 +30,8 @@ The Spring Boot Coupon Server is a robust application designed to crawl 100% off
 ### Clone the Repository
 
 ```shell
-git clone https://github.com/huythanh0x/udemy_coupon_server_java_spring
-cd udemy_coupon_server_java_spring
+git clone https://github.com/huythanh0x/course-deal-server
+cd course-deal-server
 ```
 
 ### Start the Services
