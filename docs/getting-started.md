@@ -1,17 +1,36 @@
 # Getting Started
 
 ## Overview
-- `Spring Boot Course Deal Server` now ships as a multi-module monorepo:
-  - `modules/coupon-domain`: shared entities, DTOs, repositories, and Flyway migrations.
-  - `modules/coupon-api-service`: REST controllers, auth/security, OpenAPI.
-  - `modules/coupon-crawler-service`: scheduled crawlers and validators.
-- Core stack: Java 17, Spring Boot 3.1, MySQL, Flyway, Gradle, Docker/Compose.
-- Key docs: `README.md`, `docs/business-logic.md`, `CONTRIBUTING.md`.
+`Course Deal Server` is a modern, asynchronous multi-module backend designed for scalability and security.
+
+```mermaid
+graph TD
+    API[coupon-api-service] --> Domain[coupon-domain]
+    API --> Infra[coupon-infrastructure]
+    
+    Crawler[coupon-crawler-service] --> Domain
+    Crawler --> Infra
+    
+    Infra --> Domain
+    
+    subgraph "External Dependencies"
+        Domain -- "Flyway" --> MySQL[(MySQL)]
+        Infra -- "State" --> Redis((Redis))
+        Infra -- "Push" --> FCM((Firebase))
+        Infra -- "Scrape" --> Udemy((Course Providers))
+    end
+```
+
+### Module Breakdown:
+- **`modules/coupon-domain`**: Pure data layer. Contains JPA entities, repositories, and DTOs.
+- **`modules/coupon-infrastructure`**: Shared technical services. Handles Redis, the Async Scraper engine, and FCM notifications.
+- **`modules/coupon-api-service`**: User-facing REST stack. Handles Social/Passkey authentication and search logic.
+- **`modules/coupon-crawler-service`**: Background discovery workers that find new deals from external sources.
 
 ## Prerequisites
-- Java 17 JDK in your `$PATH`.
-- Docker Desktop (or compatible) for running MySQL; Docker Compose v2+ is recommended.
-- Make sure ports `3306` (MySQL) and `8080` (Spring Boot default) are free.
+- Java 17 JDK in your `$PATH`.
+- Docker Desktop (or compatible) for MySQL and Redis.
+- Ports `3306` (MySQL), `6379` (Redis), `8080` (API), and `8081` (Crawler) should be available.
 
 ## Bootstrap the Project
 ```bash
@@ -19,58 +38,54 @@ git clone https://github.com/huythanh0x/course-deal-server
 cd course-deal-server
 ```
 
-### Option A: Full stack via Docker Compose (published images)
+### Option A: Production Stack via Docker
 ```bash
 docker compose -f docker-compose.prod.yml up
 ```
-This pulls the API/crawler images built by GitHub Actions (and starts MySQL/Redis plus the observability stack).
+Starts the entire backend using pre-built images. Requires a `.env` file with production secrets.
 
-### Option B: Run the API locally, keep MySQL in Docker
+### Option B: Local Development
+1. Start data containers:
 ```bash
-docker compose -f docker-compose.local.yml up -d mysql
-./gradlew :modules:coupon-api-service:bootRun --args='--spring.profiles.active=local'
+docker compose -f docker-compose.local.yml up -d
 ```
-
-### Run the crawler service locally (optional but recommended)
+2. Run services from source:
 ```bash
-docker compose -f docker-compose.local.yml up -d mysql
+./gradlew :modules:coupon-api-service:bootRun --args='--spring.profiles.active=local'
+# In a separate terminal
 ./gradlew :modules:coupon-crawler-service:bootRun --args='--spring.profiles.active=local'
 ```
-The `local` profile (`src/main/resources/application-local.properties`) targets `jdbc:mysql://localhost:3306/training_coupon` and bumps crawler thread counts for richer local validation.
 
-## Database & Migrations
-- Flyway runs automatically on application startup; migration scripts live under `src/main/resources/db/migration`.
-- To force-run migrations once MySQL is up: `./gradlew flywayMigrate`.
+## Configuration (YAML)
+We use hierarchical YAML files for easier management of complex settings.
 
-## Configuration Profiles
-| Profile file | Purpose | Highlights |
+| File | Purpose | Key Knobs |
 | ------------ | ------- | ---------- |
-| `application.properties` | Default/prod-like | MySQL host `mysql`, crawler threads `custom.number-of-request-thread=4`, JWT TTL 24h. |
-| `application-local.properties` | Developer workflow | MySQL host `localhost`, crawler threads `10`, `custom.number-of-real-discount-coupon=0` for quicker loops. |
+| `application.yml` | Base Config | `spring.datasource`, `management.endpoints` |
+| `application-local.yml` | Dev Environment | `custom.async.scraper.max-pool-size=10`, `jwt-secret` |
 
-You can override any property via `--args='--spring.profiles.active=<profile>'` or environment variables (Spring Boot relaxed binding).
+### Modern Auth Setup
+To enable the full feature set, define these in your environment:
+- `GOOGLE_CLIENT_ID`: For social login validation.
+- `FIREBASE_CONFIG_PATH`: Path to `service-account.json` for FCM notifications.
+- `WEBAUTHN_RP_ID`: Your domain for Passkey support (e.g., `localhost`).
 
 ## Useful Gradle Tasks
-- `./gradlew :modules:coupon-api-service:bootRun` – start the API service.
-- `./gradlew :modules:coupon-crawler-service:bootRun` – start the crawler worker.
-- `./gradlew :modules:coupon-api-service:bootJar` / `:modules:coupon-crawler-service:bootJar` – package runnable jars.
-- `./gradlew build` – compile all modules.
-- `./gradlew test` – runs the test suite (currently empty but kept for future coverage).
+- `./gradlew build` – clean build and compile all 4 modules.
+- `./gradlew test` – runs the test suite (includes **SSRF Hardening** and **Auth** tests).
+- `./gradlew flywayMigrate` – manually trigger database schema updates.
 
-## API Surface
-- Start the API service and browse `http://localhost:8080/swagger-ui/index.html` for interactive docs (backed by Springdoc/OpenAPI).
-- Raw OpenAPI JSON lives at `http://localhost:8080/v3/api-docs`.
-- The crawler service exposes only health endpoints by default and listens on `8081` (configurable via `server.port`).
-- Generated reports/tests are emitted under `build/reports/*` after Gradle runs.
+## API & Debugging
+- **Swagger UI:** [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
+- **OpenAPI JSON:** `/v3/api-docs`
+- **Audit Logs:** Check the `scraping_task_logs` table in the database to debug asynchronous background scraping tasks.
 
-## Troubleshooting Checklist
-- MySQL unreachable: ensure the container is healthy (`docker ps`) and credentials match the selected profile.
-- Flyway validation errors: drop the schema (only in dev) or fix the offending migration checksum.
-- Crawler appears idle: confirm `custom.interval-time` (default 900 000 ms) and watch logs for `Wait for ... milliseconds`.
+## Troubleshooting
+- **SSRF Blocked:** If you see "SSRF Blocked" in logs, the URL you submitted resolves to a private IP or is not in the `ALLOWED_DOMAINS` list in `UrlValidator`.
+- **Handshake Expired:** Passkey/WebAuthn challenges expire after 5 minutes in Redis.
 
 ## Contributing
-- Follow the workflow in `CONTRIBUTING.md` (issue triage, fork/branch, code style).
-- Always run `./gradlew test` (even if empty) before opening a pull request, so future suites remain green.
+- Follow `CONTRIBUTING.md`.
+- Ensure all tests pass (`./gradlew test`) before committing new logic.
 
-You’re ready to build! Spin up Docker, run the API, and hit `GET /api/v1/coupons` to validate data flow end-to-end.
-
+You're ready to build! Spin up Docker, run the API, and start discovering deals.
