@@ -23,13 +23,16 @@ public class UdemyScraperService {
     private final CouponCourseRepository couponCourseRepository;
     private final ExpiredCouponRepository expiredCouponRepository;
     private final CouponCourseHistoryRepository couponCourseHistoryRepository;
+    private final NotificationService notificationService;
 
     public UdemyScraperService(CouponCourseRepository couponCourseRepository,
                                ExpiredCouponRepository expiredCouponRepository,
-                               CouponCourseHistoryRepository couponCourseHistoryRepository) {
+                               CouponCourseHistoryRepository couponCourseHistoryRepository,
+                               NotificationService notificationService) {
         this.couponCourseRepository = couponCourseRepository;
         this.expiredCouponRepository = expiredCouponRepository;
         this.couponCourseHistoryRepository = couponCourseHistoryRepository;
+        this.notificationService = notificationService;
     }
 
     /**
@@ -66,6 +69,9 @@ public class UdemyScraperService {
                 .build());
                 
             log.info("Successfully validated and saved: {} (ID: {})", saved.getTitle(), saved.getCourseId());
+
+            // Notify users about the new deal
+            notificationService.broadcastNewCoupon(saved.getTitle(), saved.getCategory());
             
         } catch (Exception e) {
             log.error("Error in async scraping for {}: {}", couponUrl, e.getMessage(), e);
