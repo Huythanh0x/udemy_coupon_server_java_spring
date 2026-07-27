@@ -169,7 +169,7 @@ public class CourseResponseService {
      * @param remoteAddr the remote address of the user saving the coupon
      */
     public void saveNewCouponUrlAsync(String couponUrl, String remoteAddr) {
-        courseScraperService.validateAndSaveCouponAsync(couponUrl, remoteAddr);
+        courseScraperService.enqueueScrapingTask(couponUrl, remoteAddr);
     }
 
     /**
@@ -177,7 +177,7 @@ public class CourseResponseService {
      */
     public void refreshCouponAsync(Integer courseId, String remoteAddr) {
         couponCourseRepository.findById(courseId).ifPresent(coupon -> 
-                courseScraperService.validateAndSaveCouponAsync(coupon.getCouponUrl(), remoteAddr)
+                courseScraperService.enqueueScrapingTask(coupon.getCouponUrl(), remoteAddr)
         );
     }
 

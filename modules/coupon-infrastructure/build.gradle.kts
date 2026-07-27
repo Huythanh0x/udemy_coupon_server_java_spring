@@ -23,6 +23,7 @@ dependencies {
     implementation("org.slf4j:slf4j-api")
     implementation("com.google.firebase:firebase-admin:9.3.0")
     implementation("org.springframework.boot:spring-boot-starter")
+    api("org.jobrunr:jobrunr-spring-boot-3-starter:8.7.1")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }

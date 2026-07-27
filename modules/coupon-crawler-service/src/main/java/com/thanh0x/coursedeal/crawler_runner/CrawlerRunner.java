@@ -71,7 +71,7 @@ public class CrawlerRunner implements ApplicationRunner {
                     log.info("Discovered {} unique URLs. Handing off to background scraper...", uniqueUrls.size());
                     
                     for (String url : uniqueUrls) {
-                        courseScraperService.validateAndSaveCouponAsync(url, "crawler");
+                        courseScraperService.enqueueScrapingTask(url, "crawler");
                     }
                     
                     log.info("Crawl round finished. Handed off {} tasks.", uniqueUrls.size());

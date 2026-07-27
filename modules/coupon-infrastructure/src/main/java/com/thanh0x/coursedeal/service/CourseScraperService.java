@@ -8,14 +8,14 @@ import com.thanh0x.coursedeal.repository.CouponCourseHistoryRepository;
 import com.thanh0x.coursedeal.repository.CouponCourseRepository;
 import com.thanh0x.coursedeal.repository.ExpiredCouponRepository;
 import com.thanh0x.coursedeal.repository.audit.ScrapingTaskLogRepository;
+import org.jobrunr.scheduling.JobScheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Service for handling asynchronous scraping of course coupons.
+ * Service for handling background scraping of course coupons using JobRunr.
  */
 @Service
 public class CourseScraperService {
@@ -26,26 +26,35 @@ public class CourseScraperService {
     private final CouponCourseHistoryRepository couponCourseHistoryRepository;
     private final NotificationService notificationService;
     private final ScrapingTaskLogRepository scrapingTaskLogRepository;
+    private final JobScheduler jobScheduler;
 
     public CourseScraperService(CouponCourseRepository couponCourseRepository,
                                ExpiredCouponRepository expiredCouponRepository,
                                CouponCourseHistoryRepository couponCourseHistoryRepository,
                                NotificationService notificationService,
-                               ScrapingTaskLogRepository scrapingTaskLogRepository) {
+                               ScrapingTaskLogRepository scrapingTaskLogRepository,
+                               JobScheduler jobScheduler) {
         this.couponCourseRepository = couponCourseRepository;
         this.expiredCouponRepository = expiredCouponRepository;
         this.couponCourseHistoryRepository = couponCourseHistoryRepository;
         this.notificationService = notificationService;
         this.scrapingTaskLogRepository = scrapingTaskLogRepository;
+        this.jobScheduler = jobScheduler;
     }
 
     /**
-     * Asynchronously validates and saves a new coupon URL.
+     * Enqueues a scraping task into JobRunr.
      */
-    @Async("scraperExecutor")
+    public void enqueueScrapingTask(String couponUrl, String remoteAddr) {
+        jobScheduler.enqueue(() -> validateAndSaveCoupon(couponUrl, remoteAddr));
+    }
+
+    /**
+     * Core validation logic. This is executed by the JobRunr worker.
+     */
     @Transactional
-    public void validateAndSaveCouponAsync(String couponUrl, String remoteAddr) {
-        log.info("Starting async validation for coupon: {} from {}", couponUrl, remoteAddr);
+    public void validateAndSaveCoupon(String couponUrl, String remoteAddr) {
+        log.info("Starting background validation for coupon: {} from {}", couponUrl, remoteAddr);
         
         ScrapingTaskLog auditLog = scrapingTaskLogRepository.save(ScrapingTaskLog.builder()
                 .url(couponUrl)
