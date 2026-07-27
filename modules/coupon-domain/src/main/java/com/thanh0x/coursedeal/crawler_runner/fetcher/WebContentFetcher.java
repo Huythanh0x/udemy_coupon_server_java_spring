@@ -1,5 +1,6 @@
 package com.thanh0x.coursedeal.crawler_runner.fetcher;
 
+import com.thanh0x.coursedeal.utils.UrlValidator;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
@@ -27,6 +28,9 @@ public class WebContentFetcher {
      * @return the JSONObject obtained from the URL, or null if the request failed or timed out
      */
     public static JSONObject getJsonObjectFrom(String urlString) {
+        if (!UrlValidator.isSafeUrl(urlString)) {
+            return null;
+        }
         String content = getRawHTMLContentFrom(urlString);
         if (content == null || content.trim().isEmpty()) {
             log.warn("Failed to fetch content from {}, returning null", urlString);
@@ -47,6 +51,9 @@ public class WebContentFetcher {
      * @return a JSONArray object containing the parsed raw HTML content, or null if the request failed
      */
     public JSONArray getJsonArrayFrom(String urlString) {
+        if (!UrlValidator.isSafeUrl(urlString)) {
+            return null;
+        }
         String rawHtml = getRawHTMLContentFrom(urlString);
         if (rawHtml == null || rawHtml.trim().isEmpty()) {
             log.warn("Failed to fetch content from {}, returning null", urlString);
@@ -67,6 +74,9 @@ public class WebContentFetcher {
      * @return an HTML Document parsed from the raw HTML content of the specified URL, or null if the request failed
      */
     public Document getHtmlDocumentFrom(String urlString) {
+        if (!UrlValidator.isSafeUrl(urlString)) {
+            return null;
+        }
         String rawHtml = getRawHTMLContentFrom(urlString);
         if (rawHtml == null || rawHtml.trim().isEmpty()) {
             log.warn("Failed to fetch content from {}, returning null", urlString);
