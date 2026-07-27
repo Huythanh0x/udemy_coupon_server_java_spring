@@ -21,6 +21,16 @@ dependencies {
     implementation("org.jsoup:jsoup:1.15.4")
     api("org.json:json:20231013")
     implementation("org.slf4j:slf4j-api")
-    // For @Configuration, @Bean, etc
     implementation("org.springframework.boot:spring-boot-starter")
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
+    testLogging {
+        events("passed", "skipped", "failed")
+        showStandardStreams = true
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+    }
 }

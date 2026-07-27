@@ -10,7 +10,6 @@ import java.util.Set;
 
 /**
  * Utility class to prevent Server-Side Request Forgery (SSRF) attacks.
- * It ensures that the application only makes requests to allowed domains and blocks internal IP ranges.
  */
 public class UrlValidator {
     private static final Logger log = LoggerFactory.getLogger(UrlValidator.class);
@@ -24,43 +23,47 @@ public class UrlValidator {
 
     /**
      * Validates a URL to prevent SSRF.
-     *
-     * @param urlString The URL to validate.
-     * @return true if the URL is safe, false otherwise.
      */
     public static boolean isSafeUrl(String urlString) {
         try {
+            if (urlString == null || urlString.isBlank()) return false;
+            
             URI uri = URI.create(urlString);
             String host = uri.getHost();
 
             if (host == null || host.isBlank()) {
-                log.warn("SSRF Blocked: URL has no host: {}", urlString);
                 return false;
             }
 
             // 1. Check Allowlist
             boolean isAllowed = ALLOWED_DOMAINS.stream()
-                    .anyMatch(domain -> host.equals(domain) || host.endsWith("." + domain));
+                    .anyMatch(domain -> host.equalsIgnoreCase(domain) || host.toLowerCase().endsWith("." + domain));
 
-            if (!isAllowed) {
-                log.warn("SSRF Blocked: Domain not in allowlist: {}", host);
+            if (isAllowed) {
+                return true;
+            }
+
+            // 2. Block direct IP access or non-whitelisted domains
+            if (isInternalIP(host)) {
+                log.warn("SSRF Blocked: Attempt to access internal/private IP: {}", host);
                 return false;
             }
 
-            // 2. Check for Private IP Ranges
-            InetAddress address = InetAddress.getByName(host);
-            if (address.isLoopbackAddress() || address.isSiteLocalAddress() || address.isLinkLocalAddress()) {
-                log.warn("SSRF Blocked: Attempt to access internal/private IP: {} ({})", host, address.getHostAddress());
-                return false;
-            }
-
-            return true;
-        } catch (UnknownHostException e) {
-            log.warn("SSRF Blocked: Unable to resolve host: {}", urlString);
+            log.warn("SSRF Blocked: Domain not in allowlist: {}", host);
             return false;
         } catch (Exception e) {
-            log.warn("SSRF Blocked: Invalid URL format: {}", urlString);
             return false;
+        }
+    }
+
+    private static boolean isInternalIP(String host) {
+        try {
+            // If it's not a whitelisted domain, we check if it resolves to a private IP
+            InetAddress address = InetAddress.getByName(host);
+            return address.isLoopbackAddress() || address.isSiteLocalAddress() || address.isLinkLocalAddress();
+        } catch (UnknownHostException e) {
+            // If it can't be resolved and isn't whitelisted, it's unsafe
+            return true;
         }
     }
 }
