@@ -21,6 +21,7 @@ dependencies {
     implementation("org.jsoup:jsoup:1.15.4")
     api("org.json:json:20231013")
     implementation("org.slf4j:slf4j-api")
+    implementation("com.google.firebase:firebase-admin:9.3.0")
     implementation("org.springframework.boot:spring-boot-starter")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")

@@ -14,6 +14,7 @@ public class CouponMapper {
                 .courseId(entity.getCourseId())
                 .title(entity.getTitle())
                 .category(entity.getCategory())
+                .level(entity.getLevel())
                 .author(entity.getAuthor())
                 .rating(entity.getRating())
                 .students(entity.getStudents())

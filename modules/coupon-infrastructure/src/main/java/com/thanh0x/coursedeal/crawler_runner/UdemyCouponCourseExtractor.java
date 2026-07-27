@@ -4,6 +4,7 @@ import com.thanh0x.coursedeal.crawler_runner.fetcher.WebContentFetcher;
 import com.thanh0x.coursedeal.model.coupon.CouponCourseData;
 import com.thanh0x.coursedeal.model.coupon.CouponJsonData;
 import com.thanh0x.coursedeal.model.coupon.CourseJsonData;
+import com.thanh0x.coursedeal.model.coupon.CourseLevel;
 import com.thanh0x.coursedeal.utils.UrlUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -314,7 +315,7 @@ public class UdemyCouponCourseExtractor {
                 .subCategory(courseData.getSubCategory())
                 .title(courseData.getCourseTitle())
                 .contentLength(courseData.getContentLength())
-                .level(courseData.getLevel())
+                .level(CourseLevel.fromString(courseData.getLevel()))
                 .author(courseData.getAuthor())
                 .rating(courseData.getRating())
                 .reviews(courseData.getNumberReviews())

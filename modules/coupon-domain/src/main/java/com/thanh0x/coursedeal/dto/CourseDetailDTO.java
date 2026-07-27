@@ -1,5 +1,6 @@
 package com.thanh0x.coursedeal.dto;
 
+import com.thanh0x.coursedeal.model.coupon.CourseLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,7 +24,7 @@ public class CourseDetailDTO {
     private String author;
     private String category;
     private String subCategory;
-    private String level;
+    private CourseLevel level;
     private String language;
     private Float rating;
     private Integer reviews;

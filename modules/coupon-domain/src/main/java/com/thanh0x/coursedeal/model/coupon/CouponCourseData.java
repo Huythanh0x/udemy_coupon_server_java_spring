@@ -25,7 +25,9 @@ public class CouponCourseData {
     private String subCategory;
     private String title;
     private int contentLength;
-    private String level;
+
+    private CourseLevel level;
+
     private String author;
     private float rating;
     private int reviews;
@@ -33,7 +35,7 @@ public class CouponCourseData {
     private String couponCode;
     private String previewImage;
     private String couponUrl;
-    @Column(name = "expired_date", nullable = false)
+    @Column(name = "expired_date")
     private Instant expiredDate;
     private int usesRemaining;
     private String heading;
