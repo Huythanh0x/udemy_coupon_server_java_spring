@@ -22,6 +22,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return createErrorResponse(HttpStatus.BAD_REQUEST, exception.getMessage(), request);
     }
 
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ApiErrorDTO> handleResourceNotFoundException(ResourceNotFoundException exception, WebRequest request) {
+        return createErrorResponse(HttpStatus.NOT_FOUND, exception.getMessage(), request);
+    }
+
     @ExceptionHandler(UnsupportedOperationException.class)
     public ResponseEntity<ApiErrorDTO> handleUnsupportedOperationException(UnsupportedOperationException exception, WebRequest request) {
         return createErrorResponse(HttpStatus.NOT_IMPLEMENTED, exception.getMessage(), request);

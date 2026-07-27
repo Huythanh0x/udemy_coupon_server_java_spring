@@ -1,0 +1,71 @@
+spring:
+  application:
+    name: coupon-crawler-service
+  datasource:
+    url: jdbc:mysql://mysql:3306/training_coupon
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:password}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    baseline-version: 0
+  data:
+    redis:
+      host: redis
+      port: 6379
+      password: ${SPRING_DATA_REDIS_PASSWORD:}
+
+logging:
+  level:
+    org.springframework.web: DEBUG
+
+custom:
+  number-of-request-thread: 4
+  number-of-enext-coupon: 500
+  number-of-real-discount-coupon: 500
+  interval-time: 900000
+  skip-recently-checked-expired-hours: 12
+  refresh-expiring-hours: 2
+  refresh-min-uses-remaining: 50
+  refresh-old-hours: 1
+  enable-smart-refresh: true
+  batch-processing-size: 100
+  jwt-expiration: ${CUSTOM_JWT_EXPIRATION:86400000}
+  jwt-secret: ${CUSTOM_JWT_SECRET:}
+
+server:
+  port: 8081
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+  tracing:
+    sampling:
+      probability: 1.0
+    export:
+      otlp:
+        enabled: true
+  otlp:
+    tracing:
+      endpoint: ${OTLP_ENDPOINT:http://tempo:4318/v1/traces}
+
+prometheus:
+  actuator:
+    username: ${PROM_ACTUATOR_USER:prometheus}
+    password: ${PROM_ACTUATOR_PASSWORD:prometheus}

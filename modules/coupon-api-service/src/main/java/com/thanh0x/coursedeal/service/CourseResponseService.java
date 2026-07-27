@@ -5,6 +5,7 @@ import com.thanh0x.coursedeal.dto.CouponDetailDTO;
 import com.thanh0x.coursedeal.dto.CouponSummaryDTO;
 import com.thanh0x.coursedeal.dto.PagedCouponResponseDTO;
 import com.thanh0x.coursedeal.exception.BadRequestException;
+import com.thanh0x.coursedeal.exception.ResourceNotFoundException;
 import com.thanh0x.coursedeal.mapper.CouponMapper;
 import com.thanh0x.coursedeal.model.coupon.CouponCourseData;
 import com.thanh0x.coursedeal.model.coupon.CouponCourseHistory;
@@ -228,7 +229,7 @@ public class CourseResponseService {
         if (couponCourseData != null) {
             return couponMapper.toDetailDto(couponCourseData);
         } else {
-            throw new BadRequestException("Course id not found");
+            throw new ResourceNotFoundException("Course id not found: " + courseId);
         }
     }
 }

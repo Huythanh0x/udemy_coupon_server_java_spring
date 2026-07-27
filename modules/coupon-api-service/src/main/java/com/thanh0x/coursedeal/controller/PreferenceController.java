@@ -5,6 +5,7 @@ import com.thanh0x.coursedeal.model.user.UserEntity;
 import com.thanh0x.coursedeal.model.user.UserPreference;
 import com.thanh0x.coursedeal.repository.UserPreferenceRepository;
 import com.thanh0x.coursedeal.repository.UserRepository;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -30,7 +31,7 @@ public class PreferenceController {
     }
 
     @PutMapping
-    public ResponseEntity<PreferenceDTO> updatePreferences(@AuthenticationPrincipal UserEntity user, @RequestBody PreferenceDTO dto) {
+    public ResponseEntity<PreferenceDTO> updatePreferences(@AuthenticationPrincipal UserEntity user, @Valid @RequestBody PreferenceDTO dto) {
         UserPreference preference = userPreferenceRepository.findById(user.getId())
                 .orElseGet(() -> createDefaultPreference(user));
         

@@ -1,6 +1,7 @@
 package com.thanh0x.coursedeal.service;
 
 import com.thanh0x.coursedeal.dto.*;
+import com.thanh0x.coursedeal.exception.ResourceNotFoundException;
 import com.thanh0x.coursedeal.model.coupon.CouponCourseData;
 import com.thanh0x.coursedeal.repository.CouponCourseRepository;
 import org.json.JSONArray;
@@ -44,8 +45,7 @@ public class CourseDetailService {
         // Get basic course data from database
         CouponCourseData courseData = couponCourseRepository.findByCourseId(courseId);
         if (courseData == null) {
-            log.warn("Course not found in database for courseId: {}", courseId);
-            return null;
+            throw new ResourceNotFoundException("Course not found in database for courseId: " + courseId);
         }
         
         // Fetch additional details from Udemy API

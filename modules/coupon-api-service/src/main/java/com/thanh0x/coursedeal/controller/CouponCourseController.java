@@ -6,6 +6,7 @@ import com.thanh0x.coursedeal.dto.CouponUpdateRequestDTO;
 import com.thanh0x.coursedeal.dto.PagedCouponResponseDTO;
 import com.thanh0x.coursedeal.service.CourseResponseService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -69,7 +70,7 @@ public class CouponCourseController {
      * Returns 202 Accepted as validation is performed asynchronously.
      */
     @PostMapping
-    public ResponseEntity<String> createCoupon(@RequestBody CouponRequestDTO requestBody, HttpServletRequest request) {
+    public ResponseEntity<String> createCoupon(@Valid @RequestBody CouponRequestDTO requestBody, HttpServletRequest request) {
         courseResponseService.saveNewCouponUrlAsync(requestBody.getCouponUrl(), request.getRemoteAddr());
         return ResponseEntity.accepted().body("Coupon submission received and is being processed.");
     }

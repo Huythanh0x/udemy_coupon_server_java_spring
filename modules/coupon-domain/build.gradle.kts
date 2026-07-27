@@ -18,5 +18,6 @@ java {
 dependencies {
     api("org.springframework.boot:spring-boot-starter-data-jpa")
     api("org.json:json:20231013")
+    api("jakarta.validation:jakarta.validation-api:3.0.2")
 }
 
