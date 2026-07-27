@@ -18,10 +18,10 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
 /**
- * A class that extracts Udemy coupon course data from the provided coupon URL.
+ * A class that extracts course coupon data from the provided coupon URL.
  */
-public class UdemyCouponCourseExtractor {
-    private static final Logger log = LoggerFactory.getLogger(UdemyCouponCourseExtractor.class);
+public class CourseDataExtractor {
+    private static final Logger log = LoggerFactory.getLogger(CourseDataExtractor.class);
     private final String couponUrl;
     private int courseId = 0;
     private String couponCode = "";
@@ -36,25 +36,25 @@ public class UdemyCouponCourseExtractor {
     }
 
     /**
-     * Creates a new UdemyCouponCourseExtractor with the given coupon URL.
+     * Creates a new CourseDataExtractor with the given coupon URL.
      * Will attempt to extract courseId from the URL's HTML page.
      *
      * @param couponUrl The coupon URL to extract data from
      */
-    public UdemyCouponCourseExtractor(String couponUrl) {
+    public CourseDataExtractor(String couponUrl) {
         this.couponUrl = couponUrl;
         courseId = extractCourseId();
         couponCode = extractCouponCode();
     }
 
     /**
-     * Creates a new UdemyCouponCourseExtractor with the given coupon URL and courseId.
+     * Creates a new CourseDataExtractor with the given coupon URL and courseId.
      * Skips the expensive HTTP request to extract courseId from HTML.
      *
      * @param couponUrl The coupon URL to extract data from
      * @param courseId The course ID (if already known from database)
      */
-    public UdemyCouponCourseExtractor(String couponUrl, int courseId) {
+    public CourseDataExtractor(String couponUrl, int courseId) {
         this.couponUrl = couponUrl;
         this.courseId = courseId;
         couponCode = extractCouponCode();

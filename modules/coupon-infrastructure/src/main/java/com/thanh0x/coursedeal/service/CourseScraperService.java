@@ -1,6 +1,6 @@
 package com.thanh0x.coursedeal.service;
 
-import com.thanh0x.coursedeal.crawler_runner.UdemyCouponCourseExtractor;
+import com.thanh0x.coursedeal.crawler_runner.CourseDataExtractor;
 import com.thanh0x.coursedeal.model.audit.ScrapingTaskLog;
 import com.thanh0x.coursedeal.model.coupon.CouponCourseData;
 import com.thanh0x.coursedeal.model.coupon.CouponCourseHistory;
@@ -15,11 +15,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Service for handling asynchronous scraping of Udemy coupons.
+ * Service for handling asynchronous scraping of course coupons.
  */
 @Service
-public class UdemyScraperService {
-    private static final Logger log = LoggerFactory.getLogger(UdemyScraperService.class);
+public class CourseScraperService {
+    private static final Logger log = LoggerFactory.getLogger(CourseScraperService.class);
 
     private final CouponCourseRepository couponCourseRepository;
     private final ExpiredCouponRepository expiredCouponRepository;
@@ -27,7 +27,7 @@ public class UdemyScraperService {
     private final NotificationService notificationService;
     private final ScrapingTaskLogRepository scrapingTaskLogRepository;
 
-    public UdemyScraperService(CouponCourseRepository couponCourseRepository,
+    public CourseScraperService(CouponCourseRepository couponCourseRepository,
                                ExpiredCouponRepository expiredCouponRepository,
                                CouponCourseHistoryRepository couponCourseHistoryRepository,
                                NotificationService notificationService,
@@ -54,7 +54,7 @@ public class UdemyScraperService {
                 .build());
         
         try {
-            UdemyCouponCourseExtractor extractor = new UdemyCouponCourseExtractor(couponUrl);
+            CourseDataExtractor extractor = new CourseDataExtractor(couponUrl);
             CouponCourseData couponData = extractor.getFullCouponCodeData();
             
             if (couponData == null) {

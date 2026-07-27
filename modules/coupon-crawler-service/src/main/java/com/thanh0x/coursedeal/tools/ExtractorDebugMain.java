@@ -1,10 +1,10 @@
 package com.thanh0x.coursedeal.tools;
 
-import com.thanh0x.coursedeal.crawler_runner.UdemyCouponCourseExtractor;
+import com.thanh0x.coursedeal.crawler_runner.CourseDataExtractor;
 import com.thanh0x.coursedeal.model.coupon.CouponCourseData;
 
 /**
- * Debug entrypoint to run {@link UdemyCouponCourseExtractor} for a single URL.
+ * Debug entrypoint to run {@link CourseDataExtractor} for a single URL.
  *
  * Usage (example):
  * UDEMY_DEBUG_DUMP=true UDEMY_DEBUG_URL="<couponUrl>" \
@@ -24,7 +24,7 @@ public class ExtractorDebugMain {
             throw new IllegalArgumentException("Missing URL. Provide --url=<couponUrl> or set UDEMY_DEBUG_URL.");
         }
 
-        UdemyCouponCourseExtractor extractor = new UdemyCouponCourseExtractor(url.trim());
+        CourseDataExtractor extractor = new CourseDataExtractor(url.trim());
         CouponCourseData result = extractor.getFullCouponCodeData();
 
         System.out.println("==== Extractor Debug Result ====");

@@ -56,7 +56,7 @@ dependencies {
 // Run extractor against a single URL without starting the web server.
 tasks.register<JavaExec>("debugExtractor") {
     group = "application"
-    description = "Runs UdemyCouponCourseExtractor for one URL (via --url or UDEMY_DEBUG_URL)"
+    description = "Runs CourseDataExtractor for one URL (via --url or UDEMY_DEBUG_URL)"
 
     // Ensure logback loads our crawler logback config even without Spring Boot.
     jvmArgs("-Dlogback.configurationFile=classpath:logback-spring.xml")

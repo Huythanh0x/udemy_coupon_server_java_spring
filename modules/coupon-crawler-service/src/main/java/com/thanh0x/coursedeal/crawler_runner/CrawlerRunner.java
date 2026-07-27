@@ -3,7 +3,7 @@ package com.thanh0x.coursedeal.crawler_runner;
 import com.thanh0x.coursedeal.crawler_runner.crawler.EnextCrawler;
 import com.thanh0x.coursedeal.crawler_runner.crawler.RealDiscountCrawler;
 import com.thanh0x.coursedeal.repository.CouponCourseRepository;
-import com.thanh0x.coursedeal.service.UdemyScraperService;
+import com.thanh0x.coursedeal.service.CourseScraperService;
 import com.thanh0x.coursedeal.utils.LastFetchTimeManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,25 +21,25 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * CrawlerRunner class is responsible for running the web crawlers to fetch coupon URLs
- * and handing them off to the UdemyScraperService for async processing.
+ * and handing them off to the CourseScraperService for async processing.
  */
 @Component
 public class CrawlerRunner implements ApplicationRunner {
     private static final Logger log = LoggerFactory.getLogger(CrawlerRunner.class);
     
     private final CouponCourseRepository couponCourseRepository;
-    private final UdemyScraperService udemyScraperService;
+    private final CourseScraperService courseScraperService;
     private final EnextCrawler enextCrawler;
     private final RealDiscountCrawler realDiscountCrawler;
     private final Integer intervalTime;
 
     public CrawlerRunner(CouponCourseRepository couponCourseRepository,
-                         UdemyScraperService udemyScraperService,
+                         CourseScraperService courseScraperService,
                          EnextCrawler enextCrawler,
                          RealDiscountCrawler realDiscountCrawler,
                          @Value("${custom.interval-time}") Integer intervalTime) {
         this.couponCourseRepository = couponCourseRepository;
-        this.udemyScraperService = udemyScraperService;
+        this.courseScraperService = courseScraperService;
         this.enextCrawler = enextCrawler;
         this.realDiscountCrawler = realDiscountCrawler;
         this.intervalTime = intervalTime;
@@ -71,7 +71,7 @@ public class CrawlerRunner implements ApplicationRunner {
                     log.info("Discovered {} unique URLs. Handing off to background scraper...", uniqueUrls.size());
                     
                     for (String url : uniqueUrls) {
-                        udemyScraperService.validateAndSaveCouponAsync(url, "crawler");
+                        courseScraperService.validateAndSaveCouponAsync(url, "crawler");
                     }
                     
                     log.info("Crawl round finished. Handed off {} tasks.", uniqueUrls.size());

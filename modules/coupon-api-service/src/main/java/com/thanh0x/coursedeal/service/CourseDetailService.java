@@ -25,7 +25,7 @@ public class CourseDetailService {
     private static final Logger log = LoggerFactory.getLogger(CourseDetailService.class);
     
     @Autowired
-    private UdemyApiClient udemyApiClient;
+    private ExternalCourseApiClient externalCourseApiClient;
     
     @Autowired
     private CouponCourseRepository couponCourseRepository;
@@ -49,9 +49,9 @@ public class CourseDetailService {
         }
         
         // Fetch additional details from Udemy API
-        JSONObject landingComponents = udemyApiClient.getCourseLandingComponentsJson(courseId, couponCode);
-        JSONObject reviewsResponse = udemyApiClient.getCourseReviewsJson(courseId, 1);
-        JSONObject relatedCoursesResponse = udemyApiClient.getRelatedCoursesJson(courseId);
+        JSONObject landingComponents = externalCourseApiClient.getCourseLandingComponentsJson(courseId, couponCode);
+        JSONObject reviewsResponse = externalCourseApiClient.getCourseReviewsJson(courseId, 1);
+        JSONObject relatedCoursesResponse = externalCourseApiClient.getRelatedCoursesJson(courseId);
         
         // Extract startPreviewId from previewVideo URL or landing components
         Long startPreviewId = null;
@@ -95,7 +95,7 @@ public class CourseDetailService {
         // Fetch preview page to get all preview videos
         JSONObject previewPageJson = null;
         if (startPreviewId != null) {
-            previewPageJson = udemyApiClient.getPreviewPageJson(courseId, startPreviewId);
+            previewPageJson = externalCourseApiClient.getPreviewPageJson(courseId, startPreviewId);
         }
 
         // Derive preview video and image from Udemy asset API when possible
@@ -116,7 +116,7 @@ public class CourseDetailService {
                             }
 
                             if (assetId > 0) {
-                                JSONObject assetJson = udemyApiClient.getAssetJson(assetId);
+                                JSONObject assetJson = externalCourseApiClient.getAssetJson(assetId);
                                 if (assetJson != null) {
                                     // Prefer the first media source (usually HLS m3u8)
                                     JSONArray mediaSources = assetJson.optJSONArray("media_sources");
@@ -203,7 +203,7 @@ public class CourseDetailService {
     public CourseReviewsDTO getCourseReviews(Integer courseId, int page) {
         log.info("Fetching reviews for courseId: {}, page: {}", courseId, page);
         
-        JSONObject reviewsResponse = udemyApiClient.getCourseReviewsJson(courseId, page);
+        JSONObject reviewsResponse = externalCourseApiClient.getCourseReviewsJson(courseId, page);
         if (reviewsResponse == null) {
             return null;
         }
@@ -223,7 +223,7 @@ public class CourseDetailService {
     public CurriculumDTO getCourseCurriculum(Integer courseId, String couponCode) {
         log.info("Fetching curriculum for courseId: {}, couponCode: {}", courseId, couponCode);
         
-        JSONObject landingComponents = udemyApiClient.getCourseLandingComponentsJson(courseId, couponCode);
+        JSONObject landingComponents = externalCourseApiClient.getCourseLandingComponentsJson(courseId, couponCode);
         if (landingComponents == null) {
             return null;
         }
@@ -242,7 +242,7 @@ public class CourseDetailService {
     public List<RelatedCourseDTO> getRelatedCourses(Integer courseId) {
         log.info("Fetching related courses for courseId: {}", courseId);
         
-        JSONObject relatedCoursesResponse = udemyApiClient.getRelatedCoursesJson(courseId);
+        JSONObject relatedCoursesResponse = externalCourseApiClient.getRelatedCoursesJson(courseId);
         if (relatedCoursesResponse == null) {
             return new ArrayList<>();
         }

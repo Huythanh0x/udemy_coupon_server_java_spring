@@ -1,94 +1,64 @@
-# Business Logic & Flow
+# Business Logic & Flow - Course Deal Server
 
 ## Module Map
-- `coupon-domain`: DTOs, entities, repositories, shared utilities (`UdemyCouponCourseExtractor`, `LastFetchTimeManager`), and Flyway migrations (classpath `db/migration`). Both services depend on this module.
-- `coupon-api-service`: REST stack (controllers, services, OpenAPI, security). Builds the Swagger-enabled HTTP API exposed on port 8080 by default.
-- `coupon-crawler-service`: Dedicated Spring Boot app (port 8081) hosting `CrawlerRunner` plus crawler implementations/schedulers. Can run headless or via Actuator endpoints.
+- **`coupon-domain`**: Pure data layer. Contains DTOs, JPA entities, repositories, and Flyway migrations. No infrastructure or logic dependencies.
+- **`coupon-infrastructure`**: Shared technical services. Handles Redis configuration, external API clients (`ExternalCourseApiClient`), and the core scraping engine (`CourseDataExtractor`, `CourseScraperService`).
+- **`coupon-api-service`**: REST stack for mobile clients. Handles modern authentication (Social/Passkeys) and search/filter logic.
+- **`coupon-crawler-service`**: Background workers that periodically discover new course deals from aggregator sites and hand them off for validation.
 
 ## High-Level Architecture
-- **Crawler layer** (`modules/coupon-crawler-service/src/main/java/.../crawler_runner`): pulls coupon URLs from multiple sites, validates each coupon via the Udemy API, and persists valid/expired entries.
-- **Service + Repository layer** (`CourseResponseService`, `CouponCourseRepository`, etc.): encapsulates pagination, filtering, search, and CRUD-like operations on coupon data.
-- **API layer** (controllers under `modules/coupon-api-service/src/main/java/.../controller`): exposes REST endpoints for coupons (`/api/v1/coupons/**`) and authentication (`/api/v1/auth/**`).
-- **Security/Auth** (`modules/coupon-api-service/.../security`): handles registration, login, JWT issuance, and refresh-token rotation.
+- **Discovery Layer** (`coupon-crawler-service`): Periodically pulls URLs from multiple sources. It does not validate URLs itself; it delegates to the async scraper.
+- **Asynchronous Processing** (`CourseScraperService`): A shared pipeline that validates coupons in background threads. It handles Udemy API interaction and persists results with full audit logging.
+- **Modern Auth** (`SocialAuthController`, `PasskeyAuthController`): Secure, password-less authentication supporting Google, Apple, and Biometric Passkeys.
+- **Personalized Notifications** (`NotificationService`): Matches newly discovered coupons against user-defined keywords/categories and sends targeted FCM push notifications.
 
-## Coupon Crawling Pipeline
-1. `CrawlerRunner` implements `ApplicationRunner`, so `startCrawler()` fires after the Spring context starts.
-2. Fetch round:
-   - Collect URLs from `EnextCrawler` and `RealDiscountCrawler`.
-   - Merge with existing coupon URLs, filter out duplicates/expired ones (`filterValidCouponUrls`).
-3. Validation round:
-   - Fan out work across a fixed thread pool (size `custom.number-of-request-thread`).
-   - Each task instantiates `UdemyCouponCourseExtractor` to call Udemy, parse course metadata, and decide whether the coupon is still 100% off.
-4. Persistence round:
-   - Valid coupons go to `CouponCourseRepository.saveAll`.
-   - Expired coupons become `ExpiredCourseData` rows via `ExpiredCouponRepository`.
-   - Existing coupons whose URLs show up in the expired list are deleted via `deleteAllCouponsByUrl`.
-5. Scheduler loop:
-   - After each cycle, the runner waits `custom.interval-time` milliseconds (default 900 000 ≈ 15 min) before repeating.
+## Coupon Discovery & Validation Pipeline
+1. **Discovery:** `CrawlerRunner` fires every 15 minutes.
+2. **Collection:** `EnextCrawler` and `RealDiscountCrawler` collect raw URLs.
+3. **Async Handoff:** Discovered URLs are passed to `CourseScraperService.validateAndSaveCouponAsync()`.
+4. **Validation (Background):**
+   - A thread from the `scraperExecutor` pool is assigned.
+   - `CourseDataExtractor` uses Jsoup to pull course metadata.
+   - The result is audited in the `scraping_task_logs` table.
+5. **Persistence & Alerts:**
+   - Valid coupons are saved to `CouponCourseRepository`.
+   - `NotificationService` checks user preferences and sends targeted FCM pushes.
 
-Key knobs live in `application*.properties` (thread count, interval, per-source quotas).
+## Authentication System
+- **Social Login:** Validates Google/Apple ID tokens and issues a server-side JWT.
+- **Passkeys (WebAuthn):** Two-step biometric handshake (Registration & Authentication) using FIDO2 standards.
+- **Security:** `TokenAuthenticationFilter` verifies JWTs and manages the security context for personalized requests (like Preference updates).
 
-## Coupon API Behavior
-`CouponCourseController` exposes:
-- `GET /api/v1/coupons`: simple pagination (`pageIndex`, `numberPerPage`), backed by `CourseResponseService.getPagedCoupons`.
-- `POST /api/v1/coupons`: ad-hoc validation of a single `couponUrl`, stored if the extractor returns data (still synchronous today; future roadmap is to publish these to the crawler queue for async processing).
-- `DELETE /api/v1/coupons`: removes coupons when validation fails (primarily an admin cleanup hook).
-- `GET /api/v1/coupons/filter`: filters by rating, content length, level, category, language.
-- `GET /api/v1/coupons/search`: text search across title/description/heading.
-- `GET /api/v1/coupons/{courseId}`: fetch a single coupon record or raise `BadRequestException`.
-
-`CourseResponseService` safeguards pagination inputs (`handlePagingParameters`) and delegates to repository methods such as:
-- `findAll(Pageable)` for general listings.
-- `findByRatingGreaterThanAndContentLengthGreaterThanAndLevelContainingAndCategoryIsContainingIgnoreCaseAndLanguageContaining(...)`.
-- `findByTitleContainingOrDescriptionContainingOrHeadingContaining(...)`.
-- `findByCourseId(Integer)` for detail lookups.
-
-## Authentication & Authorization
-- `AuthController` routes:
-  - `POST /api/v1/auth/register`: validates username/password length, checks uniqueness, hashes credentials, stores with default `USER` role.
-  - `POST /api/v1/auth/login`: validates input, authenticates through `AuthenticationManager`, issues JWT via `JWTGenerator`, and persists a refresh token (UUID) linked to the user.
-  - `POST /api/v1/auth/refresh-token`: accepts a refresh token plus (optional) expired/expiring access token; on success, returns a new JWT while reusing the refresh token.
-- `AuthService` provides validation helpers, token generation, and refresh-token-backed JWT renewal.
-- `RefreshTokenService` stores tokens so they can be invalidated/rotated per user.
-
-## Sequence Diagram
+## Sequence Diagram (Async Flow)
 ```mermaid
 sequenceDiagram
-    participant Scheduler as CrawlerRunner
-    participant Enext as EnextCrawler
-    participant RealDiscount as RealDiscountCrawler
-    participant Extractor as UdemyCouponCourseExtractor
-    participant CouponRepo as CouponCourseRepository
-    participant ExpiredRepo as ExpiredCouponRepository
+    participant Crawler as CrawlerRunner
     participant API as CouponCourseController
-    participant Client
+    participant Scraper as CourseScraperService
+    participant Extractor as CourseDataExtractor
+    participant DB as Database
+    participant FCM as NotificationService
 
-    Scheduler->>Enext: getAllCouponUrls()
-    Scheduler->>RealDiscount: getAllCouponUrls()
-    Scheduler->>Scheduler: filterValidCouponUrls()
-    loop per URL
-        Scheduler->>Extractor: getFullCouponCodeData(url)
-        alt valid coupon
-            Extractor-->>Scheduler: CouponCourseData
-        else expired/invalid
-            Extractor-->>Scheduler: null
-        end
-    end
-    Scheduler->>CouponRepo: saveAll(validCoupons)
-    Scheduler->>ExpiredRepo: saveAll(expiredCoupons)
-    Scheduler->>CouponRepo: deleteAllCouponsByUrl(expiredUrls)
-
-    Client->>API: GET /api/v1/coupons?pageIndex&numberPerPage
-    API->>CouponRepo: findAll(PageRequest)
-    CouponRepo-->>API: Page<CouponCourseData>
-    API-->>Client: PagedCouponResponseDTO
+    Note over Crawler, API: Both trigger Scraper
+    Crawler->>Scraper: validateAndSaveCouponAsync(url)
+    API-->>Client: 202 Accepted (Immediate)
+    API->>Scraper: validateAndSaveCouponAsync(url)
+    
+    Scraper->>DB: Log Task (PENDING)
+    Scraper->>Extractor: Extract Metadata (Slow IO)
+    Extractor-->>Scraper: CouponCourseData
+    Scraper->>DB: Save Coupon & Log (SUCCESS)
+    
+    Scraper->>FCM: notifyInterestedUsers(coupon)
+    FCM->>DB: Query User Preferences
+    FCM-->>User: Push Notification
 ```
 
 ## Implementation Touchpoints
-- `crawler_runner/CrawlerRunner.java` – orchestrates the fetch/validate/persist loop.
-- `service/CourseResponseService.java` – business logic for coupon listings, filtering, and CRUD helpers.
-- `controller/CouponCourseController.java` – REST endpoints for coupons.
-- `controller/AuthController.java`, `service/AuthService.java`, `service/RefreshTokenService.java` – registration/login/token flows.
+- `com.thanh0x.coursedeal.crawler_runner.CrawlerRunner` – URL discovery loop.
+- `com.thanh0x.coursedeal.service.CourseScraperService` – Core async scraping logic.
+- `com.thanh0x.coursedeal.controller.CouponCourseController` – REST API for coupons.
+- `com.thanh0x.coursedeal.controller.SocialAuthController` – OAuth2 token exchange.
+- `com.thanh0x.coursedeal.controller.PasskeyAuthController` – WebAuthn biometric flow.
 
-Use this document when onboarding new engineers or designing features that touch the crawler cadence, coupon filters, or auth/token lifecycles.
-
+Use this document to understand the decoupled nature of the "Discovery" and "Processing" layers of the platform.

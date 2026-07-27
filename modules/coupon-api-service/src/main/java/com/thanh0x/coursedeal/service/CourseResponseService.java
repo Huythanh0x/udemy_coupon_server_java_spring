@@ -1,6 +1,6 @@
 package com.thanh0x.coursedeal.service;
 
-import com.thanh0x.coursedeal.crawler_runner.UdemyCouponCourseExtractor;
+import com.thanh0x.coursedeal.crawler_runner.CourseDataExtractor;
 import com.thanh0x.coursedeal.dto.CouponDetailDTO;
 import com.thanh0x.coursedeal.dto.CouponSummaryDTO;
 import com.thanh0x.coursedeal.dto.PagedCouponResponseDTO;
@@ -36,7 +36,7 @@ public class CourseResponseService {
     private final ExpiredCouponRepository expiredCouponRepository;
     private final CouponCourseHistoryRepository couponCourseHistoryRepository;
     private final CouponMapper couponMapper;
-    private final UdemyScraperService udemyScraperService;
+    private final CourseScraperService courseScraperService;
 
 
     @Autowired
@@ -44,12 +44,12 @@ public class CourseResponseService {
                                  ExpiredCouponRepository expiredCouponRepository,
                                  CouponCourseHistoryRepository couponCourseHistoryRepository,
                                  CouponMapper couponMapper,
-                                 UdemyScraperService udemyScraperService) {
+                                 CourseScraperService courseScraperService) {
         this.couponCourseRepository = couponCourseRepository;
         this.expiredCouponRepository = expiredCouponRepository;
         this.couponCourseHistoryRepository = couponCourseHistoryRepository;
         this.couponMapper = couponMapper;
-        this.udemyScraperService = udemyScraperService;
+        this.courseScraperService = courseScraperService;
     }
 
     /**
@@ -169,7 +169,7 @@ public class CourseResponseService {
      * @param remoteAddr the remote address of the user saving the coupon
      */
     public void saveNewCouponUrlAsync(String couponUrl, String remoteAddr) {
-        udemyScraperService.validateAndSaveCouponAsync(couponUrl, remoteAddr);
+        courseScraperService.validateAndSaveCouponAsync(couponUrl, remoteAddr);
     }
 
     /**
@@ -177,7 +177,7 @@ public class CourseResponseService {
      */
     public void refreshCouponAsync(Integer courseId, String remoteAddr) {
         couponCourseRepository.findById(courseId).ifPresent(coupon -> 
-                udemyScraperService.validateAndSaveCouponAsync(coupon.getCouponUrl(), remoteAddr)
+                courseScraperService.validateAndSaveCouponAsync(coupon.getCouponUrl(), remoteAddr)
         );
     }
 
@@ -185,7 +185,7 @@ public class CourseResponseService {
      * Saves a new coupon URL to the database.
      */
     public CouponDetailDTO saveNewCouponUrl(String couponUrl, String remoteAddr) {
-        UdemyCouponCourseExtractor extractor = new UdemyCouponCourseExtractor(couponUrl);
+        CourseDataExtractor extractor = new CourseDataExtractor(couponUrl);
         CouponCourseData couponData = extractor.getFullCouponCodeData();
         if (couponData == null) {
             throw new BadRequestException("Coupon is invalid or expired");

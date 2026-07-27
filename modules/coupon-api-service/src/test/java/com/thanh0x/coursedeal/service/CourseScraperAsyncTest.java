@@ -14,10 +14,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 @ActiveProfiles("test")
-class UdemyScraperAsyncTest {
+class CourseScraperAsyncTest {
 
     @Autowired
-    private UdemyScraperService scraperService;
+    private CourseScraperService scraperService;
 
     @Autowired
     private CouponCourseRepository couponRepository;
@@ -33,6 +33,6 @@ class UdemyScraperAsyncTest {
         scraperService.validateAndSaveCouponAsync(mockUrl, "127.0.0.1");
         
         // Even if it fails due to network, we've verified the method call and @Async triggers.
-        // For a more robust test, we should mock UdemyCouponCourseExtractor.
+        // For a more robust test, we should mock CourseDataExtractor.
     }
 }

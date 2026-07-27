@@ -11,17 +11,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 /**
- * Service for making API calls to Udemy's public API endpoints.
+ * Service for making API calls to external course public API endpoints (e.g. Udemy).
  * Handles fetching course details, reviews, curriculum, and related courses.
- * Uses the same WebContentFetcher approach as UdemyCouponCourseExtractor to avoid bot detection.
+ * Uses the same WebContentFetcher approach as CourseDataExtractor to avoid bot detection.
  */
 @Service
-public class UdemyApiClient {
-    private static final Logger log = LoggerFactory.getLogger(UdemyApiClient.class);
+public class ExternalCourseApiClient {
+    private static final Logger log = LoggerFactory.getLogger(ExternalCourseApiClient.class);
     
     /**
-     * Fetches basic course information from Udemy API.
-     * Uses the same URL pattern as UdemyCouponCourseExtractor.
+     * Fetches basic course information from external API.
+     * Uses the same URL pattern as CourseDataExtractor.
      *
      * @param courseId the course ID
      * @return JSONObject containing course details, or null if fetch fails
@@ -34,7 +34,7 @@ public class UdemyApiClient {
     
     /**
      * Fetches course landing components including curriculum, pricing, and incentives.
-     * Uses the same URL pattern as UdemyCouponCourseExtractor.
+     * Uses the same URL pattern as CourseDataExtractor.
      *
      * @param courseId the course ID
      * @param couponCode optional coupon code (can be null)
@@ -47,7 +47,7 @@ public class UdemyApiClient {
     }
     
     /**
-     * Fetches course reviews from Udemy API.
+     * Fetches course reviews from external API.
      *
      * @param courseId the course ID
      * @param page the page number (default: 1)
@@ -60,7 +60,7 @@ public class UdemyApiClient {
     }
     
     /**
-     * Fetches related/recommended courses from Udemy API.
+     * Fetches related/recommended courses from external API.
      *
      * @param courseId the course ID
      * @return JSONObject containing related courses, or null if fetch fails
@@ -132,4 +132,3 @@ public class UdemyApiClient {
         }
     }
 }
-
