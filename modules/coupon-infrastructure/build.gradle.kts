@@ -16,7 +16,11 @@ java {
 }
 
 dependencies {
-    api("org.springframework.boot:spring-boot-starter-data-jpa")
+    api(project(":modules:coupon-domain"))
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
+    implementation("org.jsoup:jsoup:1.15.4")
     api("org.json:json:20231013")
+    implementation("org.slf4j:slf4j-api")
+    // For @Configuration, @Bean, etc
+    implementation("org.springframework.boot:spring-boot-starter")
 }
-
