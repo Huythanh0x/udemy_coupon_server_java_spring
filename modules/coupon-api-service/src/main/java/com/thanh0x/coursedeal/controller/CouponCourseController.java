@@ -75,21 +75,34 @@ public class CouponCourseController {
 
     /**
      * Deletes a coupon by its course identifier.
+     * <p>
+     * Direct deletion is currently disabled.
+     *
+     * @param courseId the course identifier of the coupon to be deleted
      */
     @DeleteMapping("/{courseId}")
     public void deleteCoupon(@PathVariable("courseId") Integer courseId) {
-        courseResponseService.deleteCouponByCourseId(courseId);
+        throw new UnsupportedOperationException("Direct deletion is not allowed.");
     }
 
     /**
      * Updates an existing coupon.
+     * <p>
+     * Update functionality is currently disabled.
+     *
+     * @param courseId     the identifier of the coupon to update
+     * @param requestBody  details of the update
+     * @return the updated coupon data
      */
     @PutMapping("/{courseId}")
     public CouponDetailDTO updateCoupon(
         @PathVariable("courseId") Integer courseId,
         @RequestBody CouponUpdateRequestDTO requestBody
     ) {
-        return courseResponseService.updateCoupon(courseId, requestBody);
+        // TODO: Implement refresh from Udemy function.
+        // This will update the latest data in our DB.
+        // MUST include a hash check to ensure the request is valid before performing the update.
+        throw new UnsupportedOperationException("Manual update is not yet implemented.");
     }
 
     /**

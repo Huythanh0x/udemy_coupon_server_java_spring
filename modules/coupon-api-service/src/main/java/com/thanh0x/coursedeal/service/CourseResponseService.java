@@ -3,7 +3,6 @@ package com.thanh0x.coursedeal.service;
 import com.thanh0x.coursedeal.crawler_runner.UdemyCouponCourseExtractor;
 import com.thanh0x.coursedeal.dto.CouponDetailDTO;
 import com.thanh0x.coursedeal.dto.CouponSummaryDTO;
-import com.thanh0x.coursedeal.dto.CouponUpdateRequestDTO;
 import com.thanh0x.coursedeal.dto.PagedCouponResponseDTO;
 import com.thanh0x.coursedeal.exception.BadRequestException;
 import com.thanh0x.coursedeal.mapper.CouponMapper;
@@ -194,24 +193,6 @@ public class CourseResponseService {
             .status(existedBefore ? "reactivated" : "new")
             .build());
         return couponMapper.toDetailDto(saved);
-    }
-
-    /**
-     * Deletes a coupon by its course identifier.
-     */
-    public void deleteCouponByCourseId(Integer courseId) {
-        couponCourseRepository.deleteById(courseId);
-    }
-
-    /**
-     * Updates a coupon.
-     */
-    public CouponDetailDTO updateCoupon(Integer courseId, CouponUpdateRequestDTO request) {
-        CouponCourseData existing = couponCourseRepository.findByCourseId(courseId);
-        if (existing == null) {
-            throw new BadRequestException("Course id not found");
-        }
-        return couponMapper.toDetailDto(couponCourseRepository.save(existing));
     }
 
     /**
