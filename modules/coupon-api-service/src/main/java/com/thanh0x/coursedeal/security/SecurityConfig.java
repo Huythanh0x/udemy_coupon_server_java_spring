@@ -3,14 +3,12 @@ package com.thanh0x.coursedeal.security;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -31,16 +29,9 @@ public class SecurityConfig {
         this.tokenAuthenticationFilter = tokenAuthenticationFilter;
     }
 
-    /**
-     * Main security filter chain for all non-actuator endpoints.
-     */
     @Bean
-    @Order(100)
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        RequestMatcher nonActuatorMatcher = request -> !request.getRequestURI().startsWith("/actuator/");
-        
         http
-                .securityMatcher(nonActuatorMatcher)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -50,6 +41,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/auth/passkey/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/error").permitAll()
+                        .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/coupons/**").permitAll()
                         .requestMatchers("/*").permitAll()
                         .anyRequest().authenticated()

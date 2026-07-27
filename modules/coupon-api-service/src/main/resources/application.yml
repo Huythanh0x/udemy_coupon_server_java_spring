@@ -44,28 +44,8 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,prometheus
+        include: health,info
   endpoint:
     health:
       probes:
         enabled: true
-    prometheus:
-      enabled: true
-  metrics:
-    export:
-      prometheus:
-        enabled: true
-  tracing:
-    sampling:
-      probability: 1.0
-    export:
-      otlp:
-        enabled: true
-  otlp:
-    tracing:
-      endpoint: ${OTLP_ENDPOINT:http://tempo:4318/v1/traces}
-
-prometheus:
-  actuator:
-    username: ${PROM_ACTUATOR_USER:prometheus}
-    password: ${PROM_ACTUATOR_PASSWORD:prometheus}
