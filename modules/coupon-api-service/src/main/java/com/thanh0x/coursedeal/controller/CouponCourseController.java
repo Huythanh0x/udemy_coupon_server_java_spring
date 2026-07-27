@@ -7,6 +7,7 @@ import com.thanh0x.coursedeal.dto.PagedCouponResponseDTO;
 import com.thanh0x.coursedeal.service.CourseResponseService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -83,6 +84,27 @@ public class CouponCourseController {
     @DeleteMapping("/{courseId}")
     public void deleteCoupon(@PathVariable("courseId") Integer courseId) {
         throw new UnsupportedOperationException("Direct deletion is not allowed.");
+    }
+
+    @Value("${custom.refresh-secret:}")
+    private String refreshSecret;
+
+    /**
+     * Triggers a refresh of the coupon data from Udemy.
+     * Requires a valid hash/secret to prevent unauthorized scraping load.
+     */
+    @PutMapping("/{courseId}/refresh")
+    public ResponseEntity<String> refreshCoupon(
+        @PathVariable("courseId") Integer courseId,
+        @RequestParam("secret") String secret,
+        HttpServletRequest request
+    ) {
+        if (refreshSecret == null || refreshSecret.isEmpty() || !refreshSecret.equals(secret)) {
+            return ResponseEntity.status(401).body("Invalid refresh secret.");
+        }
+
+        courseResponseService.refreshCouponAsync(courseId, request.getRemoteAddr());
+        return ResponseEntity.accepted().body("Refresh request received.");
     }
 
     /**

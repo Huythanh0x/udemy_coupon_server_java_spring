@@ -172,6 +172,15 @@ public class CourseResponseService {
     }
 
     /**
+     * Refreshes a coupon URL asynchronously.
+     */
+    public void refreshCouponAsync(Integer courseId, String remoteAddr) {
+        couponCourseRepository.findById(courseId).ifPresent(coupon -> 
+                udemyScraperService.validateAndSaveCouponAsync(coupon.getCouponUrl(), remoteAddr)
+        );
+    }
+
+    /**
      * Saves a new coupon URL to the database.
      */
     public CouponDetailDTO saveNewCouponUrl(String couponUrl, String remoteAddr) {

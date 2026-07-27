@@ -70,8 +70,8 @@ public class UdemyScraperService {
                 
             log.info("Successfully validated and saved: {} (ID: {})", saved.getTitle(), saved.getCourseId());
 
-            // Notify users about the new deal
-            notificationService.broadcastNewCoupon(saved.getTitle(), saved.getCategory());
+            // Notify interested users about the new deal
+            notificationService.notifyInterestedUsers(saved);
             
         } catch (Exception e) {
             log.error("Error in async scraping for {}: {}", couponUrl, e.getMessage(), e);
