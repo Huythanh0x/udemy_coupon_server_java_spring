@@ -1,11 +1,12 @@
 package com.thanh0x.coursedeal
 
+import com.thanh0x.coursedeal.config.ApiProperties
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.runApplication
-import org.springframework.context.annotation.ComponentScan
 
 @SpringBootApplication
-@ComponentScan(basePackages = ["com.thanh0x.coursedeal"])
+@EnableConfigurationProperties(ApiProperties::class)
 class CouponApiServiceApplication
 
 fun main(args: Array<String>) {

@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class UrlValidatorTest {
-
     @Test
     fun testSafeUrls() {
         println("Testing safe URLs...")

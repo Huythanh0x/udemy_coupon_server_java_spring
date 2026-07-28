@@ -6,25 +6,25 @@ import org.junit.jupiter.api.Test
 import java.time.Instant
 
 class CouponMapperTest {
-
     private val mapper = CouponMapper()
 
     @Test
     fun toSummaryDto_ShouldMapCorrectly() {
-        val entity = CouponCourseData(
-            courseId = 123,
-            title = "Test Course",
-            category = "Development",
-            author = "Author Name",
-            rating = 4.5f,
-            students = 1000,
-            previewImage = "image.jpg",
-            couponUrl = "http://udemy.com/test",
-            expiredDate = Instant.now(),
-            usesRemaining = 50,
-            isNew = true,
-            description = "Long description that should be hidden"
-        )
+        val entity =
+            CouponCourseData(
+                courseId = 123,
+                title = "Test Course",
+                category = "Development",
+                author = "Author Name",
+                rating = 4.5f,
+                students = 1000,
+                previewImage = "image.jpg",
+                couponUrl = "http://udemy.com/test",
+                expiredDate = Instant.now(),
+                usesRemaining = 50,
+                isNew = true,
+                description = "Long description that should be hidden",
+            )
 
         val dto = mapper.toSummaryDto(entity)
 
@@ -37,12 +37,13 @@ class CouponMapperTest {
 
     @Test
     fun toDetailDto_ShouldIncludeAllFields() {
-        val entity = CouponCourseData(
-            courseId = 123,
-            title = "Test Course",
-            description = "Detailed description",
-            previewVideo = "video.mp4"
-        )
+        val entity =
+            CouponCourseData(
+                courseId = 123,
+                title = "Test Course",
+                description = "Detailed description",
+                previewVideo = "video.mp4",
+            )
 
         val dto = mapper.toDetailDto(entity)
 

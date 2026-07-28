@@ -27,7 +27,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 @AutoConfigureMockMvc(addFilters = false)
 @ActiveProfiles("test")
 class SocialAuthControllerTest {
-
     @Autowired
     private lateinit var mockMvc: MockMvc
 
@@ -39,22 +38,24 @@ class SocialAuthControllerTest {
 
     @Test
     fun login_ShouldReturnToken() {
-        val request = SocialLoginRequestDTO(
-            provider = AuthProvider.GOOGLE,
-            idToken = "mock-google-token"
-        )
+        val request =
+            SocialLoginRequestDTO(
+                provider = AuthProvider.GOOGLE,
+                idToken = "mock-google-token",
+            )
 
-        val response = AuthResponseDTO(
-            accessToken = "mock-jwt-token",
-            tokenType = "Bearer"
-        )
+        val response =
+            AuthResponseDTO(
+                accessToken = "mock-jwt-token",
+                tokenType = "Bearer",
+            )
 
         `when`(socialAuthService.login(any())).thenReturn(response)
 
         mockMvc.perform(
             post("/api/v1/auth/social/login")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
+                .content(objectMapper.writeValueAsString(request)),
         )
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.accessToken").value("mock-jwt-token"))

@@ -8,7 +8,6 @@ import com.thanh0x.coursedeal.dto.PagedCouponResponseDTO
 import com.thanh0x.coursedeal.service.CourseResponseService
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
-import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -17,7 +16,6 @@ import org.springframework.web.bind.annotation.*
  */
 @RestController
 @RequestMapping("api/v1/coupons")
-@EnableConfigurationProperties(ApiProperties::class)
 class CouponCourseController(
     private val courseResponseService: CourseResponseService,
     private val properties: ApiProperties
