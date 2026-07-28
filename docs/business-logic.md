@@ -2,9 +2,11 @@
 
 ## Module Map
 - **`coupon-domain`**: Pure data layer. Contains DTOs, JPA entities, repositories, and Flyway migrations. No infrastructure or logic dependencies.
-- **`coupon-infrastructure`**: Shared technical services. Handles Redis configuration, external API clients (`ExternalCourseApiClient`), and the core scraping engine (`CourseDataExtractor`, `CourseScraperService`).
-- **`coupon-api-service`**: REST stack for mobile clients. Handles modern authentication (Social/Passkeys) and search/filter logic.
-- **`coupon-crawler-service`**: Background workers that periodically discover new course deals from aggregator sites and hand them off for validation.
+- **`coupon-infrastructure`**: Shared technical services. Handles generic Redis configuration and Firebase Admin SDK (FCM).
+- **`course-engine`**: Specialized domain-specific I/O. Contains the `CourseScraperService`, `ExternalCourseApiClient`, and `CourseDataExtractor`.
+- **`identity-service`**: Dedicated module for Identity and Access Management (IAM). Handles Social Auth, Passkey handshakes, and User Preferences.
+- **`coupon-api-service`**: Business REST stack. Focused purely on course searching, filtering, and detail retrieval.
+- **`coupon-crawler-service`**: Background discovery workers that periodically find new course deals and hand them off to the `course-engine` via JobRunr.
 
 ## High-Level Architecture
 - **Discovery Layer** (`coupon-crawler-service`): Periodically pulls URLs from multiple sources. It does not validate URLs itself; it enqueues them into **JobRunr**.
@@ -58,10 +60,10 @@ sequenceDiagram
 ```
 
 ## Implementation Touchpoints
-- `com.thanh0x.coursedeal.crawler_runner.CrawlerRunner` – URL discovery loop.
-- `com.thanh0x.coursedeal.service.CourseScraperService` – Core async scraping logic.
-- `com.thanh0x.coursedeal.controller.CouponCourseController` – REST API for coupons.
-- `com.thanh0x.coursedeal.controller.SocialAuthController` – OAuth2 token exchange.
-- `com.thanh0x.coursedeal.controller.PasskeyAuthController` – WebAuthn biometric flow.
+- `com.thanh0x.coursedeal.crawler_runner.CrawlerRunner` (in `crawler-service`) – URL discovery loop.
+- `com.thanh0x.coursedeal.service.CourseScraperService` (in `course-engine`) – Core background scraping logic.
+- `com.thanh0x.coursedeal.controller.CouponCourseController` (in `api-service`) – REST API for coupons.
+- `com.thanh0x.coursedeal.controller.SocialAuthController` (in `identity-service`) – OAuth2 token exchange.
+- `com.thanh0x.coursedeal.controller.PasskeyAuthController` (in `identity-service`) – WebAuthn biometric flow.
 
 Use this document to understand the decoupled nature of the "Discovery" and "Processing" layers of the platform.

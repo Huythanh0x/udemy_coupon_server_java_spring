@@ -16,10 +16,12 @@ The Course Deal Server is a modern, asynchronous application designed to crawl 1
 - **Search & Filter**: Powerful querying capabilities for discovering the best deals.
 
 ## Architecture
-- `modules/coupon-domain`: Pure data layer containing JPA entities, repositories, and DTOs.
-- `modules/coupon-infrastructure`: Shared technical services including Redis, the Scraper engine, and FCM.
-- `modules/coupon-api-service`: REST API exposed on port 8080.
-- `modules/coupon-crawler-service`: Discovery workers and background job server (port 8081).
+- **`modules/coupon-domain`**: Pure data layer containing JPA entities, repositories, and DTOs.
+- **`modules/coupon-infrastructure`**: Shared technical services (Redis/Firebase adapters).
+- **`modules/course-engine`**: Domain-specific I/O (Scraper, External APIs).
+- **`modules/identity-service`**: Auth (Social/Passkeys) and User Management.
+- **`modules/coupon-api-service`**: Business REST API (port 8080).
+- **`modules/coupon-crawler-service`**: Background discovery and JobRunr worker (port 8081).
 
 ## Prerequisites
 - [Java 17](https://jdk.java.net/17/) or higher (JDK)

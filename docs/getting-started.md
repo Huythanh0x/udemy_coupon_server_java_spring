@@ -6,26 +6,33 @@
 ```mermaid
 graph TD
     API[coupon-api-service] --> Domain[coupon-domain]
-    API --> Infra[coupon-infrastructure]
+    API --> Engine[course-engine]
+    API --> ID[identity-service]
     
-    Crawler[coupon-crawler-service] --> Domain
-    Crawler --> Infra
+    ID --> Domain
+    ID --> Infra[coupon-infrastructure]
     
-    Infra --> Domain
+    Crawler[coupon-crawler-service] --> Engine
+    Crawler --> Domain
+    
+    Engine --> Infra
+    Engine --> Domain
     
     subgraph "External Dependencies"
         Domain -- "Flyway" --> MySQL[(MySQL)]
         Infra -- "Job Storage" --> Redis((Redis))
         Infra -- "Push Alerts" --> FCM((Firebase))
-        Infra -- "Validation" --> Ext((Course Providers))
+        Engine -- "Validation" --> Ext((Course Providers))
     end
 ```
 
 ### Module Breakdown:
 - **`modules/coupon-domain`**: Pure data layer. Entities are mapped to MySQL via JPA.
-- **`modules/coupon-infrastructure`**: The technical backbone. Manages Redis state, the **JobRunr** background worker, and FCM notifications.
-- **`modules/coupon-api-service`**: User entry point. Handles Social/Passkey authentication and search logic.
-- **`modules/coupon-crawler-service`**: Periodic discovery workers that find raw URLs from aggregator sites.
+- **`modules/coupon-infrastructure`**: Generic technical backbone (Redis, FCM).
+- **`modules/course-engine`**: Specialized course processing engine (Scraper, External APIs).
+- **`modules/identity-service`**: Standalone authentication (Social/Passkey) and user preferences.
+- **`modules/coupon-api-service`**: Main REST entry point for course searching and details.
+- **`modules/coupon-crawler-service`**: Periodic discovery workers and background job worker.
 
 ## Prerequisites
 - Java 17 JDK in your `$PATH`.
