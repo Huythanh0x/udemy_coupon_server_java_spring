@@ -1,0 +1,99 @@
+package com.thanh0x.coursedeal.service
+
+import com.thanh0x.coursedeal.crawler_runner.CourseDataExtractor
+import com.thanh0x.coursedeal.model.audit.ScrapingTaskLog
+import com.thanh0x.coursedeal.model.coupon.CouponCourseHistory
+import com.thanh0x.coursedeal.repository.CouponCourseHistoryRepository
+import com.thanh0x.coursedeal.repository.CouponCourseRepository
+import com.thanh0x.coursedeal.repository.ExpiredCouponRepository
+import com.thanh0x.coursedeal.repository.audit.ScrapingTaskLogRepository
+import org.jobrunr.scheduling.JobScheduler
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+
+/**
+ * Service for handling background scraping of course coupons using JobRunr.
+ */
+@Service
+class CourseScraperService(
+    private val couponCourseRepository: CouponCourseRepository,
+    private val expiredCouponRepository: ExpiredCouponRepository,
+    private val couponCourseHistoryRepository: CouponCourseHistoryRepository,
+    private val notificationService: NotificationService,
+    private val scrapingTaskLogRepository: ScrapingTaskLogRepository,
+    private val jobScheduler: JobScheduler
+) {
+
+    /**
+     * Enqueues a scraping task into JobRunr.
+     */
+    fun enqueueScrapingTask(couponUrl: String, remoteAddr: String) {
+        jobScheduler.enqueue { validateAndSaveCoupon(couponUrl, remoteAddr) }
+    }
+
+    /**
+     * Core validation logic. This is executed by the JobRunr worker.
+     */
+    @Transactional
+    fun validateAndSaveCoupon(couponUrl: String, remoteAddr: String) {
+        log.info("Starting background validation for coupon: {} from {}", couponUrl, remoteAddr)
+
+        var auditLog = scrapingTaskLogRepository.save(
+            ScrapingTaskLog(
+                url = couponUrl,
+                remoteAddr = remoteAddr,
+                status = "PENDING"
+            )
+        )
+
+        try {
+            val extractor = CourseDataExtractor(couponUrl)
+            val couponData = extractor.getFullCouponCodeData()
+
+            if (couponData == null) {
+                log.warn("Failed to extract valid data for URL: {}", couponUrl)
+                updateAuditLog(auditLog, "FAILED", "Extractor returned null data")
+                return
+            }
+
+            val existedBefore = couponCourseRepository.findByCouponUrl(couponUrl) != null ||
+                    expiredCouponRepository.findByCouponUrl(couponUrl) != null
+            couponData.isNew = !existedBefore
+
+            val saved = couponCourseRepository.save(couponData)
+
+            couponCourseHistoryRepository.save(
+                CouponCourseHistory(
+                    courseId = saved.courseId,
+                    title = saved.title,
+                    couponUrl = saved.couponUrl ?: "",
+                    status = if (existedBefore) "reactivated" else "new"
+                )
+            )
+
+            log.info("Successfully validated and saved: {} (ID: {})", saved.title, saved.courseId)
+
+            updateAuditLog(auditLog, "SUCCESS", null, saved.courseId)
+
+            // Notify interested users about the new deal
+            notificationService.notifyInterestedUsers(saved)
+
+        } catch (e: Exception) {
+            log.error("Error in async scraping for {}: {}", couponUrl, e.message, e)
+            updateAuditLog(auditLog, "FAILED", e.javaClass.simpleName + ": " + e.message)
+        }
+    }
+
+    private fun updateAuditLog(auditLog: ScrapingTaskLog, status: String, error: String?, courseId: Int? = null) {
+        auditLog.status = status
+        auditLog.errorMessage = error
+        auditLog.courseId = courseId
+        scrapingTaskLogRepository.save(auditLog)
+    }
+
+    companion object {
+        private val log: Logger = LoggerFactory.getLogger(CourseScraperService::class.java)
+    }
+}

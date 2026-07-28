@@ -3,8 +3,9 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     id("org.springframework.boot")
     id("io.spring.dependency-management")
-    id("io.freefair.lombok")
     kotlin("jvm")
+    kotlin("kapt")
+    kotlin("plugin.spring")
 }
 
 java {
@@ -18,6 +19,7 @@ kotlin {
 
 tasks.withType<KotlinCompile> {
     compilerOptions.jvmTarget.set(JvmTarget.JVM_17)
+    compilerOptions.javaParameters.set(true)
 }
 
 // Load .env file for bootRun tasks to ensure environment variables are available
@@ -51,6 +53,9 @@ tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
 dependencies {
     implementation(project(":modules:coupon-domain"))
     implementation(project(":modules:coupon-infrastructure"))
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation("org.jetbrains.kotlin:kotlin-reflect")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
     implementation("org.springframework.boot:spring-boot-starter-web")
@@ -63,8 +68,8 @@ dependencies {
     implementation("com.yubico:webauthn-server-core:2.9.0")
     implementation("com.google.api-client:google-api-client:2.2.0")
     implementation("com.google.firebase:firebase-admin:9.3.0")
-    implementation("org.mapstruct:mapstruct:1.5.5.Final")
-    annotationProcessor("org.mapstruct:mapstruct-processor:1.5.5.Final")
+    implementation("org.mapstruct:mapstruct:1.6.3")
+    kapt("org.mapstruct:mapstruct-processor:1.6.3")
     implementation("io.jsonwebtoken:jjwt-impl:0.11.5")
     implementation("io.jsonwebtoken:jjwt-api:0.11.5")
     implementation("io.jsonwebtoken:jjwt-jackson:0.11.5")

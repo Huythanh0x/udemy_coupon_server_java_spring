@@ -1,11 +1,15 @@
 plugins {
     id("org.springframework.boot")
     id("io.spring.dependency-management")
-    id("io.freefair.lombok")
     kotlin("jvm")
+    kotlin("plugin.spring")
 }
 
 import org.gradle.api.tasks.JavaExec
+
+springBoot {
+    mainClass.set("com.thanh0x.coursedeal.CouponCrawlerServiceApplicationKt")
+}
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17
@@ -51,6 +55,8 @@ dependencies {
     implementation("com.mysql:mysql-connector-j:8.3.0")
     implementation("org.jsoup:jsoup:1.15.4")
     implementation("org.json:json:20231013")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8")
 }
 
 // Run extractor against a single URL without starting the web server.

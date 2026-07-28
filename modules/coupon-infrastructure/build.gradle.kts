@@ -1,7 +1,8 @@
 plugins {
     `java-library`
     id("io.spring.dependency-management")
-    id("io.freefair.lombok")
+    kotlin("jvm")
+    kotlin("plugin.spring")
 }
 
 dependencyManagement {
@@ -23,6 +24,9 @@ dependencies {
     implementation("org.slf4j:slf4j-api")
     implementation("com.google.firebase:firebase-admin:9.3.0")
     implementation("org.springframework.boot:spring-boot-starter")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation("org.jetbrains.kotlin:kotlin-reflect")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib")
     api("org.jobrunr:jobrunr-spring-boot-3-starter:8.7.1")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")

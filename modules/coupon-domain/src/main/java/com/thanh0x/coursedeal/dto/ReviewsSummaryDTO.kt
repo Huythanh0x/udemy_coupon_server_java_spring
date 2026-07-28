@@ -1,0 +1,10 @@
+package com.thanh0x.coursedeal.dto
+
+/**
+ * DTO for reviews summary information.
+ */
+data class ReviewsSummaryDTO(
+    val totalCount: Int? = null,
+    val averageRating: Float? = null,
+    val recentReviews: List<ReviewDTO>? = null // First 3-5 reviews
+)
