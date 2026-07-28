@@ -1,11 +1,11 @@
+import org.gradle.api.tasks.JavaExec
+
 plugins {
     id("org.springframework.boot")
     id("io.spring.dependency-management")
     kotlin("jvm")
     kotlin("plugin.spring")
 }
-
-import org.gradle.api.tasks.JavaExec
 
 springBoot {
     mainClass.set("com.thanh0x.coursedeal.CouponCrawlerServiceApplicationKt")
@@ -25,12 +25,13 @@ dependencies {
     implementation(project(":modules:course-engine"))
     implementation(libs.spring.boot.starter.data.jpa)
     implementation(libs.spring.boot.starter.web)
-    implementation(libs.spring.boot.starter.actuator)
     implementation(libs.spring.boot.starter.security)
     implementation(libs.flyway.mysql)
     implementation(libs.mysql.connector.j)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.jdk8)
+    testImplementation(libs.spring.boot.starter.test)
+    testRuntimeOnly(libs.junit.platform.launcher)
 }
 
 // Run extractor against a single URL without starting the web server.
@@ -49,4 +50,3 @@ tasks.register<JavaExec>("debugExtractor") {
     // - env var: UDEMY_DEBUG_URL
     // - system property: udemy.debugUrl
 }
-

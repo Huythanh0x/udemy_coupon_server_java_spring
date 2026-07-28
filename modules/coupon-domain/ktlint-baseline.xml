@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="utf-8"?>
+<baseline version="1.0">
+    <file name="build.gradle.kts">
+        <error line="1" column="1" source="standard:import-ordering" />
+    </file>
+    <file name="src/main/kotlin/com/thanh0x/coursedeal/dto/ApiErrorDTO.kt">
+        <error line="13" column="29" source="standard:trailing-comma-on-declaration-site" />
+    </file>
+    <file name="src/main/kotlin/com/thanh0x/coursedeal/dto/AuthResponseDTO.kt">
+        <error line="9" column="35" source="standard:trailing-comma-on-declaration-site" />
+    </file>
+    <file name="src/main/kotlin/com/thanh0x/coursedeal/dto/CouponDetailDTO.kt">
+        <error line="33" column="41" source="standard:trailing-comma-on-declaration-site" />
+    </file>
+    <file name="src/main/kotlin/com/thanh0x/coursedeal/dto/CouponRequestDTO.kt">
+        <error line="16" column="45" source="standard:trailing-comma-on-call-site" />
+        <error line="18" column="31" source="standard:trailing-comma-on-declaration-site" />
+    </file>
+    <file name="src/main/kotlin/com/thanh0x/coursedeal/dto/CouponSummaryDTO.kt">
+        <error line="22" column="31" source="standard:trailing-comma-on-declaration-site" />
+    </file>
+    <file name="src/main/kotlin/com/thanh0x/coursedeal/dto/CouponUpdateRequestDTO.kt">
+        <error line="10" column="30" source="standard:trailing-comma-on-declaration-site" />
+    </file>
+    <file name="src/main/kotlin/com/thanh0x/coursedeal/dto/CourseDetailDTO.kt">
+        <error line="30" column="1" source="standard:no-blank-line-in-list" />
+        <error line="30" column="1" source="standard:no-trailing-spaces" />
+        <error line="37" column="53" source="standard:trailing-comma-on-declaration-site" />
+        <error line="37" column="54" source="standard:discouraged-comment-location" />
+    </file>
+    <file name="src/main/kotlin/com/thanh0x/coursedeal/dto/CourseReviewsDTO.kt">
+        <error line="13" column="36" source="standard:trailing-comma-on-declaration-site" />
+    </file>
+    <file name="src/main/kotlin/com/thanh0x/coursedeal/dto/CurriculumDTO.kt">
+        <error line="8" column="40" source="standard:discouraged-comment-location" />
+        <error line="10" column="35" source="standard:trailing-comma-on-declaration-site" />
+    </file>
+    <file name="src/main/kotlin/com/thanh0x/coursedeal/dto/CurriculumItemDTO.kt">
+        <error line="10" column="41" source="standard:discouraged-comment-location" />
+        <error line="11" column="35" source="standard:discouraged-comment-location" />
+        <error line="17" column="33" source="standard:trailing-comma-on-declaration-site" />
+    </file>
+    <file name="src/main/kotlin/com/thanh0x/coursedeal/dto/CurriculumSectionDTO.kt">
+        <error line="9" column="35" source="standard:discouraged-comment-location" />
+        <error line="12" column="47" source="standard:trailing-comma-on-declaration-site" />
+    </file>
+    <file name="src/main/kotlin/com/thanh0x/coursedeal/dto/IncentivesDTO.kt">
+        <error line="7" column="45" source="standard:discouraged-comment-location" />
+        <error line="13" column="40" source="standard:discouraged-comment-location" />
+        <error line="16" column="43" source="standard:trailing-comma-on-declaration-site" />
+    </file>
+    <file name="src/main/kotlin/com/thanh0x/coursedeal/dto/PagedCouponResponseDTO.kt">
+        <error line="7" column="38" source="standard:discouraged-comment-location" />
+        <error line="11" column="48" source="standard:trailing-comma-on-declaration-site" />
+    </file>
+    <file name="src/main/kotlin/com/thanh0x/coursedeal/dto/PreferenceDTO.kt">
+        <error line="13" column="1" source="standard:no-blank-line-in-list" />
+        <error line="17" column="1" source="standard:no-blank-line-in-list" />
+        <error line="18" column="46" source="standard:trailing-comma-on-declaration-site" />
+    </file>
+    <file name="src/main/kotlin/com/thanh0x/coursedeal/dto/PreviewVideoDTO.kt">
+        <error line="10" column="41" source="standard:discouraged-comment-location" />
+        <error line="11" column="38" source="standard:discouraged-comment-location" />
+        <error line="12" column="35" source="standard:discouraged-comment-location" />
+        <error line="13" column="49" source="standard:trailing-comma-on-declaration-site" />
+        <error line="13" column="50" source="standard:discouraged-comment-location" />
+    </file>
+    <file name="src/main/kotlin/com/thanh0x/coursedeal/dto/PricingInfoDTO.kt">
+        <error line="11" column="38" source="standard:discouraged-comment-location" />
+        <error line="14" column="47" source="standard:discouraged-comment-location" />
+        <error line="17" column="33" source="standard:trailing-comma-on-declaration-site" />
+    </file>
+    <file name="src/main/kotlin/com/thanh0x/coursedeal/dto/RelatedCourseDTO.kt">
+        <error line="18" column="38" source="standard:discouraged-comment-location" />
+        <error line="19" column="43" source="standard:trailing-comma-on-declaration-site" />
+    </file>
+    <file name="src/main/kotlin/com/thanh0x/coursedeal/dto/ReviewDTO.kt">
+        <error line="12" column="43" source="standard:discouraged-comment-location" />
+        <error line="14" column="44" source="standard:trailing-comma-on-declaration-site" />
+        <error line="14" column="45" source="standard:discouraged-comment-location" />
+    </file>
+    <file name="src/main/kotlin/com/thanh0x/coursedeal/dto/ReviewResponseDTO.kt">
+        <error line="10" column="43" source="standard:discouraged-comment-location" />
+        <error line="11" column="36" source="standard:trailing-comma-on-declaration-site" />
+    </file>
+    <file name="src/main/kotlin/com/thanh0x/coursedeal/dto/ReviewUserDTO.kt">
+        <error line="10" column="33" source="standard:trailing-comma-on-declaration-site" />
+    </file>
+    <file name="src/main/kotlin/com/thanh0x/coursedeal/dto/ReviewsSummaryDTO.kt">
+        <error line="9" column="47" source="standard:trailing-comma-on-declaration-site" />
+        <error line="9" column="48" source="standard:discouraged-comment-location" />
+    </file>
+    <file name="src/main/kotlin/com/thanh0x/coursedeal/dto/SocialLoginRequestDTO.kt">
+        <error line="14" column="1" source="standard:no-blank-line-in-list" />
+        <error line="18" column="1" source="standard:no-blank-line-in-list" />
+        <error line="20" column="33" source="standard:trailing-comma-on-declaration-site" />
+    </file>
+    <file name="src/main/kotlin/com/thanh0x/coursedeal/dto/VideoSourceDTO.kt">
+        <error line="7" column="31" source="standard:discouraged-comment-location" />
+        <error line="8" column="32" source="standard:discouraged-comment-location" />
+        <error line="9" column="29" source="standard:trailing-comma-on-declaration-site" />
+        <error line="9" column="30" source="standard:discouraged-comment-location" />
+    </file>
+    <file name="src/main/kotlin/com/thanh0x/coursedeal/model/audit/ScrapingTaskLog.kt">
+        <error line="3" column="1" source="standard:no-wildcard-imports" />
+        <error line="16" column="1" source="standard:no-blank-line-in-list" />
+        <error line="18" column="1" source="standard:no-blank-line-in-list" />
+        <error line="19" column="33" source="standard:discouraged-comment-location" />
+        <error line="20" column="1" source="standard:no-blank-line-in-list" />
+        <error line="23" column="1" source="standard:no-blank-line-in-list" />
+        <error line="25" column="1" source="standard:no-blank-line-in-list" />
+        <error line="27" column="1" source="standard:no-blank-line-in-list" />
+        <error line="29" column="41" source="standard:trailing-comma-on-declaration-site" />
+    </file>
+    <file name="src/main/kotlin/com/thanh0x/coursedeal/model/coupon/CouponCourseData.kt">
+        <error line="19" column="1" source="standard:no-blank-line-in-list" />
+        <error line="21" column="1" source="standard:no-blank-line-in-list" />
+        <error line="39" column="1" source="standard:no-blank-line-in-list" />
+        <error line="43" column="1" source="standard:no-blank-line-in-list" />
+        <error line="46" column="41" source="standard:trailing-comma-on-declaration-site" />
+    </file>
+    <file name="src/main/kotlin/com/thanh0x/coursedeal/model/coupon/CouponCourseHistory.kt">
+        <error line="3" column="1" source="standard:no-wildcard-imports" />
+        <error line="12" column="1" source="standard:no-blank-line-in-list" />
+        <error line="14" column="1" source="standard:no-blank-line-in-list" />
+        <error line="17" column="1" source="standard:no-blank-line-in-list" />
+        <error line="20" column="1" source="standard:no-blank-line-in-list" />
+        <error line="23" column="1" source="standard:no-blank-line-in-list" />
+        <error line="26" column="41" source="standard:trailing-comma-on-declaration-site" />
+    </file>
+    <file name="src/main/kotlin/com/thanh0x/coursedeal/model/coupon/CouponJsonData.kt">
+        <error line="10" column="31" source="standard:trailing-comma-on-declaration-site" />
+    </file>
+    <file name="src/main/kotlin/com/thanh0x/coursedeal/model/coupon/CourseJsonData.kt">
+        <error line="15" column="36" source="standard:trailing-comma-on-declaration-site" />
+    </file>
+    <file name="src/main/kotlin/com/thanh0x/coursedeal/model/coupon/CourseLevel.kt">
+        <error line="10" column="29" source="standard:trailing-comma-on-declaration-site" />
+        <error line="15" column="34" source="standard:no-trailing-spaces" />
+        <error line="16" column="106" source="standard:no-trailing-spaces" />
+    </file>
+    <file name="src/main/kotlin/com/thanh0x/coursedeal/model/coupon/CourseLevelConverter.kt">
+        <error line="12" column="1" source="standard:no-empty-first-line-in-class-body" />
+    </file>
+    <file name="src/main/kotlin/com/thanh0x/coursedeal/model/coupon/ExpiredCourseData.kt">
+        <error line="14" column="1" source="standard:no-blank-line-in-list" />
+        <error line="14" column="1" source="standard:no-trailing-spaces" />
+        <error line="21" column="1" source="standard:no-blank-line-in-list" />
+        <error line="21" column="1" source="standard:no-trailing-spaces" />
+        <error line="27" column="1" source="standard:no-blank-line-in-list" />
+        <error line="27" column="1" source="standard:no-trailing-spaces" />
+        <error line="35" column="1" source="standard:no-blank-line-in-list" />
+        <error line="35" column="1" source="standard:no-trailing-spaces" />
+        <error line="38" column="41" source="standard:trailing-comma-on-declaration-site" />
+    </file>
+    <file name="src/main/kotlin/com/thanh0x/coursedeal/model/coupon/ScrapedUrlMapping.kt">
+        <error line="3" column="1" source="standard:no-wildcard-imports" />
+        <error line="18" column="74" source="standard:trailing-comma-on-call-site" />
+        <error line="19" column="6" source="standard:trailing-comma-on-call-site" />
+        <error line="25" column="1" source="standard:no-blank-line-in-list" />
+        <error line="25" column="1" source="standard:no-trailing-spaces" />
+        <error line="28" column="1" source="standard:no-blank-line-in-list" />
+        <error line="28" column="1" source="standard:no-trailing-spaces" />
+        <error line="31" column="1" source="standard:no-blank-line-in-list" />
+        <error line="31" column="1" source="standard:no-trailing-spaces" />
+        <error line="35" column="1" source="standard:no-blank-line-in-list" />
+        <error line="35" column="1" source="standard:no-trailing-spaces" />
+        <error line="38" column="41" source="standard:trailing-comma-on-declaration-site" />
+    </file>
+    <file name="src/main/kotlin/com/thanh0x/coursedeal/model/user/AuthProvider.kt">
+        <error line="9" column="12" source="standard:trailing-comma-on-declaration-site" />
+    </file>
+    <file name="src/main/kotlin/com/thanh0x/coursedeal/model/user/PasskeyCredential.kt">
+        <error line="3" column="1" source="standard:no-wildcard-imports" />
+        <error line="14" column="1" source="standard:no-blank-line-in-list" />
+        <error line="17" column="1" source="standard:no-blank-line-in-list" />
+        <error line="20" column="1" source="standard:no-blank-line-in-list" />
+        <error line="22" column="1" source="standard:no-blank-line-in-list" />
+        <error line="25" column="33" source="standard:trailing-comma-on-declaration-site" />
+    </file>
+    <file name="src/main/kotlin/com/thanh0x/coursedeal/model/user/Role.kt">
+        <error line="3" column="1" source="standard:no-wildcard-imports" />
+        <error line="11" column="1" source="standard:no-blank-line-in-list" />
+        <error line="12" column="29" source="standard:trailing-comma-on-declaration-site" />
+    </file>
+    <file name="src/main/kotlin/com/thanh0x/coursedeal/model/user/SocialAccount.kt">
+        <error line="3" column="1" source="standard:no-wildcard-imports" />
+        <error line="11" column="85" source="standard:trailing-comma-on-call-site" />
+        <error line="17" column="1" source="standard:no-blank-line-in-list" />
+        <error line="20" column="1" source="standard:no-blank-line-in-list" />
+        <error line="22" column="1" source="standard:no-blank-line-in-list" />
+        <error line="25" column="33" source="standard:trailing-comma-on-declaration-site" />
+    </file>
+    <file name="src/main/kotlin/com/thanh0x/coursedeal/model/user/UserEntity.kt">
+        <error line="3" column="1" source="standard:no-wildcard-imports" />
+        <error line="14" column="1" source="standard:no-blank-line-in-list" />
+        <error line="17" column="1" source="standard:no-blank-line-in-list" />
+        <error line="19" column="1" source="standard:no-blank-line-in-list" />
+        <error line="22" column="1" source="standard:no-blank-line-in-list" />
+        <error line="24" column="1" source="standard:no-blank-line-in-list" />
+        <error line="29" column="89" source="standard:trailing-comma-on-call-site" />
+        <error line="32" column="1" source="standard:no-blank-line-in-list" />
+        <error line="35" column="1" source="standard:no-blank-line-in-list" />
+        <error line="38" column="1" source="standard:no-blank-line-in-list" />
+        <error line="40" column="43" source="standard:trailing-comma-on-declaration-site" />
+    </file>
+    <file name="src/main/kotlin/com/thanh0x/coursedeal/model/user/UserPreference.kt">
+        <error line="3" column="1" source="standard:no-wildcard-imports" />
+        <error line="15" column="1" source="standard:no-blank-line-in-list" />
+        <error line="20" column="1" source="standard:no-blank-line-in-list" />
+        <error line="25" column="1" source="standard:no-blank-line-in-list" />
+        <error line="30" column="1" source="standard:no-blank-line-in-list" />
+        <error line="32" column="1" source="standard:no-blank-line-in-list" />
+        <error line="34" column="41" source="standard:trailing-comma-on-declaration-site" />
+    </file>
+    <file name="src/main/kotlin/com/thanh0x/coursedeal/repository/CouponCourseRepository.kt">
+        <error line="17" column="1" source="standard:no-empty-first-line-in-class-body" />
+        <error line="22" column="27" source="standard:trailing-comma-on-declaration-site" />
+        <error line="31" column="27" source="standard:trailing-comma-on-declaration-site" />
+        <error line="39" column="31" source="standard:parameter-list-wrapping" />
+        <error line="39" column="31" source="standard:function-signature" />
+        <error line="39" column="89" source="standard:parameter-list-wrapping" />
+        <error line="39" column="89" source="standard:function-signature" />
+        <error line="51" column="33" source="standard:parameter-list-wrapping" />
+        <error line="51" column="33" source="standard:function-signature" />
+        <error line="51" column="70" source="standard:parameter-list-wrapping" />
+        <error line="51" column="70" source="standard:function-signature" />
+        <error line="61" column="12" source="standard:trailing-comma-on-call-site" />
+        <error line="66" column="61" source="standard:trailing-comma-on-declaration-site" />
+    </file>
+    <file name="src/main/kotlin/com/thanh0x/coursedeal/repository/ExpiredCouponRepository.kt">
+        <error line="14" column="1" source="standard:no-empty-first-line-in-class-body" />
+        <error line="19" column="40" source="standard:parameter-list-wrapping" />
+        <error line="19" column="40" source="standard:function-signature" />
+        <error line="19" column="90" source="standard:parameter-list-wrapping" />
+        <error line="19" column="90" source="standard:function-signature" />
+        <error line="26" column="32" source="standard:parameter-list-wrapping" />
+        <error line="26" column="32" source="standard:function-signature" />
+        <error line="26" column="76" source="standard:parameter-list-wrapping" />
+        <error line="26" column="76" source="standard:function-signature" />
+        <error line="29" column="33" source="standard:parameter-list-wrapping" />
+        <error line="29" column="33" source="standard:function-signature" />
+        <error line="29" column="70" source="standard:parameter-list-wrapping" />
+        <error line="29" column="70" source="standard:function-signature" />
+    </file>
+    <file name="src/main/kotlin/com/thanh0x/coursedeal/repository/PasskeyCredentialRepository.kt">
+        <error line="11" column="5" source="standard:blank-line-before-declaration" />
+    </file>
+    <file name="src/main/kotlin/com/thanh0x/coursedeal/repository/ScrapedUrlMappingRepository.kt">
+        <error line="10" column="1" source="standard:no-empty-first-line-in-class-body" />
+        <error line="10" column="1" source="standard:no-trailing-spaces" />
+        <error line="12" column="1" source="standard:no-trailing-spaces" />
+        <error line="13" column="5" source="standard:blank-line-before-declaration" />
+        <error line="14" column="1" source="standard:no-trailing-spaces" />
+        <error line="15" column="5" source="standard:blank-line-before-declaration" />
+        <error line="16" column="1" source="standard:no-trailing-spaces" />
+        <error line="17" column="5" source="standard:blank-line-before-declaration" />
+    </file>
+    <file name="src/main/kotlin/com/thanh0x/coursedeal/repository/SocialAccountRepository.kt">
+        <error line="10" column="37" source="standard:function-signature" />
+        <error line="10" column="61" source="standard:function-signature" />
+        <error line="10" column="79" source="standard:function-signature" />
+    </file>
+    <file name="src/main/kotlin/com/thanh0x/coursedeal/repository/UserRepository.kt">
+        <error line="8" column="5" source="standard:blank-line-before-declaration" />
+        <error line="9" column="5" source="standard:blank-line-before-declaration" />
+        <error line="10" column="5" source="standard:blank-line-before-declaration" />
+    </file>
+    <file name="src/main/kotlin/com/thanh0x/coursedeal/utils/Constant.kt">
+        <error line="5" column="1" source="standard:no-trailing-spaces" />
+        <error line="8" column="1" source="standard:no-trailing-spaces" />
+        <error line="10" column="5" source="standard:no-consecutive-comments" />
+    </file>
+</baseline>

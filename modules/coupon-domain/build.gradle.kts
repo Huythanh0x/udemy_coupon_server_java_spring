@@ -11,7 +11,12 @@ plugins {
 
 dependencyManagement {
     imports {
-        mavenBom("org.springframework.boot:spring-boot-dependencies:${libs.versions.spring.boot.get()}")
+        // Overrides the BOM's own kotlin.version (3.5.7 manages 1.9.25) back to this
+        // project's actual Kotlin version, otherwise every Kotlin artifact in this module
+        // silently resolves to a different version than the rest of the build uses.
+        mavenBom("org.springframework.boot:spring-boot-dependencies:${libs.versions.spring.boot.get()}") {
+            bomProperty("kotlin.version", libs.versions.kotlin.get())
+        }
     }
 }
 

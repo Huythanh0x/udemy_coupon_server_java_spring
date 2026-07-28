@@ -35,6 +35,9 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
+      - name: Lint (ktlint + detekt)
+        run: ./gradlew ktlintCheck detekt
+
       - name: Run Tests
         run: ./gradlew clean test
 

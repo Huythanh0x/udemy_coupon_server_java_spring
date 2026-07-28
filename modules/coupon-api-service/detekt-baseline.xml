@@ -1,0 +1,47 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues></ManuallySuppressedIssues>
+  <CurrentIssues>
+    <ID>CyclomaticComplexMethod:CourseDetailService.kt$CourseDetailService$@Cacheable( value = ["courseDetails"], key = "#courseId + '_' + (#couponCode != null ? #couponCode : 'none')", unless = "#result == null" ) fun getCourseDetails(courseId: Int, couponCode: String?): CourseDetailDTO?</ID>
+    <ID>CyclomaticComplexMethod:CourseResponseService.kt$CourseResponseService$fun listCoupons( category: String?, rating: String?, contentLength: String?, level: String?, language: String?, query: String?, sortBy: String?, sortOrder: String?, pageIndex: String, numberPerPage: String, remoteAddr: String? ): PagedCouponResponseDTO</ID>
+    <ID>EmptyFunctionBlock:CouponApiServiceApplicationTests.kt$CouponApiServiceApplicationTests${ }</ID>
+    <ID>ForbiddenComment:CouponCourseController.kt$CouponCourseController$// TODO: Implement refresh from Udemy function.</ID>
+    <ID>LongMethod:CourseDetailService.kt$CourseDetailService$@Cacheable( value = ["courseDetails"], key = "#courseId + '_' + (#couponCode != null ? #couponCode : 'none')", unless = "#result == null" ) fun getCourseDetails(courseId: Int, couponCode: String?): CourseDetailDTO?</ID>
+    <ID>LongParameterList:CouponCourseController.kt$CouponCourseController$( @RequestParam(required = false, defaultValue = "") category: String, @RequestParam(required = false, defaultValue = "-1") rating: String, @RequestParam(required = false, defaultValue = "-1") contentLength: String, @RequestParam(required = false, defaultValue = "") level: String, @RequestParam(required = false, defaultValue = "") language: String, @RequestParam(required = false, defaultValue = "") query: String, @RequestParam(required = false, defaultValue = "createdAt") sortBy: String, @RequestParam(required = false, defaultValue = "desc") sortOrder: String, @RequestParam(required = false, defaultValue = "0") pageIndex: String, @RequestParam(required = false, defaultValue = "10") numberPerPage: String, request: HttpServletRequest )</ID>
+    <ID>LongParameterList:CourseResponseService.kt$CourseResponseService$( category: String?, rating: String?, contentLength: String?, level: String?, language: String?, query: String?, sortBy: String?, sortOrder: String?, pageIndex: String, numberPerPage: String, remoteAddr: String? )</ID>
+    <ID>MagicNumber:CacheConfig.kt$CacheConfig$12</ID>
+    <ID>MagicNumber:CacheConfig.kt$CacheConfig$24</ID>
+    <ID>MagicNumber:CacheConfig.kt$CacheConfig$6</ID>
+    <ID>MagicNumber:CouponCourseController.kt$CouponCourseController$401</ID>
+    <ID>MagicNumber:CourseDetailService.kt$CourseDetailService$5</ID>
+    <ID>MagicNumber:SecurityConfig.kt$SecurityConfig$3600L</ID>
+    <ID>MaxLineLength:CourseDetailService.kt$CourseDetailService$val landingComponents = externalCourseApiClient.getCourseLandingComponentsJson(courseId, couponCode) ?: return null</ID>
+    <ID>MaxLineLength:CourseResponseService.kt$CourseResponseService$couponCourseRepository</ID>
+    <ID>MaxLineLength:GlobalExceptionHandler.kt$GlobalExceptionHandler$fun</ID>
+    <ID>MaxLineLength:GlobalExceptionHandler.kt$GlobalExceptionHandler$private</ID>
+    <ID>MaxLineLength:GlobalExceptionHandler.kt$GlobalExceptionHandler$return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, exception.message ?: "Internal Server Error", request)</ID>
+    <ID>NestedBlockDepth:CourseDetailService.kt$CourseDetailService$@Cacheable( value = ["courseDetails"], key = "#courseId + '_' + (#couponCode != null ? #couponCode : 'none')", unless = "#result == null" ) fun getCourseDetails(courseId: Int, couponCode: String?): CourseDetailDTO?</ID>
+    <ID>NestedBlockDepth:CourseDetailService.kt$CourseDetailService$private fun parseCourseReviews(reviewsResponse: JSONObject, page: Int): CourseReviewsDTO?</ID>
+    <ID>NestedBlockDepth:CourseDetailService.kt$CourseDetailService$private fun parseCurriculum(landingComponents: JSONObject): CurriculumDTO?</ID>
+    <ID>NestedBlockDepth:CourseDetailService.kt$CourseDetailService$private fun parsePreviewVideo(previewObj: JSONObject): PreviewVideoDTO?</ID>
+    <ID>NestedBlockDepth:CourseDetailService.kt$CourseDetailService$private fun parsePreviewVideos(previewPageJson: JSONObject): List&lt;PreviewVideoDTO&gt;</ID>
+    <ID>NestedBlockDepth:CourseDetailService.kt$CourseDetailService$private fun parseRelatedCourses(relatedCoursesResponse: JSONObject): List&lt;RelatedCourseDTO&gt;</ID>
+    <ID>NestedBlockDepth:CourseDetailService.kt$CourseDetailService$private fun parseReviewsSummary(reviewsResponse: JSONObject): ReviewsSummaryDTO?</ID>
+    <ID>ReturnCount:CourseDetailService.kt$CourseDetailService$private fun parseCurriculum(landingComponents: JSONObject): CurriculumDTO?</ID>
+    <ID>ReturnCount:CourseDetailService.kt$CourseDetailService$private fun parseIncentives(landingComponents: JSONObject): IncentivesDTO?</ID>
+    <ID>ReturnCount:CourseDetailService.kt$CourseDetailService$private fun parsePricingInfo(landingComponents: JSONObject): PricingInfoDTO?</ID>
+    <ID>SpreadOperator:CouponApiServiceApplication.kt$(*args)</ID>
+    <ID>SwallowedException:CourseDetailService.kt$CourseDetailService$e: Exception</ID>
+    <ID>SwallowedException:CourseResponseService.kt$CourseResponseService$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:CourseDetailService.kt$CourseDetailService$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:CourseResponseService.kt$CourseResponseService$e: Exception</ID>
+    <ID>TooManyFunctions:CourseDetailService.kt$CourseDetailService</ID>
+    <ID>UnusedParameter:CouponCourseController.kt$CouponCourseController$@PathVariable("courseId") courseId: Int</ID>
+    <ID>UnusedParameter:CouponCourseController.kt$CouponCourseController$@RequestBody requestBody: CouponUpdateRequestDTO</ID>
+    <ID>UnusedParameter:CourseResponseService.kt$CourseResponseService$remoteAddr: String?</ID>
+    <ID>WildcardImport:CouponCourseController.kt$import org.springframework.web.bind.annotation.*</ID>
+    <ID>WildcardImport:CourseDetailController.kt$import com.thanh0x.coursedeal.dto.*</ID>
+    <ID>WildcardImport:CourseDetailController.kt$import org.springframework.web.bind.annotation.*</ID>
+    <ID>WildcardImport:CourseDetailService.kt$import com.thanh0x.coursedeal.dto.*</ID>
+  </CurrentIssues>
+</SmellBaseline>

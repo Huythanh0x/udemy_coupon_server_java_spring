@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues></ManuallySuppressedIssues>
+  <CurrentIssues>
+    <ID>MagicNumber:PasskeyService.kt$PasskeyService$5</ID>
+    <ID>MagicNumber:TokenAuthenticationFilter.kt$TokenAuthenticationFilter$7</ID>
+    <ID>MagicNumber:TokenProvider.kt$TokenProvider$32</ID>
+    <ID>SwallowedException:PasskeyService.kt$PasskeyService$e: Exception</ID>
+    <ID>SwallowedException:SocialAuthService.kt$SocialAuthService$e: Exception</ID>
+    <ID>SwallowedException:TokenProvider.kt$TokenProvider$ex: Exception</ID>
+    <ID>ThrowsCount:PasskeyService.kt$PasskeyService$@Transactional fun finishAuthentication(email: String, responseJson: String): AuthResponseDTO</ID>
+    <ID>TooGenericExceptionCaught:PasskeyService.kt$PasskeyService$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:SocialAuthService.kt$SocialAuthService$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:TokenAuthenticationFilter.kt$TokenAuthenticationFilter$ex: Exception</ID>
+    <ID>TooGenericExceptionCaught:TokenProvider.kt$TokenProvider$ex: Exception</ID>
+    <ID>TooGenericExceptionThrown:PasskeyService.kt$PasskeyService$throw RuntimeException("Failed to store WebAuthn state", e)</ID>
+    <ID>UnusedParameter:SocialAuthService.kt$SocialAuthService$idTokenString: String</ID>
+    <ID>UnusedPrivateProperty:PreferenceController.kt$PreferenceController$private val userRepository: UserRepository</ID>
+    <ID>WildcardImport:PasskeyAuthController.kt$import org.springframework.web.bind.annotation.*</ID>
+    <ID>WildcardImport:PasskeyService.kt$import com.yubico.webauthn.*</ID>
+    <ID>WildcardImport:PasskeyService.kt$import com.yubico.webauthn.data.*</ID>
+    <ID>WildcardImport:PreferenceController.kt$import org.springframework.web.bind.annotation.*</ID>
+  </CurrentIssues>
+</SmellBaseline>
