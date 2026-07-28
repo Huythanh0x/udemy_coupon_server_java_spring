@@ -14,6 +14,7 @@ webauthn-server-core = "2.9.0"
 google-api-client = "2.2.0"
 jjwt = "0.11.5"
 springdoc-openapi = "2.8.8"
+swagger-annotations = "2.2.30"
 mysql-connector = "8.3.0"
 mapstruct = "1.6.3"
 
@@ -56,6 +57,7 @@ jjwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jjwt" }
 jjwt-impl = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jjwt" }
 jjwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jjwt" }
 springdoc-openapi-webmvc-ui = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springdoc-openapi" }
+swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations-jakarta", version.ref = "swagger-annotations" }
 mapstruct = { module = "org.mapstruct:mapstruct", version.ref = "mapstruct" }
 mapstruct-processor = { module = "org.mapstruct:mapstruct-processor", version.ref = "mapstruct" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }

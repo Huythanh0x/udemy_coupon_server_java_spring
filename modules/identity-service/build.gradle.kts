@@ -34,6 +34,9 @@ dependencies {
     api(libs.jjwt.jackson)
     implementation(libs.kotlin.reflect)
     implementation(libs.kotlin.stdlib)
+    // Annotations only, for @Tag/@Operation/@Parameter on controllers in this module. The actual
+    // springdoc/Swagger UI runtime is provided by coupon-api-service, which hosts these controllers.
+    compileOnly(libs.swagger.annotations)
     testImplementation(libs.spring.boot.starter.test)
     testImplementation(libs.h2)
     testRuntimeOnly(libs.junit.platform.launcher)

@@ -7,6 +7,10 @@ import com.thanh0x.coursedeal.dto.CouponRequestDTO
 import com.thanh0x.coursedeal.dto.CouponUpdateRequestDTO
 import com.thanh0x.coursedeal.dto.PagedCouponResponseDTO
 import com.thanh0x.coursedeal.service.CourseResponseService
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
+import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
@@ -26,11 +30,18 @@ import org.springframework.web.bind.annotation.RestController
  */
 @RestController
 @RequestMapping("api/v1/coupons")
+@Tag(name = "Coupons", description = "Browsing, searching, and submitting Udemy coupons")
 class CouponCourseController(
     private val courseResponseService: CourseResponseService,
     private val properties: ApiProperties,
 ) {
     @GetMapping
+    @Operation(
+        summary = "List/search/filter coupons (public)",
+        description =
+            "Paged, filterable coupon listing. All query params are optional; unset params fall back " +
+                "to the defaults shown on each field. `rating`/`contentLength` use -1 to mean \"no filter\".",
+    )
     fun listCoupons(
         @ModelAttribute queryDto: CouponQueryDTO,
         request: HttpServletRequest,
@@ -43,6 +54,14 @@ class CouponCourseController(
      * Returns 202 Accepted as validation is performed asynchronously.
      */
     @PostMapping
+    @Operation(
+        summary = "Submit a Udemy coupon URL for validation",
+        description =
+            "Returns 202 Accepted immediately - the URL is enqueued and validated asynchronously by a " +
+                "background worker (JobRunr), not validated inline. Poll GET /{courseId} afterwards, or " +
+                "just wait for the push notification if the user's preferences match.",
+    )
+    @SecurityRequirement(name = "bearerAuth")
     fun createCoupon(
         @Valid @RequestBody requestBody: CouponRequestDTO,
         request: HttpServletRequest,
@@ -59,6 +78,11 @@ class CouponCourseController(
      * @param courseId the course identifier of the coupon to be deleted
      */
     @DeleteMapping("/{courseId}")
+    @Operation(
+        summary = "Delete a coupon (not implemented)",
+        description = "Always throws 501 Not Implemented - direct deletion is intentionally disabled.",
+    )
+    @SecurityRequirement(name = "bearerAuth")
     fun deleteCoupon(
         @PathVariable("courseId") courseId: Int,
     ) {
@@ -70,9 +94,16 @@ class CouponCourseController(
      * Requires a valid hash/secret to prevent unauthorized scraping load.
      */
     @PutMapping("/{courseId}/refresh")
+    @Operation(
+        summary = "Re-validate a coupon against Udemy",
+        description =
+            "Requires BOTH a valid JWT AND the `secret` query param matching the server's configured " +
+                "refresh secret (a separate anti-abuse gate, not something a normal client will have).",
+    )
+    @SecurityRequirement(name = "bearerAuth")
     fun refreshCoupon(
         @PathVariable("courseId") courseId: Int,
-        @RequestParam("secret") secret: String,
+        @Parameter(description = "Server-side refresh secret, not the JWT") @RequestParam("secret") secret: String,
         request: HttpServletRequest,
     ): ResponseEntity<String> {
         if (properties.refreshSecret.isEmpty() || properties.refreshSecret != secret) {
@@ -93,6 +124,11 @@ class CouponCourseController(
      * @return the updated coupon data
      */
     @PutMapping("/{courseId}")
+    @Operation(
+        summary = "Update a coupon (not implemented)",
+        description = "Always throws 501 Not Implemented - manual updates are not yet supported.",
+    )
+    @SecurityRequirement(name = "bearerAuth")
     fun updateCoupon(
         @PathVariable("courseId") courseId: Int,
         @RequestBody requestBody: CouponUpdateRequestDTO,
@@ -107,6 +143,7 @@ class CouponCourseController(
      * Retrieves coupon details for a specific course identified by courseId.
      */
     @GetMapping("/{courseId}")
+    @Operation(summary = "Get a single coupon by course ID (public)")
     fun getCouponDetail(
         @PathVariable("courseId") courseId: String,
     ): CouponDetailDTO {
