@@ -1,5 +1,7 @@
 package com.thanh0x.coursedeal.crawler_runner.crawler
 
+import com.thanh0x.coursedeal.config.CrawlerProperties
+import com.thanh0x.coursedeal.config.logger
 import com.thanh0x.coursedeal.crawler_runner.base.CouponUrlCrawlerBase
 import com.thanh0x.coursedeal.crawler_runner.fetcher.WebContentFetcher
 import com.thanh0x.coursedeal.model.coupon.ScrapedUrlMapping
@@ -8,8 +10,6 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -19,12 +19,11 @@ import java.util.concurrent.atomic.AtomicInteger
  */
 @Component
 class EnextCrawler(
-    @Value("\${custom.number-of-enext-coupon}") private val maxCouponRequest: Int,
-    @Value("\${custom.number-of-request-thread}") private val numberOfThreads: Int,
+    private val properties: CrawlerProperties,
     private val scrapedUrlMappingRepository: ScrapedUrlMappingRepository
 ) : CouponUrlCrawlerBase() {
 
-    private val log = LoggerFactory.getLogger(EnextCrawler::class.java)
+    private val log = logger()
 
     companion object {
         private const val LIST_PAGE_FORMAT = "https://jobs.e-next.in/course/udemy/%d"
@@ -77,7 +76,7 @@ class EnextCrawler(
      * Retrieves all coupon URLs using coroutines.
      */
     override fun getAllCouponUrls(): List<String> = runBlocking {
-        val estimatedPages = kotlin.math.ceil(maxCouponRequest.toDouble() / COUPON_PER_PAGE).toInt() + 2
+        val estimatedPages = kotlin.math.ceil(properties.numberOfEnextCoupon.toDouble() / COUPON_PER_PAGE).toInt() + 2
         val allUrls = mutableListOf<String>()
         val mutex = Mutex()
         val collectedCount = AtomicInteger(0)
@@ -87,7 +86,7 @@ class EnextCrawler(
             // Producers: Fetch list pages
             launch(Dispatchers.IO) {
                 for (page in 1..estimatedPages) {
-                    if (collectedCount.get() >= maxCouponRequest) break
+                    if (collectedCount.get() >= properties.numberOfEnextCoupon) break
                     
                     launch {
                         try {
@@ -109,7 +108,7 @@ class EnextCrawler(
                             }
 
                             for (a in courseAnchors) {
-                                if (collectedCount.get() >= maxCouponRequest) break
+                                if (collectedCount.get() >= properties.numberOfEnextCoupon) break
                                 val href = a.attr("href").trim()
                                 if (href.isEmpty()) continue
                                 val detailUrl = if (href.startsWith("http")) href 
@@ -129,15 +128,15 @@ class EnextCrawler(
             }
 
             // Consumers: Fetch detail pages
-            repeat(numberOfThreads) {
+            repeat(properties.numberOfRequestThread) {
                 launch(Dispatchers.IO) {
                     for (detailUrl in detailUrlChannel) {
-                        if (collectedCount.get() >= maxCouponRequest) break
+                        if (collectedCount.get() >= properties.numberOfEnextCoupon) break
                         
                         val udemyUrl = mapScrapedUrlToCouponUrl(detailUrl)
                         if (!udemyUrl.isNullOrEmpty()) {
                             mutex.withLock {
-                                if (collectedCount.get() < maxCouponRequest) {
+                                if (collectedCount.get() < properties.numberOfEnextCoupon) {
                                     allUrls.add(udemyUrl)
                                     collectedCount.incrementAndGet()
                                 }
@@ -152,7 +151,7 @@ class EnextCrawler(
             launch(Dispatchers.IO) {
                 val producers = (1..estimatedPages).map { page ->
                     launch {
-                        if (collectedCount.get() >= maxCouponRequest) return@launch
+                        if (collectedCount.get() >= properties.numberOfEnextCoupon) return@launch
                         try {
                             val fetcher = WebContentFetcher()
                             val listUrl = String.format(LIST_PAGE_FORMAT, page)
@@ -162,7 +161,7 @@ class EnextCrawler(
                             if (courseAnchors.isEmpty()) return@launch
 
                             for (a in courseAnchors) {
-                                if (collectedCount.get() >= maxCouponRequest) break
+                                if (collectedCount.get() >= properties.numberOfEnextCoupon) break
                                 val href = a.attr("href").trim()
                                 if (href.isEmpty()) continue
                                 val detailUrl = if (href.startsWith("http")) href 
@@ -179,6 +178,6 @@ class EnextCrawler(
             }
         }
 
-        if (allUrls.size > maxCouponRequest) allUrls.subList(0, maxCouponRequest) else allUrls
+        if (allUrls.size > properties.numberOfEnextCoupon) allUrls.subList(0, properties.numberOfEnextCoupon) else allUrls
     }
 }

@@ -1,5 +1,7 @@
 package com.thanh0x.coursedeal.crawler_runner
 
+import com.thanh0x.coursedeal.config.CrawlerProperties
+import com.thanh0x.coursedeal.config.logger
 import com.thanh0x.coursedeal.crawler_runner.crawler.EnextCrawler
 import com.thanh0x.coursedeal.crawler_runner.crawler.RealDiscountCrawler
 import com.thanh0x.coursedeal.repository.CouponCourseRepository
@@ -7,10 +9,9 @@ import com.thanh0x.coursedeal.service.CourseScraperService
 import com.thanh0x.coursedeal.utils.LastFetchTimeManager
 import jakarta.annotation.PreDestroy
 import kotlinx.coroutines.*
-import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.stereotype.Component
 import java.util.concurrent.atomic.AtomicLong
 
@@ -19,15 +20,16 @@ import java.util.concurrent.atomic.AtomicLong
  * and handing them off to the CourseScraperService for async processing.
  */
 @Component
+@EnableConfigurationProperties(CrawlerProperties::class)
 class CrawlerRunner(
     private val couponCourseRepository: CouponCourseRepository,
     private val courseScraperService: CourseScraperService,
     private val enextCrawler: EnextCrawler,
     private val realDiscountCrawler: RealDiscountCrawler,
-    @Value("\${custom.interval-time}") private val intervalTime: Int
+    private val properties: CrawlerProperties
 ) : ApplicationRunner {
 
-    private val log = LoggerFactory.getLogger(CrawlerRunner::class.java)
+    private val log = logger()
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     override fun run(args: ApplicationArguments) {
@@ -74,7 +76,7 @@ class CrawlerRunner(
 
     private suspend fun delayUntilTheNextRound(startTime: Long) {
         val runTime = System.currentTimeMillis() - startTime
-        val delayTime = (intervalTime - runTime).coerceAtLeast(0)
+        val delayTime = (properties.intervalTime - runTime).coerceAtLeast(0)
         log.info("Waiting {} ms until the next run", delayTime)
         delay(delayTime)
     }

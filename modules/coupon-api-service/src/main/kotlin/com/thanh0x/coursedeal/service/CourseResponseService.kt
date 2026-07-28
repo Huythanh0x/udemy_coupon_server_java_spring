@@ -1,7 +1,9 @@
 package com.thanh0x.coursedeal.service
 
+import com.thanh0x.coursedeal.config.logger
 import com.thanh0x.coursedeal.crawler_runner.CourseDataExtractor
 import com.thanh0x.coursedeal.dto.CouponDetailDTO
+import com.thanh0x.coursedeal.dto.CouponSummaryDTO
 import com.thanh0x.coursedeal.dto.PagedCouponResponseDTO
 import com.thanh0x.coursedeal.exception.BadRequestException
 import com.thanh0x.coursedeal.exception.ResourceNotFoundException
@@ -13,7 +15,6 @@ import com.thanh0x.coursedeal.repository.CouponCourseRepository
 import com.thanh0x.coursedeal.repository.ExpiredCouponRepository
 import com.thanh0x.coursedeal.utils.Constant
 import com.thanh0x.coursedeal.utils.LastFetchTimeManager
-import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
@@ -30,7 +31,7 @@ class CourseResponseService(
     private val couponMapper: CouponMapper,
     private val courseScraperService: CourseScraperService
 ) {
-    private val log = LoggerFactory.getLogger(javaClass)
+    private val log = logger()
 
     /**
      * Unified listing endpoint that supports basic pagination, structured filters, free-text search, and sorting.

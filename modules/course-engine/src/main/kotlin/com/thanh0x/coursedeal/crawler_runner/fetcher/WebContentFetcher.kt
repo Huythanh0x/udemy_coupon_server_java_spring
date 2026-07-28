@@ -1,12 +1,11 @@
 package com.thanh0x.coursedeal.crawler_runner.fetcher
 
+import com.thanh0x.coursedeal.config.logger
 import com.thanh0x.coursedeal.utils.UrlValidator
 import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.net.URI
 import java.net.http.HttpClient
@@ -18,6 +17,8 @@ import java.time.Duration
  * A utility class for fetching and parsing web content.
  */
 class WebContentFetcher {
+
+    private val log = logger()
 
     /**
      * Retrieves a JSONArray object from a specified URL.
@@ -66,7 +67,7 @@ class WebContentFetcher {
     }
 
     companion object {
-        private val log: Logger = LoggerFactory.getLogger(WebContentFetcher::class.java)
+        private val log = logger()
 
         /**
          * Retrieves a JSONObject from a given URL.

@@ -1,5 +1,6 @@
 package com.thanh0x.coursedeal.controller
 
+import com.thanh0x.coursedeal.config.ApiProperties
 import com.thanh0x.coursedeal.dto.CouponDetailDTO
 import com.thanh0x.coursedeal.dto.CouponRequestDTO
 import com.thanh0x.coursedeal.dto.CouponUpdateRequestDTO
@@ -7,7 +8,7 @@ import com.thanh0x.coursedeal.dto.PagedCouponResponseDTO
 import com.thanh0x.coursedeal.service.CourseResponseService
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
-import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -16,7 +17,11 @@ import org.springframework.web.bind.annotation.*
  */
 @RestController
 @RequestMapping("api/v1/coupons")
-class CouponCourseController(private val courseResponseService: CourseResponseService) {
+@EnableConfigurationProperties(ApiProperties::class)
+class CouponCourseController(
+    private val courseResponseService: CourseResponseService,
+    private val properties: ApiProperties
+) {
 
     /**
      * Retrieves a paged list of coupons with optional filtering, search, and sorting criteria.
@@ -75,9 +80,6 @@ class CouponCourseController(private val courseResponseService: CourseResponseSe
         throw UnsupportedOperationException("Direct deletion is not allowed.")
     }
 
-    @Value("\${custom.refresh-secret:}")
-    private var refreshSecret: String? = null
-
     /**
      * Triggers a refresh of the coupon data from Udemy.
      * Requires a valid hash/secret to prevent unauthorized scraping load.
@@ -88,7 +90,7 @@ class CouponCourseController(private val courseResponseService: CourseResponseSe
         @RequestParam("secret") secret: String,
         request: HttpServletRequest
     ): ResponseEntity<String> {
-        if (refreshSecret.isNullOrEmpty() || refreshSecret != secret) {
+        if (properties.refreshSecret.isEmpty() || properties.refreshSecret != secret) {
             return ResponseEntity.status(401).body("Invalid refresh secret.")
         }
 

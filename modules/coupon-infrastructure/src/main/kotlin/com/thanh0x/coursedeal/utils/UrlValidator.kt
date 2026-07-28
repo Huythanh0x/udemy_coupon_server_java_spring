@@ -1,7 +1,6 @@
 package com.thanh0x.coursedeal.utils
 
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import com.thanh0x.coursedeal.config.logger
 import java.net.InetAddress
 import java.net.URI
 import java.net.UnknownHostException
@@ -10,7 +9,7 @@ import java.net.UnknownHostException
  * Utility object to prevent Server-Side Request Forgery (SSRF) attacks.
  */
 object UrlValidator {
-    private val log: Logger = LoggerFactory.getLogger(UrlValidator::class.java)
+    private val log = logger()
 
     private val ALLOWED_DOMAINS = setOf(
         "udemy.com",

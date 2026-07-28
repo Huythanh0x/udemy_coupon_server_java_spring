@@ -1,11 +1,11 @@
 package com.thanh0x.coursedeal.crawler_runner.crawler
 
+import com.thanh0x.coursedeal.config.CrawlerProperties
+import com.thanh0x.coursedeal.config.logger
 import com.thanh0x.coursedeal.crawler_runner.base.CouponUrlCrawlerBase
 import com.thanh0x.coursedeal.crawler_runner.fetcher.WebContentFetcher
 import org.json.JSONArray
 import org.json.JSONObject
-import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
 /**
@@ -13,13 +13,13 @@ import org.springframework.stereotype.Component
  */
 @Component
 class RealDiscountCrawler(
-    @Value("\${custom.number-of-real-discount-coupon}") private val maxCouponRequest: Int
+    private val properties: CrawlerProperties
 ) : CouponUrlCrawlerBase() {
 
-    private val log = LoggerFactory.getLogger(RealDiscountCrawler::class.java)
+    private val log = logger()
 
     init {
-        this.apiUrl = "https://cdn.real.discount/api/courses?page=1&limit=\$maxCouponRequest&sortBy=sale_start"
+        this.apiUrl = "https://cdn.real.discount/api/courses?page=1&limit=\${properties.numberOfRealDiscountCoupon}&sortBy=sale_start"
     }
 
     /**
@@ -34,7 +34,7 @@ class RealDiscountCrawler(
             val jsonObject = jo as JSONObject
             allUrls.add(extractCouponUrl(jsonObject))
         }
-        log.info("Fetched {} coupons from RealDiscount (requested {})", jsonArray.length(), maxCouponRequest)
+        log.info("Fetched {} coupons from RealDiscount (requested {})", jsonArray.length(), properties.numberOfRealDiscountCoupon)
         return allUrls
     }
 

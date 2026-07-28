@@ -1,6 +1,7 @@
 package com.thanh0x.coursedeal.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.thanh0x.coursedeal.config.logger
 import com.thanh0x.coursedeal.dto.AuthResponseDTO
 import com.thanh0x.coursedeal.exception.BadRequestException
 import com.thanh0x.coursedeal.model.user.PasskeyCredential
@@ -10,7 +11,6 @@ import com.thanh0x.coursedeal.repository.UserRepository
 import com.thanh0x.coursedeal.security.TokenProvider
 import com.yubico.webauthn.*
 import com.yubico.webauthn.data.*
-import org.slf4j.LoggerFactory
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -27,7 +27,7 @@ class PasskeyService(
     private val redisTemplate: RedisTemplate<String, Any>,
     private val tokenProvider: TokenProvider
 ) {
-    private val log = LoggerFactory.getLogger(javaClass)
+    private val log = logger()
     private val objectMapper = ObjectMapper()
 
     companion object {

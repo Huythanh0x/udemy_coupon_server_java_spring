@@ -3,6 +3,7 @@ package com.thanh0x.coursedeal.service
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.gson.GsonFactory
+import com.thanh0x.coursedeal.config.IdentityProperties
 import com.thanh0x.coursedeal.dto.AuthResponseDTO
 import com.thanh0x.coursedeal.dto.SocialLoginRequestDTO
 import com.thanh0x.coursedeal.exception.BadRequestException
@@ -12,7 +13,6 @@ import com.thanh0x.coursedeal.model.user.UserEntity
 import com.thanh0x.coursedeal.repository.SocialAccountRepository
 import com.thanh0x.coursedeal.repository.UserRepository
 import com.thanh0x.coursedeal.security.TokenProvider
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.Collections
@@ -22,7 +22,7 @@ class SocialAuthService(
     private val userRepository: UserRepository,
     private val socialAccountRepository: SocialAccountRepository,
     private val tokenProvider: TokenProvider,
-    @Value("\${custom.google-client-id:}") private val googleClientId: String
+    private val properties: IdentityProperties
 ) {
 
     @Transactional
@@ -48,7 +48,7 @@ class SocialAuthService(
     private fun verifyGoogleToken(idTokenString: String): UserEntity {
         try {
             val verifier = GoogleIdTokenVerifier.Builder(NetHttpTransport(), GsonFactory())
-                .setAudience(Collections.singletonList(googleClientId))
+                .setAudience(Collections.singletonList(properties.googleClientId))
                 .build()
 
             val idToken = verifier.verify(idTokenString) ?: throw BadRequestException("Invalid Google ID Token")

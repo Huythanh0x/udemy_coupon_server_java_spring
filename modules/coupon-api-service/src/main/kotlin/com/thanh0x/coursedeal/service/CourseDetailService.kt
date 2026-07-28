@@ -1,10 +1,10 @@
 package com.thanh0x.coursedeal.service
 
+import com.thanh0x.coursedeal.config.logger
 import com.thanh0x.coursedeal.dto.*
 import com.thanh0x.coursedeal.exception.ResourceNotFoundException
 import com.thanh0x.coursedeal.repository.CouponCourseRepository
 import org.json.JSONObject
-import org.slf4j.LoggerFactory
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 
@@ -17,7 +17,7 @@ class CourseDetailService(
     private val externalCourseApiClient: ExternalCourseApiClient,
     private val couponCourseRepository: CouponCourseRepository
 ) {
-    private val log = LoggerFactory.getLogger(javaClass)
+    private val log = logger()
 
     /**
      * Gets comprehensive course details including reviews, curriculum, and related courses.

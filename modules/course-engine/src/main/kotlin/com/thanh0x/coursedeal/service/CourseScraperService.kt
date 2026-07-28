@@ -1,5 +1,6 @@
 package com.thanh0x.coursedeal.service
 
+import com.thanh0x.coursedeal.config.logger
 import com.thanh0x.coursedeal.crawler_runner.CourseDataExtractor
 import com.thanh0x.coursedeal.model.audit.ScrapingTaskLog
 import com.thanh0x.coursedeal.model.coupon.CouponCourseHistory
@@ -8,8 +9,6 @@ import com.thanh0x.coursedeal.repository.CouponCourseRepository
 import com.thanh0x.coursedeal.repository.ExpiredCouponRepository
 import com.thanh0x.coursedeal.repository.audit.ScrapingTaskLogRepository
 import org.jobrunr.scheduling.JobScheduler
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -25,6 +24,8 @@ class CourseScraperService(
     private val scrapingTaskLogRepository: ScrapingTaskLogRepository,
     private val jobScheduler: JobScheduler
 ) {
+
+    private val log = logger()
 
     /**
      * Enqueues a scraping task into JobRunr.
@@ -91,9 +92,5 @@ class CourseScraperService(
         auditLog.errorMessage = error
         auditLog.courseId = courseId
         scrapingTaskLogRepository.save(auditLog)
-    }
-
-    companion object {
-        private val log: Logger = LoggerFactory.getLogger(CourseScraperService::class.java)
     }
 }

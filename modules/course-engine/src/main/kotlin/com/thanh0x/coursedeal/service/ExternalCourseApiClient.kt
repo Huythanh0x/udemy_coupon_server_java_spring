@@ -1,10 +1,9 @@
 package com.thanh0x.coursedeal.service
 
+import com.thanh0x.coursedeal.config.logger
 import com.thanh0x.coursedeal.crawler_runner.fetcher.WebContentFetcher
 import com.thanh0x.coursedeal.utils.UrlUtils
 import org.json.JSONObject
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
 /**
@@ -13,6 +12,8 @@ import org.springframework.stereotype.Service
  */
 @Service
 class ExternalCourseApiClient {
+
+    private val log = logger()
 
     /**
      * Fetches basic course information from external API.
@@ -100,9 +101,5 @@ class ExternalCourseApiClient {
             log.warn("Failed to parse JSON from data-module-args: {}", e.message)
             null
         }
-    }
-
-    companion object {
-        private val log: Logger = LoggerFactory.getLogger(ExternalCourseApiClient::class.java)
     }
 }

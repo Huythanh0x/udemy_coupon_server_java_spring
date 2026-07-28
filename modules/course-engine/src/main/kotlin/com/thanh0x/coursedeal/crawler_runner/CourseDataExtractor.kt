@@ -1,5 +1,6 @@
 package com.thanh0x.coursedeal.crawler_runner
 
+import com.thanh0x.coursedeal.config.logger
 import com.thanh0x.coursedeal.crawler_runner.fetcher.WebContentFetcher
 import com.thanh0x.coursedeal.model.coupon.CouponCourseData
 import com.thanh0x.coursedeal.model.coupon.CouponJsonData
@@ -8,8 +9,6 @@ import com.thanh0x.coursedeal.model.coupon.CourseLevel
 import com.thanh0x.coursedeal.utils.UrlUtils
 import org.json.JSONArray
 import org.json.JSONObject
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
@@ -19,6 +18,7 @@ import java.time.format.DateTimeParseException
  * A class that extracts course coupon data from the provided coupon URL.
  */
 class CourseDataExtractor {
+    private val log = logger()
     private val couponUrl: String
     var courseId: Int = 0
         private set
@@ -313,9 +313,5 @@ class CourseDataExtractor {
             previewVideo = couponData.previewVideo,
             language = courseData.language
         )
-    }
-
-    companion object {
-        private val log: Logger = LoggerFactory.getLogger(CourseDataExtractor::class.java)
     }
 }

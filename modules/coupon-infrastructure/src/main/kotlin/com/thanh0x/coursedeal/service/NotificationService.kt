@@ -3,15 +3,16 @@ package com.thanh0x.coursedeal.service
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.Message
 import com.google.firebase.messaging.Notification
+import com.thanh0x.coursedeal.config.logger
 import com.thanh0x.coursedeal.model.coupon.CouponCourseData
 import com.thanh0x.coursedeal.model.user.UserEntity
 import com.thanh0x.coursedeal.repository.UserRepository
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
 @Service
 class NotificationService(private val userRepository: UserRepository) {
+
+    private val log = logger()
 
     /**
      * Sends personalized notifications to users interested in the new coupon.
@@ -73,9 +74,5 @@ class NotificationService(private val userRepository: UserRepository) {
         } catch (e: Exception) {
             log.error("Error sending FCM message", e)
         }
-    }
-
-    companion object {
-        private val log: Logger = LoggerFactory.getLogger(NotificationService::class.java)
     }
 }

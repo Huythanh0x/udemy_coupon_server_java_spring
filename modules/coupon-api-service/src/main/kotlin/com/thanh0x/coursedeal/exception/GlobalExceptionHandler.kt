@@ -1,8 +1,8 @@
 package com.thanh0x.coursedeal.exception
 
+import com.thanh0x.coursedeal.config.logger
 import com.thanh0x.coursedeal.dto.ApiErrorDTO
 import jakarta.servlet.http.HttpServletRequest
-import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ControllerAdvice
@@ -17,7 +17,7 @@ import java.util.*
  */
 @ControllerAdvice
 class GlobalExceptionHandler : ResponseEntityExceptionHandler() {
-    private val log = LoggerFactory.getLogger(javaClass)
+    private val log = logger()
 
     @ExceptionHandler(BadRequestException::class)
     fun handleBadRequestException(exception: BadRequestException, request: WebRequest): ResponseEntity<ApiErrorDTO> {
