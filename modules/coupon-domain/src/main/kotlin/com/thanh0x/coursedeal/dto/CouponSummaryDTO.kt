@@ -19,5 +19,5 @@ data class CouponSummaryDTO(
     val expiredDate: Instant? = null,
     val usesRemaining: Int = 0,
     @get:JvmName("isNew")
-    val isNew: Boolean = false
+    val isNew: Boolean = false,
 )

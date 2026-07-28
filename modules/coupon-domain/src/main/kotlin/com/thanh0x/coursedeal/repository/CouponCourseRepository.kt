@@ -14,21 +14,31 @@ import java.time.LocalDateTime
 
 @Repository
 interface CouponCourseRepository : JpaRepository<CouponCourseData, Int> {
-
     fun findByTitleContainingOrDescriptionContainingOrHeadingContaining(
         title: String,
         description: String,
         heading: String,
-        pageable: Pageable
+        pageable: Pageable,
     ): Page<CouponCourseData>
 
-    fun findByRatingGreaterThanAndContentLengthGreaterThanAndLevelContainingAndCategoryIsContainingIgnoreCaseAndLanguageContaining(
-        rating: Float,
-        contentLength: Int,
-        level: String,
-        category: String,
-        language: String,
-        pageable: Pageable
+    @Query(
+        """
+        SELECT c FROM CouponCourseData c WHERE 
+        c.rating > :rating AND 
+        c.contentLength > :contentLength AND 
+        c.level LIKE %:level% AND 
+        LOWER(c.category) LIKE LOWER(CONCAT('%', :category, '%')) AND 
+        c.language LIKE %:language%
+        """,
+    )
+    @Suppress("LongParameterList")
+    fun findWithStructuredFilters(
+        @Param("rating") rating: Float,
+        @Param("contentLength") contentLength: Int,
+        @Param("level") level: String,
+        @Param("category") category: String,
+        @Param("language") language: String,
+        pageable: Pageable,
     ): Page<CouponCourseData>
 
     fun findByCourseId(courseId: Int): CouponCourseData?
@@ -36,7 +46,9 @@ interface CouponCourseRepository : JpaRepository<CouponCourseData, Int> {
     @Modifying
     @Transactional
     @Query("DELETE FROM CouponCourseData ccd WHERE ccd.couponUrl IN :expiredCouponUrls")
-    fun deleteAllCouponsByUrl(@Param("expiredCouponUrls") expiredCouponUrls: Set<String>)
+    fun deleteAllCouponsByUrl(
+        @Param("expiredCouponUrls") expiredCouponUrls: Set<String>,
+    )
 
     @Modifying
     @Transactional
@@ -48,7 +60,9 @@ interface CouponCourseRepository : JpaRepository<CouponCourseData, Int> {
     fun findByCouponUrl(couponUrl: String): CouponCourseData?
 
     @Query("SELECT c.courseId FROM CouponCourseData c WHERE c.couponUrl = :couponUrl")
-    fun findCourseIdByCouponUrl(@Param("couponUrl") couponUrl: String): Int?
+    fun findCourseIdByCouponUrl(
+        @Param("couponUrl") couponUrl: String,
+    ): Int?
 
     @Query(
         """
@@ -58,11 +72,11 @@ interface CouponCourseRepository : JpaRepository<CouponCourseData, Int> {
         (c.usesRemaining < :minUsesRemaining) OR 
         (c.updatedAt < :updatedBefore)
         )
-        """
+        """,
     )
     fun findCouponUrlsNeedingRefresh(
         @Param("expirationThreshold") expirationThreshold: Instant,
         @Param("minUsesRemaining") minUsesRemaining: Int,
-        @Param("updatedBefore") updatedBefore: LocalDateTime
+        @Param("updatedBefore") updatedBefore: LocalDateTime,
     ): Set<String>
 }

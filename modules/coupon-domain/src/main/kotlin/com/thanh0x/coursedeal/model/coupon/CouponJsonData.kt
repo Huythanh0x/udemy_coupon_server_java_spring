@@ -7,5 +7,5 @@ data class CouponJsonData(
     var expiredDate: Instant? = null,
     var previewImage: String? = null,
     var previewVideo: String? = null,
-    var usesRemaining: Int = 0
+    var usesRemaining: Int = 0,
 )

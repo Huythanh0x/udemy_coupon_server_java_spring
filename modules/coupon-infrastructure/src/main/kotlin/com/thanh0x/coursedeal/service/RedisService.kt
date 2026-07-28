@@ -10,7 +10,6 @@ import java.util.concurrent.TimeUnit
  * Provides simplified methods for common Redis operations like get, set, delete, and expire.
  */
 class RedisService(private val redisTemplate: RedisTemplate<String, Any>) {
-
     private val valueOperations: ValueOperations<String, Any> = redisTemplate.opsForValue()
 
     /**
@@ -19,7 +18,10 @@ class RedisService(private val redisTemplate: RedisTemplate<String, Any>) {
      * @param key   the Redis key
      * @param value the value to store
      */
-    fun set(key: String, value: Any) {
+    fun set(
+        key: String,
+        value: Any,
+    ) {
         valueOperations.set(key, value)
     }
 
@@ -31,7 +33,12 @@ class RedisService(private val redisTemplate: RedisTemplate<String, Any>) {
      * @param timeout  the expiration time
      * @param unit     the time unit for expiration
      */
-    fun set(key: String, value: Any, timeout: Long, unit: TimeUnit) {
+    fun set(
+        key: String,
+        value: Any,
+        timeout: Long,
+        unit: TimeUnit,
+    ) {
         valueOperations.set(key, value, timeout, unit)
     }
 
@@ -42,7 +49,11 @@ class RedisService(private val redisTemplate: RedisTemplate<String, Any>) {
      * @param value     the value to store
      * @param duration  the expiration duration
      */
-    fun set(key: String, value: Any, duration: Duration) {
+    fun set(
+        key: String,
+        value: Any,
+        duration: Duration,
+    ) {
         valueOperations.set(key, value, duration)
     }
 
@@ -65,7 +76,10 @@ class RedisService(private val redisTemplate: RedisTemplate<String, Any>) {
      * @return the value cast to the specified type, or null if not found
      */
     @Suppress("UNCHECKED_CAST")
-    fun <T> get(key: String, clazz: Class<T>): T? {
+    fun <T> get(
+        key: String,
+        clazz: Class<T>,
+    ): T? {
         val value = valueOperations.get(key) ?: return null
         if (clazz.isInstance(value)) {
             return value as T
@@ -133,7 +147,11 @@ class RedisService(private val redisTemplate: RedisTemplate<String, Any>) {
      * @param unit    the time unit
      * @return true if the expiration was set, false if the key doesn't exist
      */
-    fun expire(key: String, timeout: Long, unit: TimeUnit): Boolean? {
+    fun expire(
+        key: String,
+        timeout: Long,
+        unit: TimeUnit,
+    ): Boolean? {
         return redisTemplate.expire(key, timeout, unit)
     }
 

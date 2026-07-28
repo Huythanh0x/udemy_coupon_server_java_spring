@@ -7,11 +7,11 @@ data class IdentityProperties(
     var jwtSecret: String = "",
     var jwtExpiration: Long = 3600000,
     var googleClientId: String = "",
-    var webauthn: WebAuthnProperties = WebAuthnProperties()
+    var webauthn: WebAuthnProperties = WebAuthnProperties(),
 )
 
 data class WebAuthnProperties(
     var rpId: String = "localhost",
     var rpName: String = "Course Deal",
-    var origins: Set<String> = setOf("http://localhost:8080")
+    var origins: Set<String> = setOf("http://localhost:8080"),
 )

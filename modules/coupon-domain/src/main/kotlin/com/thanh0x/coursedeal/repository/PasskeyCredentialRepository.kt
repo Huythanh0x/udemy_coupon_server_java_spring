@@ -8,5 +8,6 @@ import org.springframework.stereotype.Repository
 @Repository
 interface PasskeyCredentialRepository : JpaRepository<PasskeyCredential, Long> {
     fun findByCredentialId(credentialId: ByteArray): PasskeyCredential?
+
     fun findAllByUser(user: UserEntity): List<PasskeyCredential>
 }

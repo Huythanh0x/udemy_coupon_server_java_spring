@@ -28,7 +28,8 @@ object LastFetchTimeManager {
             redisService.set(REDIS_KEY, epochMillis.toString())
             log.info(
                 "Last fetch time saved to Redis: {} ({})",
-                epochMillis, LocalDateTime.ofInstant(Instant.ofEpochMilli(epochMillis), ZoneId.systemDefault())
+                epochMillis,
+                LocalDateTime.ofInstant(Instant.ofEpochMilli(epochMillis), ZoneId.systemDefault()),
             )
         } catch (e: IllegalStateException) {
             // Redis not available

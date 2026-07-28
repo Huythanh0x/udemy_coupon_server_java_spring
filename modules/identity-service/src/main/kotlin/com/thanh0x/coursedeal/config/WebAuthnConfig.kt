@@ -13,13 +13,13 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 @EnableConfigurationProperties(IdentityProperties::class)
 class WebAuthnConfig(private val properties: IdentityProperties) {
-
     @Bean
     fun relyingParty(credentialRepository: CredentialRepository): RelyingParty {
-        val rpIdentity = RelyingPartyIdentity.builder()
-            .id(properties.webauthn.rpId)
-            .name(properties.webauthn.rpName)
-            .build()
+        val rpIdentity =
+            RelyingPartyIdentity.builder()
+                .id(properties.webauthn.rpId)
+                .name(properties.webauthn.rpName)
+                .build()
 
         return RelyingParty.builder()
             .identity(rpIdentity)

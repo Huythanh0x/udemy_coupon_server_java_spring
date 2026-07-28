@@ -12,5 +12,5 @@ data class CourseJsonData(
     var students: Int = 0,
     var language: String? = null,
     var headline: String? = null,
-    var description: String? = null
+    var description: String? = null,
 )

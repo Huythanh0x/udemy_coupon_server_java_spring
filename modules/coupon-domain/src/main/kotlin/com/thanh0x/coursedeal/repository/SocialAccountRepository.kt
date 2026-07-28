@@ -7,5 +7,8 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface SocialAccountRepository : JpaRepository<SocialAccount, Long> {
-    fun findByProviderAndProviderId(provider: AuthProvider, providerId: String): SocialAccount?
+    fun findByProviderAndProviderId(
+        provider: AuthProvider,
+        providerId: String,
+    ): SocialAccount?
 }

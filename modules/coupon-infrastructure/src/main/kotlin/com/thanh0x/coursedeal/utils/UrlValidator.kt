@@ -11,12 +11,13 @@ import java.net.UnknownHostException
 object UrlValidator {
     private val log = logger()
 
-    private val ALLOWED_DOMAINS = setOf(
-        "udemy.com",
-        "www.udemy.com",
-        "jobs.e-next.in",
-        "cdn.real.discount"
-    )
+    private val ALLOWED_DOMAINS =
+        setOf(
+            "udemy.com",
+            "www.udemy.com",
+            "jobs.e-next.in",
+            "cdn.real.discount",
+        )
 
     /**
      * Validates a URL to prevent SSRF.
@@ -34,9 +35,10 @@ object UrlValidator {
             }
 
             // 1. Check Allowlist
-            val isAllowed = ALLOWED_DOMAINS.any { domain ->
-                host.equals(domain, ignoreCase = true) || host.lowercase().endsWith(".$domain")
-            }
+            val isAllowed =
+                ALLOWED_DOMAINS.any { domain ->
+                    host.equals(domain, ignoreCase = true) || host.lowercase().endsWith(".$domain")
+                }
 
             if (isAllowed) {
                 return true

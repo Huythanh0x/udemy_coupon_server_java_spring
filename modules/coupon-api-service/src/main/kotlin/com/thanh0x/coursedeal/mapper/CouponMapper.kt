@@ -7,7 +7,6 @@ import org.springframework.stereotype.Component
 
 @Component
 class CouponMapper {
-
     fun toSummaryDto(entity: CouponCourseData): CouponSummaryDTO {
         return CouponSummaryDTO(
             courseId = entity.courseId,
@@ -21,7 +20,7 @@ class CouponMapper {
             couponUrl = entity.couponUrl,
             expiredDate = entity.expiredDate,
             usesRemaining = entity.usesRemaining,
-            isNew = entity.isNew
+            isNew = entity.isNew,
         )
     }
 
@@ -48,7 +47,7 @@ class CouponMapper {
             language = entity.language,
             isNew = entity.isNew,
             createdAt = entity.createdAt,
-            updatedAt = entity.updatedAt
+            updatedAt = entity.updatedAt,
         )
     }
 }

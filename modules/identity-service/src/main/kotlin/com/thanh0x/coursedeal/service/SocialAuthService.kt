@@ -22,16 +22,16 @@ class SocialAuthService(
     private val userRepository: UserRepository,
     private val socialAccountRepository: SocialAccountRepository,
     private val tokenProvider: TokenProvider,
-    private val properties: IdentityProperties
+    private val properties: IdentityProperties,
 ) {
-
     @Transactional
     fun login(request: SocialLoginRequestDTO): AuthResponseDTO {
-        val user: UserEntity = when (request.provider) {
-            AuthProvider.GOOGLE -> verifyGoogleToken(request.idToken!!)
-            AuthProvider.APPLE -> verifyAppleToken(request.idToken!!)
-            else -> throw BadRequestException("Unsupported social provider")
-        }
+        val user: UserEntity =
+            when (request.provider) {
+                AuthProvider.GOOGLE -> verifyGoogleToken(request.idToken!!)
+                AuthProvider.APPLE -> verifyAppleToken(request.idToken!!)
+                else -> throw BadRequestException("Unsupported social provider")
+            }
 
         if (request.fcmToken != null) {
             user.fcmToken = request.fcmToken
@@ -41,15 +41,16 @@ class SocialAuthService(
         val token = tokenProvider.createToken(user)
         return AuthResponseDTO(
             accessToken = token,
-            tokenType = "Bearer"
+            tokenType = "Bearer",
         )
     }
 
     private fun verifyGoogleToken(idTokenString: String): UserEntity {
         try {
-            val verifier = GoogleIdTokenVerifier.Builder(NetHttpTransport(), GsonFactory())
-                .setAudience(Collections.singletonList(properties.googleClientId))
-                .build()
+            val verifier =
+                GoogleIdTokenVerifier.Builder(NetHttpTransport(), GsonFactory())
+                    .setAudience(Collections.singletonList(properties.googleClientId))
+                    .build()
 
             val idToken = verifier.verify(idTokenString) ?: throw BadRequestException("Invalid Google ID Token")
 
@@ -69,26 +70,35 @@ class SocialAuthService(
         throw UnsupportedOperationException("Apple login not yet implemented")
     }
 
-    private fun findOrCreateUser(email: String, name: String?, provider: AuthProvider, providerId: String): UserEntity {
+    private fun findOrCreateUser(
+        email: String,
+        name: String?,
+        provider: AuthProvider,
+        providerId: String,
+    ): UserEntity {
         val socialAccount = socialAccountRepository.findByProviderAndProviderId(provider, providerId)
         if (socialAccount != null) {
             return socialAccount.user!!
         }
 
-        val user = userRepository.findByEmail(email) ?: run {
-            val newUser = UserEntity(
-                email = email,
-                fullName = name,
-                username = email // fallback username
-            )
-            userRepository.save(newUser)
-        }
+        val user =
+            userRepository.findByEmail(email) ?: run {
+                val newUser =
+                    UserEntity(
+                        email = email,
+                        fullName = name,
+                        // fallback username
+                        username = email,
+                    )
+                userRepository.save(newUser)
+            }
 
-        val newSocialAccount = SocialAccount(
-            provider = provider,
-            providerId = providerId,
-            user = user
-        )
+        val newSocialAccount =
+            SocialAccount(
+                provider = provider,
+                providerId = providerId,
+                user = user,
+            )
         socialAccountRepository.save(newSocialAccount)
 
         return user

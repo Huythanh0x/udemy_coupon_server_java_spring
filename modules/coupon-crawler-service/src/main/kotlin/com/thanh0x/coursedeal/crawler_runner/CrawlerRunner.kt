@@ -26,9 +26,8 @@ class CrawlerRunner(
     private val courseScraperService: CourseScraperService,
     private val enextCrawler: EnextCrawler,
     private val realDiscountCrawler: RealDiscountCrawler,
-    private val properties: CrawlerProperties
+    private val properties: CrawlerProperties,
 ) : ApplicationRunner {
-
     private val log = logger()
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
@@ -48,22 +47,22 @@ class CrawlerRunner(
                 delayUntilTheNextRound(startTime.get())
                 while (isActive) {
                     startTime.set(System.currentTimeMillis())
-                    
+
                     log.info("Starting new crawl round...")
                     val discoveredUrls = mutableListOf<String>()
                     discoveredUrls.addAll(enextCrawler.getAllCouponUrls())
                     discoveredUrls.addAll(realDiscountCrawler.getAllCouponUrls())
-                    
+
                     val uniqueUrls = discoveredUrls.toSet()
                     log.info("Discovered {} unique URLs. Handing off to background scraper...", uniqueUrls.size)
-                    
+
                     for (url in uniqueUrls) {
                         courseScraperService.enqueueScrapingTask(url, "crawler")
                     }
-                    
+
                     log.info("Crawl round finished. Handed off {} tasks.", uniqueUrls.size)
                     LastFetchTimeManager.updateLastBulkRefreshCoupon()
-                    
+
                     delayUntilTheNextRound(startTime.get())
                 }
             } catch (e: CancellationException) {

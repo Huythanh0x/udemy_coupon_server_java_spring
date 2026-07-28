@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service
 
 @Service
 class NotificationService(private val userRepository: UserRepository) {
-
     private val log = logger()
 
     /**
@@ -30,44 +29,50 @@ class NotificationService(private val userRepository: UserRepository) {
                 sendPush(
                     token,
                     "Course Deal: " + coupon.category,
-                    "Free: " + coupon.title
+                    "Free: " + coupon.title,
                 )
             }
         }
     }
 
-    private fun isUserInterested(user: UserEntity, coupon: CouponCourseData): Boolean {
+    private fun isUserInterested(
+        user: UserEntity,
+        coupon: CouponCourseData,
+    ): Boolean {
         val pref = user.preference ?: return false
 
-        if (!pref.notificationsEnabled) {
-            return false
-        }
+        val categoryMatch =
+            pref.notificationsEnabled &&
+                pref.categories.any { cat ->
+                    cat.equals(coupon.category, ignoreCase = true)
+                }
 
-        // Match category (case insensitive)
-        val categoryMatch = pref.categories.any { cat ->
-            cat.equals(coupon.category, ignoreCase = true)
-        }
-
-        if (categoryMatch) return true
-
-        // Match keywords in title (case insensitive)
         val title = coupon.title?.lowercase() ?: ""
-        return pref.keywords.any { keyword ->
-            title.contains(keyword.lowercase())
-        }
+        val keywordMatch =
+            pref.notificationsEnabled &&
+                pref.keywords.any { keyword ->
+                    title.contains(keyword.lowercase())
+                }
+
+        return categoryMatch || keywordMatch
     }
 
-    fun sendPush(token: String, title: String, body: String) {
+    fun sendPush(
+        token: String,
+        title: String,
+        body: String,
+    ) {
         try {
-            val message = Message.builder()
-                .setNotification(
-                    Notification.builder()
-                        .setTitle(title)
-                        .setBody(body)
-                        .build()
-                )
-                .setToken(token)
-                .build()
+            val message =
+                Message.builder()
+                    .setNotification(
+                        Notification.builder()
+                            .setTitle(title)
+                            .setBody(body)
+                            .build(),
+                    )
+                    .setToken(token)
+                    .build()
 
             val response = FirebaseMessaging.getInstance().send(message)
             log.info("Successfully sent message: $response")

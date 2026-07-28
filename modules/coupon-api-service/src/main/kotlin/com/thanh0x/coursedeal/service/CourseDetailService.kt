@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service
 @Service
 class CourseDetailService(
     private val externalCourseApiClient: ExternalCourseApiClient,
-    private val couponCourseRepository: CouponCourseRepository
+    private val couponCourseRepository: CouponCourseRepository,
 ) {
     private val log = logger()
 
@@ -30,154 +30,132 @@ class CourseDetailService(
     @Cacheable(
         value = ["courseDetails"],
         key = "#courseId + '_' + (#couponCode != null ? #couponCode : 'none')",
-        unless = "#result == null"
+        unless = "#result == null",
     )
-    fun getCourseDetails(courseId: Int, couponCode: String?): CourseDetailDTO? {
+    fun getCourseDetails(
+        courseId: Int,
+        couponCode: String?,
+    ): CourseDetailDTO? {
         log.info("Fetching course details for courseId: {}, couponCode: {}", courseId, couponCode)
 
-        // Get basic course data from database
-        val courseData = couponCourseRepository.findByCourseId(courseId)
-            ?: throw ResourceNotFoundException("Course not found in database for courseId: $courseId")
+        val courseData =
+            couponCourseRepository.findByCourseId(courseId)
+                ?: throw ResourceNotFoundException("Course not found in database for courseId: $courseId")
 
-        // Fetch additional details from Udemy API
         val landingComponents = externalCourseApiClient.getCourseLandingComponentsJson(courseId, couponCode)
         val reviewsResponse = externalCourseApiClient.getCourseReviewsJson(courseId, 1)
         val relatedCoursesResponse = externalCourseApiClient.getRelatedCoursesJson(courseId)
 
-        // Extract startPreviewId from previewVideo URL or landing components
-        var startPreviewId: Long? = null
-        val previewVideoPath = courseData.previewVideo
-        if (previewVideoPath != null && previewVideoPath.contains("startPreviewId=")) {
+        val startPreviewId = resolveStartPreviewId(courseData.previewVideo, landingComponents)
+        val previewPageJson = startPreviewId?.let { externalCourseApiClient.getPreviewPageJson(courseId, it) }
+
+        val (previewVideoUrl, previewImageUrl) = resolvePreviewAssets(courseData, landingComponents)
+
+        val dto =
+            CourseDetailDTO(
+                courseId = courseData.courseId,
+                title = courseData.title,
+                heading = courseData.heading,
+                description = courseData.description,
+                author = courseData.author,
+                category = courseData.category,
+                subCategory = courseData.subCategory,
+                level = courseData.level,
+                language = courseData.language,
+                rating = courseData.rating,
+                reviews = courseData.reviews,
+                students = courseData.students,
+                contentLength = courseData.contentLength,
+                previewImage = previewImageUrl,
+                previewVideo = previewVideoUrl,
+                couponUrl = courseData.couponUrl,
+                couponCode = courseData.couponCode,
+                usesRemaining = courseData.usesRemaining,
+                expiredDate = courseData.expiredDate,
+            )
+
+        return enrichDto(dto, landingComponents, reviewsResponse, relatedCoursesResponse, previewPageJson)
+    }
+
+    private fun resolveStartPreviewId(
+        previewVideoPath: String?,
+        landingComponents: JSONObject?,
+    ): Long? {
+        // Try to extract from previewVideo path
+        if (previewVideoPath?.contains("startPreviewId=") == true) {
             try {
                 val parts = previewVideoPath.split("startPreviewId=")
                 if (parts.size > 1) {
-                    val idPart = parts[1].split("&")[0]
-                    startPreviewId = idPart.toLong()
+                    return parts[1].split("&")[0].toLongOrNull()
                 }
             } catch (e: Exception) {
-                log.debug("Could not extract startPreviewId from previewVideo path: {}", previewVideoPath)
+                log.debug("Could not extract startPreviewId from path: {}", previewVideoPath)
             }
         }
 
-        // If not found in previewVideo path, try to get from landing components
-        if (startPreviewId == null && landingComponents != null) {
-            try {
-                val sidebarContainer = landingComponents.optJSONObject("sidebar_container")
-                if (sidebarContainer != null) {
-                    val componentProps = sidebarContainer.optJSONObject("componentProps")
-                    if (componentProps != null) {
-                        val introductionAsset = componentProps.optJSONObject("introductionAsset")
-                        if (introductionAsset != null) {
-                            startPreviewId = introductionAsset.optLong("id", 0)
-                            if (startPreviewId == 0L) {
-                                startPreviewId = introductionAsset.optLong("asset_id", 0)
-                            }
-                            if (startPreviewId == 0L) {
-                                startPreviewId = null
-                            }
-                        }
-                    }
+        // Fallback to landing components
+        return landingComponents?.optJSONObject("sidebar_container")
+            ?.optJSONObject("componentProps")
+            ?.optJSONObject("introductionAsset")
+            ?.let { asset ->
+                val id = asset.optLong("id", 0).takeIf { it != 0L } ?: asset.optLong("asset_id", 0)
+                id.takeIf { it != 0L }
+            }
+    }
+
+    private fun resolvePreviewAssets(
+        courseData: com.thanh0x.coursedeal.model.coupon.CouponCourseData,
+        landingComponents: JSONObject?,
+    ): Pair<String?, String?> {
+        var videoUrl = courseData.previewVideo
+        var imageUrl = courseData.previewImage
+
+        val id =
+            landingComponents?.optJSONObject("sidebar_container")
+                ?.optJSONObject("componentProps")
+                ?.optJSONObject("introductionAsset")
+                ?.let { it.optLong("id", 0).takeIf { i -> i != 0L } ?: it.optLong("asset_id", 0) } ?: 0L
+
+        if (id > 0) {
+            externalCourseApiClient.getAssetJson(id)?.apply {
+                optJSONArray("media_sources")?.optJSONObject(0)?.optString("src")?.takeIf { it.isNotEmpty() }?.let {
+                    videoUrl = it
                 }
-            } catch (e: Exception) {
-                log.debug("Could not extract startPreviewId from landing components", e)
+                optString("thumbnail_url").takeIf { it.isNotEmpty() }?.let {
+                    imageUrl = it
+                }
             }
         }
 
-        // Fetch preview page to get all preview videos
-        var previewPageJson: JSONObject? = null
-        if (startPreviewId != null) {
-            previewPageJson = externalCourseApiClient.getPreviewPageJson(courseId, startPreviewId)
-        }
+        return Pair(videoUrl, imageUrl)
+    }
 
-        // Derive preview video and image from Udemy asset API when possible
-        var previewVideoUrl = courseData.previewVideo
-        var previewImageUrl = courseData.previewImage
-
+    private fun enrichDto(
+        dto: CourseDetailDTO,
+        landingComponents: JSONObject?,
+        reviewsResponse: JSONObject?,
+        relatedCoursesResponse: JSONObject?,
+        previewPageJson: JSONObject?,
+    ): CourseDetailDTO {
+        var result = dto
         if (landingComponents != null) {
-            try {
-                val sidebarContainer = landingComponents.optJSONObject("sidebar_container")
-                if (sidebarContainer != null) {
-                    val componentProps = sidebarContainer.optJSONObject("componentProps")
-                    if (componentProps != null) {
-                        val introductionAsset = componentProps.optJSONObject("introductionAsset")
-                        if (introductionAsset != null) {
-                            var assetId = introductionAsset.optLong("id", 0)
-                            if (assetId == 0L) {
-                                assetId = introductionAsset.optLong("asset_id", 0)
-                            }
-
-                            if (assetId > 0) {
-                                val assetJson = externalCourseApiClient.getAssetJson(assetId)
-                                if (assetJson != null) {
-                                    // Prefer the first media source (usually HLS m3u8)
-                                    val mediaSources = assetJson.optJSONArray("media_sources")
-                                    if (mediaSources != null && mediaSources.length() > 0) {
-                                        val firstSource = mediaSources.optJSONObject(0)
-                                        if (firstSource != null) {
-                                            val src = firstSource.optString("src", "")
-                                            if (src.isNotEmpty()) {
-                                                previewVideoUrl = src
-                                            }
-                                        }
-                                    }
-
-                                    val thumbnail = assetJson.optString("thumbnail_url", "")
-                                    if (thumbnail.isNotEmpty()) {
-                                        previewImageUrl = thumbnail
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                log.warn("Failed to extract preview asset from Udemy API, falling back to database values", e)
-            }
+            result =
+                result.copy(
+                    curriculum = parseCurriculum(landingComponents),
+                    pricingInfo = parsePricingInfo(landingComponents),
+                    incentives = parseIncentives(landingComponents),
+                )
         }
-
-        // Build DTO
-        val dto = CourseDetailDTO(
-            courseId = courseData.courseId,
-            title = courseData.title,
-            heading = courseData.heading,
-            description = courseData.description,
-            author = courseData.author,
-            category = courseData.category,
-            subCategory = courseData.subCategory,
-            level = courseData.level,
-            language = courseData.language,
-            rating = courseData.rating,
-            reviews = courseData.reviews,
-            students = courseData.students,
-            contentLength = courseData.contentLength,
-            previewImage = previewImageUrl,
-            previewVideo = previewVideoUrl,
-            couponUrl = courseData.couponUrl,
-            couponCode = courseData.couponCode,
-            usesRemaining = courseData.usesRemaining,
-            expiredDate = courseData.expiredDate
-        )
-
-        // Parse and add extra info
-        val result = if (landingComponents != null) {
-            dto.copy(
-                curriculum = parseCurriculum(landingComponents),
-                pricingInfo = parsePricingInfo(landingComponents),
-                incentives = parseIncentives(landingComponents)
-            )
-        } else dto
-
-        val resultWithReviews = if (reviewsResponse != null) {
-            result.copy(reviewsSummary = parseReviewsSummary(reviewsResponse))
-        } else result
-
-        val resultWithRelated = if (relatedCoursesResponse != null) {
-            resultWithReviews.copy(relatedCourses = parseRelatedCourses(relatedCoursesResponse))
-        } else resultWithReviews
-
-        return if (previewPageJson != null) {
-            resultWithRelated.copy(previewVideos = parsePreviewVideos(previewPageJson))
-        } else resultWithRelated
+        if (reviewsResponse != null) {
+            result = result.copy(reviewsSummary = parseReviewsSummary(reviewsResponse))
+        }
+        if (relatedCoursesResponse != null) {
+            result = result.copy(relatedCourses = parseRelatedCourses(relatedCoursesResponse))
+        }
+        if (previewPageJson != null) {
+            result = result.copy(previewVideos = parsePreviewVideos(previewPageJson))
+        }
+        return result
     }
 
     /**
@@ -189,7 +167,10 @@ class CourseDetailService(
      * @return CourseReviewsDTO with paginated reviews
      */
     @Cacheable(value = ["courseReviews"], key = "#courseId + '_' + #page", unless = "#result == null")
-    fun getCourseReviews(courseId: Int, page: Int): CourseReviewsDTO? {
+    fun getCourseReviews(
+        courseId: Int,
+        page: Int,
+    ): CourseReviewsDTO? {
         log.info("Fetching reviews for courseId: {}, page: {}", courseId, page)
 
         val reviewsResponse = externalCourseApiClient.getCourseReviewsJson(courseId, page) ?: return null
@@ -208,9 +189,12 @@ class CourseDetailService(
     @Cacheable(
         value = ["courseCurriculum"],
         key = "#courseId + '_' + (#couponCode != null ? #couponCode : 'none')",
-        unless = "#result == null"
+        unless = "#result == null",
     )
-    fun getCourseCurriculum(courseId: Int, couponCode: String?): CurriculumDTO? {
+    fun getCourseCurriculum(
+        courseId: Int,
+        couponCode: String?,
+    ): CurriculumDTO? {
         log.info("Fetching curriculum for courseId: {}, couponCode: {}", courseId, couponCode)
 
         val landingComponents = externalCourseApiClient.getCourseLandingComponentsJson(courseId, couponCode) ?: return null
@@ -257,7 +241,7 @@ class CourseDetailService(
                 sections = sections,
                 totalDuration = data.optString("estimated_content_length_text", ""),
                 totalDurationSeconds = data.optInt("estimated_content_length_in_seconds", 0),
-                totalLectures = data.optInt("num_of_published_lectures", 0)
+                totalLectures = data.optInt("num_of_published_lectures", 0),
             )
         } catch (e: Exception) {
             log.error("Error parsing curriculum", e)
@@ -284,7 +268,7 @@ class CourseDetailService(
             duration = sectionObj.optString("content_length_text", ""),
             durationSeconds = sectionObj.optInt("content_length", 0),
             lectureCount = sectionObj.optInt("lecture_count", 0),
-            items = items
+            items = items,
         )
     }
 
@@ -300,7 +284,7 @@ class CourseDetailService(
             isPracticeTest = itemObj.optBoolean("is_practice_test", false),
             previewUrl = itemObj.optString("preview_url", ""),
             learnUrl = itemObj.optString("learn_url", ""),
-            objectIndex = itemObj.optInt("object_index", 0)
+            objectIndex = itemObj.optInt("object_index", 0),
         )
     }
 
@@ -321,8 +305,9 @@ class CourseDetailService(
 
             return ReviewsSummaryDTO(
                 totalCount = reviewsResponse.optInt("count", 0),
-                averageRating = null, // Calculate from reviews if needed
-                recentReviews = recentReviews
+                // Calculate from reviews if needed
+                averageRating = null,
+                recentReviews = recentReviews,
             )
         } catch (e: Exception) {
             log.error("Error parsing reviews summary", e)
@@ -330,66 +315,70 @@ class CourseDetailService(
         }
     }
 
-    private fun parseCourseReviews(reviewsResponse: JSONObject, page: Int): CourseReviewsDTO? {
-        try {
+    private fun parseCourseReviews(
+        reviewsResponse: JSONObject,
+        page: Int,
+    ): CourseReviewsDTO? {
+        return try {
             val results = reviewsResponse.optJSONArray("results")
-            val reviews = mutableListOf<ReviewDTO>()
-
-            if (results != null) {
-                for (i in 0 until results.length()) {
-                    val reviewObj = results.optJSONObject(i)
-                    if (reviewObj != null) {
-                        reviews.add(parseReview(reviewObj))
+            if (results == null) {
+                null
+            } else {
+                val reviews =
+                    (0 until results.length()).mapNotNull { i ->
+                        results.optJSONObject(i)?.let { parseReview(it) }
                     }
-                }
-            }
 
-            return CourseReviewsDTO(
-                reviews = reviews,
-                totalCount = reviewsResponse.optInt("count", 0),
-                currentPage = page,
-                hasNext = reviewsResponse.optString("next", null) != null,
-                hasPrevious = reviewsResponse.optString("previous", null) != null,
-                nextUrl = reviewsResponse.optString("next", null),
-                previousUrl = reviewsResponse.optString("previous", null)
-            )
+                CourseReviewsDTO(
+                    reviews = reviews,
+                    totalCount = reviewsResponse.optInt("count", 0),
+                    currentPage = page,
+                    hasNext = reviewsResponse.optString("next", null) != null,
+                    hasPrevious = reviewsResponse.optString("previous", null) != null,
+                    nextUrl = reviewsResponse.optString("next", null),
+                    previousUrl = reviewsResponse.optString("previous", null),
+                )
+            }
         } catch (e: Exception) {
             log.error("Error parsing course reviews", e)
-            return null
+            null
         }
     }
 
     private fun parseReview(reviewObj: JSONObject): ReviewDTO {
         val userObj = reviewObj.optJSONObject("user")
-        val user = userObj?.let {
-            ReviewUserDTO(
-                displayName = it.optString("display_name", ""),
-                publicDisplayName = it.optString("public_display_name", ""),
-                image50x50 = it.optString("image_50x50", ""),
-                initials = it.optString("initials", "")
-            )
-        }
-
-        val responseObj = reviewObj.optJSONObject("response")
-        val response = responseObj?.let {
-            val responseUserObj = it.optJSONObject("user")
-            val responseUser = responseUserObj?.let { ru ->
+        val user =
+            userObj?.let {
                 ReviewUserDTO(
-                    displayName = ru.optString("display_name", ""),
-                    publicDisplayName = ru.optString("public_display_name", ""),
-                    image50x50 = ru.optString("image_50x50", ""),
-                    initials = ru.optString("initials", "")
+                    displayName = it.optString("display_name", ""),
+                    publicDisplayName = it.optString("public_display_name", ""),
+                    image50x50 = it.optString("image_50x50", ""),
+                    initials = it.optString("initials", ""),
                 )
             }
 
-            ReviewResponseDTO(
-                content = it.optString("content", ""),
-                contentHtml = it.optString("content_html", ""),
-                created = it.optString("created", ""),
-                createdFormatted = it.optString("created_formatted_with_time_since", ""),
-                user = responseUser
-            )
-        }
+        val responseObj = reviewObj.optJSONObject("response")
+        val response =
+            responseObj?.let {
+                val responseUserObj = it.optJSONObject("user")
+                val responseUser =
+                    responseUserObj?.let { ru ->
+                        ReviewUserDTO(
+                            displayName = ru.optString("display_name", ""),
+                            publicDisplayName = ru.optString("public_display_name", ""),
+                            image50x50 = ru.optString("image_50x50", ""),
+                            initials = ru.optString("initials", ""),
+                        )
+                    }
+
+                ReviewResponseDTO(
+                    content = it.optString("content", ""),
+                    contentHtml = it.optString("content_html", ""),
+                    created = it.optString("created", ""),
+                    createdFormatted = it.optString("created_formatted_with_time_since", ""),
+                    user = responseUser,
+                )
+            }
 
         return ReviewDTO(
             id = reviewObj.optLong("id", 0),
@@ -399,7 +388,7 @@ class CourseDetailService(
             created = reviewObj.optString("created", ""),
             createdFormatted = reviewObj.optString("created_formatted_with_time_since", ""),
             user = user,
-            response = response
+            response = response,
         )
     }
 
@@ -455,7 +444,7 @@ class CourseDetailService(
                 numReviews = courseObj.optInt("num_reviews", 0),
                 numSubscribers = courseObj.optInt("num_subscribers", 0),
                 contentInfo = courseObj.optString("content_info_short", ""),
-                instructionalLevel = courseObj.optString("instructional_level_simple", "")
+                instructionalLevel = courseObj.optString("instructional_level_simple", ""),
             )
         } catch (e: Exception) {
             log.error("Error parsing related course", e)
@@ -494,7 +483,7 @@ class CourseDetailService(
                 discountDeadlineText = discountDeadlineText,
                 couponCode = pricingResult.optString("code", ""),
                 usesRemaining = campaign?.optInt("uses_remaining", 0),
-                maximumUses = campaign?.optInt("maximum_uses", 0)
+                maximumUses = campaign?.optInt("maximum_uses", 0),
             )
         } catch (e: Exception) {
             log.error("Error parsing pricing info", e)
@@ -516,7 +505,7 @@ class CourseDetailService(
                 devicesAccess = incentives.optString("devices_access", ""),
                 hasAssignments = incentives.optBoolean("has_assignments", false),
                 hasCertificate = incentives.optBoolean("has_certificate", false),
-                hasClosedCaptions = incentives.optBoolean("has_closed_captions", false)
+                hasClosedCaptions = incentives.optBoolean("has_closed_captions", false),
             )
         } catch (e: Exception) {
             log.error("Error parsing incentives", e)
@@ -567,11 +556,12 @@ class CourseDetailService(
                     for (i in 0 until videoStreams.length()) {
                         val streamObj = videoStreams.optJSONObject(i)
                         if (streamObj != null) {
-                            val source = VideoSourceDTO(
-                                type = streamObj.optString("type", ""),
-                                label = streamObj.optString("label", ""),
-                                file = streamObj.optString("file", "")
-                            )
+                            val source =
+                                VideoSourceDTO(
+                                    type = streamObj.optString("type", ""),
+                                    label = streamObj.optString("label", ""),
+                                    file = streamObj.optString("file", ""),
+                                )
                             if (source.file?.isNotEmpty() == true) {
                                 streamUrls.add(source)
                             }
@@ -587,7 +577,7 @@ class CourseDetailService(
                 contentSummary = previewObj.optString("content_summary", ""),
                 timeEstimation = previewObj.optInt("time_estimation", 0),
                 videoUrl = videoUrl,
-                streamUrls = if (streamUrls.isEmpty()) null else streamUrls
+                streamUrls = if (streamUrls.isEmpty()) null else streamUrls,
             )
         } catch (e: Exception) {
             log.error("Error parsing preview video", e)

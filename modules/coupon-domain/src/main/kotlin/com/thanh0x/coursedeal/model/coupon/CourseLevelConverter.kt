@@ -9,7 +9,6 @@ import jakarta.persistence.Converter
  */
 @Converter(autoApply = true)
 class CourseLevelConverter : AttributeConverter<CourseLevel, String> {
-
     override fun convertToDatabaseColumn(level: CourseLevel?): String? {
         return level?.name
     }

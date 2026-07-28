@@ -19,7 +19,6 @@ import org.springframework.data.redis.serializer.StringRedisSerializer
 @Configuration
 @ConditionalOnProperty(name = ["spring.data.redis.host"])
 class RedisConfig {
-
     @Value("\${spring.data.redis.host:localhost}")
     private lateinit var redisHost: String
 

@@ -10,7 +10,6 @@ import com.thanh0x.coursedeal.crawler_runner.CourseDataExtractor
  *   ./gradlew :modules:coupon-crawler-service:debugExtractor
  */
 object ExtractorDebugMain {
-
     @JvmStatic
     fun main(args: Array<String>) {
         var url = extractUrlArg(args)

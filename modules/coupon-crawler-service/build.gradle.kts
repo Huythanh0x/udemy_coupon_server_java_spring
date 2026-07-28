@@ -17,7 +17,7 @@ java {
 }
 
 // Load .env file for bootRun tasks to ensure environment variables are available
-apply(from = "${rootDir}/gradle/env-loading.gradle.kts")
+apply(from = "$rootDir/gradle/env-loading.gradle.kts")
 
 dependencies {
     implementation(project(":modules:coupon-domain"))

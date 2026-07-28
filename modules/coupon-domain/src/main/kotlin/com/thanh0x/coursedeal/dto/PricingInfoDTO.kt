@@ -14,5 +14,5 @@ data class PricingInfoDTO(
     val discountDeadlineText: String? = null, // e.g., "4 days"
     val couponCode: String? = null,
     val usesRemaining: Int? = null,
-    val maximumUses: Int? = null
+    val maximumUses: Int? = null,
 )

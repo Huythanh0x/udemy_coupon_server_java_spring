@@ -14,13 +14,15 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/api/v1/preferences")
 class PreferenceController(
     private val userPreferenceRepository: UserPreferenceRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
 ) {
-
     @GetMapping
-    fun getPreferences(@AuthenticationPrincipal user: UserEntity): ResponseEntity<PreferenceDTO> {
-        val preference = userPreferenceRepository.findById(user.id)
-            .orElseGet { createDefaultPreference(user) }
+    fun getPreferences(
+        @AuthenticationPrincipal user: UserEntity,
+    ): ResponseEntity<PreferenceDTO> {
+        val preference =
+            userPreferenceRepository.findById(user.id)
+                .orElseGet { createDefaultPreference(user) }
 
         return ResponseEntity.ok(mapToDto(preference))
     }
@@ -28,10 +30,11 @@ class PreferenceController(
     @PutMapping
     fun updatePreferences(
         @AuthenticationPrincipal user: UserEntity,
-        @Valid @RequestBody dto: PreferenceDTO
+        @Valid @RequestBody dto: PreferenceDTO,
     ): ResponseEntity<PreferenceDTO> {
-        val preference = userPreferenceRepository.findById(user.id)
-            .orElseGet { createDefaultPreference(user) }
+        val preference =
+            userPreferenceRepository.findById(user.id)
+                .orElseGet { createDefaultPreference(user) }
 
         preference.categories = dto.categories.toMutableSet()
         preference.keywords = dto.keywords.toMutableSet()
@@ -42,11 +45,12 @@ class PreferenceController(
     }
 
     private fun createDefaultPreference(user: UserEntity): UserPreference {
-        val pref = UserPreference(
-            user = user,
-            userId = user.id,
-            notificationsEnabled = true
-        )
+        val pref =
+            UserPreference(
+                user = user,
+                userId = user.id,
+                notificationsEnabled = true,
+            )
         return userPreferenceRepository.save(pref)
     }
 
@@ -54,7 +58,7 @@ class PreferenceController(
         return PreferenceDTO(
             categories = pref.categories,
             keywords = pref.keywords,
-            notificationsEnabled = pref.notificationsEnabled
+            notificationsEnabled = pref.notificationsEnabled,
         )
     }
 }

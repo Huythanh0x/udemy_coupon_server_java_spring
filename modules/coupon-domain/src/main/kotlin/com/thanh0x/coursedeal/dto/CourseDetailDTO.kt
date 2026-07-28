@@ -27,12 +27,12 @@ data class CourseDetailDTO(
     val couponCode: String? = null,
     val usesRemaining: Int? = null,
     val expiredDate: Instant? = null,
-    
     // Additional details from Udemy API
     val reviewsSummary: ReviewsSummaryDTO? = null,
     val curriculum: CurriculumDTO? = null,
     val relatedCourses: List<RelatedCourseDTO>? = null,
     val pricingInfo: PricingInfoDTO? = null,
     val incentives: IncentivesDTO? = null,
-    val previewVideos: List<PreviewVideoDTO>? = null // List of preview videos from preview page
+    // List of preview videos from preview page
+    val previewVideos: List<PreviewVideoDTO>? = null,
 )

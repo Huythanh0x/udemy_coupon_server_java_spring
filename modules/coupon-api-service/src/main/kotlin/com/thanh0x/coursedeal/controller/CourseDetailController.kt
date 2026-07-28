@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/api/v1/coupons")
 @Tag(name = "Course Details", description = "API endpoints for detailed course information")
 class CourseDetailController(private val courseDetailService: CourseDetailService) {
-
     /**
      * Gets comprehensive course details including reviews summary, curriculum, and related courses.
      *
@@ -28,13 +27,13 @@ class CourseDetailController(private val courseDetailService: CourseDetailServic
     @GetMapping("/{courseId}/details")
     @Operation(
         summary = "Get comprehensive course details",
-        description = "Returns detailed course information including reviews, curriculum, pricing, and related courses"
+        description = "Returns detailed course information including reviews, curriculum, pricing, and related courses",
     )
     fun getCourseDetails(
         @Parameter(description = "Course ID", required = true)
         @PathVariable courseId: Int,
         @Parameter(description = "Optional coupon code")
-        @RequestParam(required = false) couponCode: String?
+        @RequestParam(required = false) couponCode: String?,
     ): ResponseEntity<CourseDetailDTO> {
         val details = courseDetailService.getCourseDetails(courseId, couponCode)
         return details?.let { ResponseEntity.ok(it) } ?: ResponseEntity.notFound().build()
@@ -50,13 +49,13 @@ class CourseDetailController(private val courseDetailService: CourseDetailServic
     @GetMapping("/{courseId}/reviews")
     @Operation(
         summary = "Get course reviews",
-        description = "Returns paginated course reviews with instructor responses"
+        description = "Returns paginated course reviews with instructor responses",
     )
     fun getCourseReviews(
         @Parameter(description = "Course ID", required = true)
         @PathVariable courseId: Int,
         @Parameter(description = "Page number (1-indexed)")
-        @RequestParam(defaultValue = "1") page: Int
+        @RequestParam(defaultValue = "1") page: Int,
     ): ResponseEntity<CourseReviewsDTO> {
         val reviews = courseDetailService.getCourseReviews(courseId, page)
         return reviews?.let { ResponseEntity.ok(it) } ?: ResponseEntity.notFound().build()
@@ -72,13 +71,13 @@ class CourseDetailController(private val courseDetailService: CourseDetailServic
     @GetMapping("/{courseId}/curriculum")
     @Operation(
         summary = "Get course curriculum",
-        description = "Returns the course curriculum/syllabus with all sections and lectures"
+        description = "Returns the course curriculum/syllabus with all sections and lectures",
     )
     fun getCourseCurriculum(
         @Parameter(description = "Course ID", required = true)
         @PathVariable courseId: Int,
         @Parameter(description = "Optional coupon code")
-        @RequestParam(required = false) couponCode: String?
+        @RequestParam(required = false) couponCode: String?,
     ): ResponseEntity<CurriculumDTO> {
         val curriculum = courseDetailService.getCourseCurriculum(courseId, couponCode)
         return curriculum?.let { ResponseEntity.ok(it) } ?: ResponseEntity.notFound().build()
@@ -93,11 +92,11 @@ class CourseDetailController(private val courseDetailService: CourseDetailServic
     @GetMapping("/{courseId}/related")
     @Operation(
         summary = "Get related courses",
-        description = "Returns a list of related/recommended courses"
+        description = "Returns a list of related/recommended courses",
     )
     fun getRelatedCourses(
         @Parameter(description = "Course ID", required = true)
-        @PathVariable courseId: Int
+        @PathVariable courseId: Int,
     ): ResponseEntity<List<RelatedCourseDTO>> {
         val relatedCourses = courseDetailService.getRelatedCourses(courseId)
         return ResponseEntity.ok(relatedCourses)

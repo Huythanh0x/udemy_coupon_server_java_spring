@@ -25,7 +25,6 @@ import java.time.Duration
 @Configuration
 @EnableCaching
 class CacheConfig {
-
     /**
      * Creates a clean Jackson ObjectMapper for REST API responses.
      * This is the primary ObjectMapper used by Spring for JSON serialization.
@@ -53,7 +52,7 @@ class CacheConfig {
             // Enable default typing for GenericJackson2JsonRedisSerializer to work properly
             activateDefaultTyping(
                 LaissezFaireSubTypeValidator.instance,
-                ObjectMapper.DefaultTyping.NON_FINAL
+                ObjectMapper.DefaultTyping.NON_FINAL,
             )
         }
     }
@@ -61,17 +60,18 @@ class CacheConfig {
     @Bean
     fun cacheManager(
         connectionFactory: RedisConnectionFactory,
-        @Qualifier("redisObjectMapper") redisObjectMapper: ObjectMapper
+        @Qualifier("redisObjectMapper") redisObjectMapper: ObjectMapper,
     ): CacheManager {
         // Use the specifically named redisObjectMapper bean (with type information for Redis)
         val jsonSerializer = GenericJackson2JsonRedisSerializer(redisObjectMapper)
 
         // Default cache configuration
-        val defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
-            .entryTtl(Duration.ofHours(12)) // Default TTL: 12 hours
-            .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(StringRedisSerializer()))
-            .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(jsonSerializer))
-            .disableCachingNullValues()
+        val defaultConfig =
+            RedisCacheConfiguration.defaultCacheConfig()
+                .entryTtl(Duration.ofHours(12)) // Default TTL: 12 hours
+                .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(StringRedisSerializer()))
+                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(jsonSerializer))
+                .disableCachingNullValues()
 
         // Course details cache: 24 hours
         val courseDetailsConfig = defaultConfig.entryTtl(Duration.ofHours(24))

@@ -6,5 +6,6 @@ package com.thanh0x.coursedeal.dto
 data class ReviewsSummaryDTO(
     val totalCount: Int? = null,
     val averageRating: Float? = null,
-    val recentReviews: List<ReviewDTO>? = null // First 3-5 reviews
+    // First 3-5 reviews
+    val recentReviews: List<ReviewDTO>? = null,
 )

@@ -9,22 +9,18 @@ import java.time.LocalDateTime
  */
 @Entity
 @Table(name = "scraping_task_logs")
+@Suppress("LongParameterList")
 class ScrapingTaskLog(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
-
     var url: String? = null,
-
-    var status: String? = null, // SUCCESS, FAILED, PENDING
-
+    // SUCCESS, FAILED, PENDING
+    var status: String? = null,
     @Column(columnDefinition = "TEXT")
     var errorMessage: String? = null,
-
     var remoteAddr: String? = null,
-
     var courseId: Int? = null,
-
     @CreationTimestamp
-    var createdAt: LocalDateTime? = null
+    var createdAt: LocalDateTime? = null,
 )

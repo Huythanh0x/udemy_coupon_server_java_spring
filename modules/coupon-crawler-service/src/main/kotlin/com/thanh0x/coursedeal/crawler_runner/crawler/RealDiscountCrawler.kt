@@ -13,9 +13,8 @@ import org.springframework.stereotype.Component
  */
 @Component
 class RealDiscountCrawler(
-    private val properties: CrawlerProperties
+    private val properties: CrawlerProperties,
 ) : CouponUrlCrawlerBase() {
-
     private val log = logger()
 
     init {

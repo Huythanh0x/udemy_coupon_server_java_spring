@@ -6,5 +6,5 @@ package com.thanh0x.coursedeal.model.user
 enum class AuthProvider {
     GOOGLE,
     APPLE,
-    PASSKEY
+    PASSKEY,
 }

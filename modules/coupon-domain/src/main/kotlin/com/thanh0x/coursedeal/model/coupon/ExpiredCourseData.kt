@@ -11,20 +11,17 @@ import java.time.LocalDateTime
 class ExpiredCourseData(
     @Id
     var couponUrl: String = "",
-    
     /**
      * Course ID from Udemy. This allows us to reuse the courseId without making HTTP requests
      * when rechecking expired coupons, significantly reducing API calls.
      */
     @Column(name = "course_id", nullable = true)
     var courseId: Int? = null,
-    
     /**
      * Course title. Useful for debugging and display purposes.
      */
     @Column(name = "title", nullable = true, length = 500)
     var title: String? = null,
-    
     /**
      * Timestamp when this coupon was marked as expired (when we detected it as expired).
      * This is NOT the expiration time of the coupon itself.
@@ -32,10 +29,9 @@ class ExpiredCourseData(
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false, columnDefinition = "DATETIME")
     var createdAt: LocalDateTime? = null,
-    
     @UpdateTimestamp
     @Column(name = "updated_at", columnDefinition = "DATETIME")
-    var updatedAt: LocalDateTime? = null
+    var updatedAt: LocalDateTime? = null,
 ) {
     // Secondary constructors for convenience
     constructor(couponUrl: String) : this(couponUrl, null, null)

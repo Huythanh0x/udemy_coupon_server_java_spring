@@ -8,5 +8,5 @@ data class PagedCouponResponseDTO(
     val totalCoupon: Long? = null,
     val totalPage: Int? = null,
     val currentPage: Int? = null,
-    val courses: List<CouponSummaryDTO>? = null
+    val courses: List<CouponSummaryDTO>? = null,
 )

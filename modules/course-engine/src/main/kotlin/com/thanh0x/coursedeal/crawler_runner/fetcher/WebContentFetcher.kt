@@ -17,7 +17,6 @@ import java.time.Duration
  * A utility class for fetching and parsing web content.
  */
 class WebContentFetcher {
-
     private val log = logger()
 
     /**
@@ -102,10 +101,11 @@ class WebContentFetcher {
         @JvmStatic
         fun getRawHTMLContentFrom(urlString: String): String? {
             val client = HttpClient.newHttpClient()
-            val request = HttpRequest.newBuilder()
-                .uri(URI.create(urlString))
-                .timeout(Duration.ofSeconds(10))
-                .build()
+            val request =
+                HttpRequest.newBuilder()
+                    .uri(URI.create(urlString))
+                    .timeout(Duration.ofSeconds(10))
+                    .build()
 
             return try {
                 val response = client.send(request, HttpResponse.BodyHandlers.ofString())

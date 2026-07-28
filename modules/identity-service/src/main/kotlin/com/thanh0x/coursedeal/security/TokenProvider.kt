@@ -14,16 +14,16 @@ import java.util.*
 @Component
 @EnableConfigurationProperties(IdentityProperties::class)
 class TokenProvider(private val properties: IdentityProperties) {
-
     private lateinit var key: Key
 
     @PostConstruct
     fun init() {
-        key = if (properties.jwtSecret.length < 32) {
-            Keys.secretKeyFor(SignatureAlgorithm.HS512)
-        } else {
-            Keys.hmacShaKeyFor(properties.jwtSecret.toByteArray())
-        }
+        key =
+            if (properties.jwtSecret.length < 32) {
+                Keys.secretKeyFor(SignatureAlgorithm.HS512)
+            } else {
+                Keys.hmacShaKeyFor(properties.jwtSecret.toByteArray())
+            }
     }
 
     fun createToken(user: UserEntity): String {
@@ -40,12 +40,13 @@ class TokenProvider(private val properties: IdentityProperties) {
     }
 
     fun getUserIdFromToken(token: String): Int? {
-        val subject = Jwts.parserBuilder()
-            .setSigningKey(key)
-            .build()
-            .parseClaimsJws(token)
-            .body
-            .subject
+        val subject =
+            Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .body
+                .subject
         return subject.toIntOrNull()
     }
 

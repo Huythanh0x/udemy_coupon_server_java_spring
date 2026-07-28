@@ -22,15 +22,17 @@ class CourseScraperService(
     private val couponCourseHistoryRepository: CouponCourseHistoryRepository,
     private val notificationService: NotificationService,
     private val scrapingTaskLogRepository: ScrapingTaskLogRepository,
-    private val jobScheduler: JobScheduler
+    private val jobScheduler: JobScheduler,
 ) {
-
     private val log = logger()
 
     /**
      * Enqueues a scraping task into JobRunr.
      */
-    fun enqueueScrapingTask(couponUrl: String, remoteAddr: String) {
+    fun enqueueScrapingTask(
+        couponUrl: String,
+        remoteAddr: String,
+    ) {
         jobScheduler.enqueue { validateAndSaveCoupon(couponUrl, remoteAddr) }
     }
 
@@ -38,16 +40,20 @@ class CourseScraperService(
      * Core validation logic. This is executed by the JobRunr worker.
      */
     @Transactional
-    fun validateAndSaveCoupon(couponUrl: String, remoteAddr: String) {
+    fun validateAndSaveCoupon(
+        couponUrl: String,
+        remoteAddr: String,
+    ) {
         log.info("Starting background validation for coupon: {} from {}", couponUrl, remoteAddr)
 
-        var auditLog = scrapingTaskLogRepository.save(
-            ScrapingTaskLog(
-                url = couponUrl,
-                remoteAddr = remoteAddr,
-                status = "PENDING"
+        var auditLog =
+            scrapingTaskLogRepository.save(
+                ScrapingTaskLog(
+                    url = couponUrl,
+                    remoteAddr = remoteAddr,
+                    status = "PENDING",
+                ),
             )
-        )
 
         try {
             val extractor = CourseDataExtractor(couponUrl)
@@ -59,7 +65,8 @@ class CourseScraperService(
                 return
             }
 
-            val existedBefore = couponCourseRepository.findByCouponUrl(couponUrl) != null ||
+            val existedBefore =
+                couponCourseRepository.findByCouponUrl(couponUrl) != null ||
                     expiredCouponRepository.findByCouponUrl(couponUrl) != null
             couponData.isNew = !existedBefore
 
@@ -70,8 +77,8 @@ class CourseScraperService(
                     courseId = saved.courseId,
                     title = saved.title,
                     couponUrl = saved.couponUrl ?: "",
-                    status = if (existedBefore) "reactivated" else "new"
-                )
+                    status = if (existedBefore) "reactivated" else "new",
+                ),
             )
 
             log.info("Successfully validated and saved: {} (ID: {})", saved.title, saved.courseId)
@@ -80,14 +87,18 @@ class CourseScraperService(
 
             // Notify interested users about the new deal
             notificationService.notifyInterestedUsers(saved)
-
         } catch (e: Exception) {
             log.error("Error in async scraping for {}: {}", couponUrl, e.message, e)
             updateAuditLog(auditLog, "FAILED", e.javaClass.simpleName + ": " + e.message)
         }
     }
 
-    private fun updateAuditLog(auditLog: ScrapingTaskLog, status: String, error: String?, courseId: Int? = null) {
+    private fun updateAuditLog(
+        auditLog: ScrapingTaskLog,
+        status: String,
+        error: String?,
+        courseId: Int? = null,
+    ) {
         auditLog.status = status
         auditLog.errorMessage = error
         auditLog.courseId = courseId

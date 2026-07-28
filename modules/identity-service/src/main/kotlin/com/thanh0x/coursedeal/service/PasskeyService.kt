@@ -25,7 +25,7 @@ class PasskeyService(
     private val userRepository: UserRepository,
     private val passkeyRepository: PasskeyCredentialRepository,
     private val redisTemplate: RedisTemplate<String, Any>,
-    private val tokenProvider: TokenProvider
+    private val tokenProvider: TokenProvider,
 ) {
     private val log = logger()
     private val objectMapper = ObjectMapper()
@@ -35,61 +35,70 @@ class PasskeyService(
         private const val AUTH_REQUEST_PREFIX = "webauthn:auth:"
     }
 
-    fun startRegistration(email: String, fullName: String): PublicKeyCredentialCreationOptions {
-        val user = userRepository.findByEmail(email) ?: userRepository.save(
-            UserEntity(
-                email = email,
-                username = email,
-                fullName = fullName
+    fun startRegistration(
+        email: String,
+        fullName: String,
+    ): PublicKeyCredentialCreationOptions {
+        val user =
+            userRepository.findByEmail(email) ?: userRepository.save(
+                UserEntity(
+                    email = email,
+                    username = email,
+                    fullName = fullName,
+                ),
             )
-        )
 
-        val options = relyingParty.startRegistration(
-            StartRegistrationOptions.builder()
-                .user(
-                    UserIdentity.builder()
-                        .name(user.email!!)
-                        .displayName(user.fullName!!)
-                        .id(ByteArray(user.id.toString().toByteArray()))
-                        .build()
-                )
-                .build()
-        )
+        val options =
+            relyingParty.startRegistration(
+                StartRegistrationOptions.builder()
+                    .user(
+                        UserIdentity.builder()
+                            .name(user.email!!)
+                            .displayName(user.fullName!!)
+                            .id(ByteArray(user.id.toString().toByteArray()))
+                            .build(),
+                    )
+                    .build(),
+            )
 
         storeInRedis(REG_OPTIONS_PREFIX + email, options)
         return options
     }
 
     @Transactional
-    fun finishRegistration(email: String, responseJson: String): AuthResponseDTO {
+    fun finishRegistration(
+        email: String,
+        responseJson: String,
+    ): AuthResponseDTO {
         try {
             val options = getFromRedis(REG_OPTIONS_PREFIX + email, PublicKeyCredentialCreationOptions::class.java)
 
             val pkc = PublicKeyCredential.parseRegistrationResponseJson(responseJson)
 
-            val result = relyingParty.finishRegistration(
-                FinishRegistrationOptions.builder()
-                    .request(options)
-                    .response(pkc)
-                    .build()
-            )
+            val result =
+                relyingParty.finishRegistration(
+                    FinishRegistrationOptions.builder()
+                        .request(options)
+                        .response(pkc)
+                        .build(),
+                )
 
             val user = userRepository.findByEmail(email) ?: throw BadRequestException("User not found")
 
-            val credential = PasskeyCredential(
-                credentialId = result.keyId.id.bytes,
-                publicKey = result.publicKeyCose.bytes,
-                signatureCount = result.signatureCount,
-                user = user
-            )
+            val credential =
+                PasskeyCredential(
+                    credentialId = result.keyId.id.bytes,
+                    publicKey = result.publicKeyCose.bytes,
+                    signatureCount = result.signatureCount,
+                    user = user,
+                )
 
             passkeyRepository.save(credential)
 
             return AuthResponseDTO(
                 accessToken = tokenProvider.createToken(user),
-                tokenType = "Bearer"
+                tokenType = "Bearer",
             )
-
         } catch (e: Exception) {
             log.error("Registration failed for {}: {}", email, e.message)
             throw BadRequestException("Registration failed: " + e.message)
@@ -97,52 +106,61 @@ class PasskeyService(
     }
 
     fun startAuthentication(email: String): AssertionRequest {
-        val request = relyingParty.startAssertion(
-            StartAssertionOptions.builder()
-                .username(java.util.Optional.of(email))
-                .build()
-        )
+        val request =
+            relyingParty.startAssertion(
+                StartAssertionOptions.builder()
+                    .username(java.util.Optional.of(email))
+                    .build(),
+            )
 
         storeInRedis(AUTH_REQUEST_PREFIX + email, request)
         return request
     }
 
     @Transactional
-    fun finishAuthentication(email: String, responseJson: String): AuthResponseDTO {
-        try {
+    @Suppress("ThrowsCount")
+    fun finishAuthentication(
+        email: String,
+        responseJson: String,
+    ): AuthResponseDTO {
+        return try {
             val request = getFromRedis(AUTH_REQUEST_PREFIX + email, AssertionRequest::class.java)
-
             val pkc = PublicKeyCredential.parseAssertionResponseJson(responseJson)
 
-            val result = relyingParty.finishAssertion(
-                FinishAssertionOptions.builder()
-                    .request(request)
-                    .response(pkc)
-                    .build()
-            )
-
-            if (result.isSuccess) {
-                val user = userRepository.findByEmail(email) ?: throw BadRequestException("User not found")
-
-                passkeyRepository.findByCredentialId(result.credentialId.bytes)?.let { cred ->
-                    cred.signatureCount = result.signatureCount
-                    passkeyRepository.save(cred)
-                }
-
-                return AuthResponseDTO(
-                    accessToken = tokenProvider.createToken(user),
-                    tokenType = "Bearer"
+            val result =
+                relyingParty.finishAssertion(
+                    FinishAssertionOptions.builder()
+                        .request(request)
+                        .response(pkc)
+                        .build(),
                 )
-            }
-            throw BadRequestException("Authentication failed")
 
+            if (!result.isSuccess) {
+                log.error("WebAuthn assertion failed for {}", email)
+                error("Authentication failed")
+            }
+
+            val user = userRepository.findByEmail(email) ?: error("User not found")
+
+            passkeyRepository.findByCredentialId(result.credentialId.bytes)?.apply {
+                signatureCount = result.signatureCount
+                passkeyRepository.save(this)
+            }
+
+            AuthResponseDTO(
+                accessToken = tokenProvider.createToken(user),
+                tokenType = "Bearer",
+            )
         } catch (e: Exception) {
             log.error("Authentication failed for {}: {}", email, e.message)
             throw BadRequestException("Authentication failed: " + e.message)
         }
     }
 
-    private fun storeInRedis(key: String, value: Any) {
+    private fun storeInRedis(
+        key: String,
+        value: Any,
+    ) {
         try {
             val json = objectMapper.writeValueAsString(value)
             redisTemplate.opsForValue().set(key, json, Duration.ofMinutes(5))
@@ -151,10 +169,14 @@ class PasskeyService(
         }
     }
 
-    private fun <T> getFromRedis(key: String, clazz: Class<T>): T {
+    private fun <T> getFromRedis(
+        key: String,
+        clazz: Class<T>,
+    ): T {
         try {
-            val json = redisTemplate.opsForValue().get(key) as String?
-                ?: throw BadRequestException("Handshake expired or not found")
+            val json =
+                redisTemplate.opsForValue().get(key) as String?
+                    ?: throw BadRequestException("Handshake expired or not found")
             return objectMapper.readValue(json, clazz)
         } catch (e: Exception) {
             throw BadRequestException("Failed to retrieve WebAuthn state: " + e.message)

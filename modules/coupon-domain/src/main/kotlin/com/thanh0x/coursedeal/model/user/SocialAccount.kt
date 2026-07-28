@@ -8,19 +8,16 @@ import jakarta.persistence.*
 @Entity
 @Table(
     name = "user_social_accounts",
-    uniqueConstraints = [UniqueConstraint(columnNames = ["provider", "providerId"])]
+    uniqueConstraints = [UniqueConstraint(columnNames = ["provider", "providerId"])],
 )
 class SocialAccount(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
-
     @Enumerated(EnumType.STRING)
     var provider: AuthProvider? = null,
-
     var providerId: String? = null,
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
-    var user: UserEntity? = null
+    var user: UserEntity? = null,
 )

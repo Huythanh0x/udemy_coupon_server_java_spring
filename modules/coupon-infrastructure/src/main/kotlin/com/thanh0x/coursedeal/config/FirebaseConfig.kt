@@ -12,7 +12,6 @@ import java.io.IOException
 @Configuration
 @EnableConfigurationProperties(FirebaseProperties::class)
 class FirebaseConfig(private val properties: FirebaseProperties) {
-
     private val log = logger()
 
     @PostConstruct
@@ -24,9 +23,10 @@ class FirebaseConfig(private val properties: FirebaseProperties) {
 
         try {
             val serviceAccount = FileInputStream(properties.configPath)
-            val options = FirebaseOptions.builder()
-                .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-                .build()
+            val options =
+                FirebaseOptions.builder()
+                    .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                    .build()
 
             if (FirebaseApp.getApps().isEmpty()) {
                 FirebaseApp.initializeApp(options)

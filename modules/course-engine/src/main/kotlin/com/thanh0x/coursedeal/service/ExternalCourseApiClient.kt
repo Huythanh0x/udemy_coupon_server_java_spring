@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service
  */
 @Service
 class ExternalCourseApiClient {
-
     private val log = logger()
 
     /**
@@ -27,7 +26,10 @@ class ExternalCourseApiClient {
     /**
      * Fetches course landing components including curriculum, pricing, and incentives.
      */
-    fun getCourseLandingComponentsJson(courseId: Int, couponCode: String?): JSONObject? {
+    fun getCourseLandingComponentsJson(
+        courseId: Int,
+        couponCode: String?,
+    ): JSONObject? {
         val url = UrlUtils.getCouponAPI(courseId, couponCode)
         log.debug("Fetching landing components for courseId: {}, couponCode: {}", courseId, couponCode)
         return WebContentFetcher.getJsonObjectFrom(url)
@@ -36,7 +38,10 @@ class ExternalCourseApiClient {
     /**
      * Fetches course reviews from external API.
      */
-    fun getCourseReviewsJson(courseId: Int, page: Int): JSONObject? {
+    fun getCourseReviewsJson(
+        courseId: Int,
+        page: Int,
+    ): JSONObject? {
         val url = UrlUtils.getReviewsAPI(courseId, page)
         log.debug("Fetching reviews for courseId: {}, page: {}", courseId, page)
         return WebContentFetcher.getJsonObjectFrom(url)
@@ -63,38 +68,29 @@ class ExternalCourseApiClient {
     /**
      * Fetches the course preview page HTML and extracts the embedded JSON data.
      */
-    fun getPreviewPageJson(courseId: Int, startPreviewId: Long?): JSONObject? {
+    fun getPreviewPageJson(
+        courseId: Int,
+        startPreviewId: Long?,
+    ): JSONObject? {
         val url = UrlUtils.getPreviewPageURL(courseId, startPreviewId)
         log.debug("Fetching preview page for courseId: {}, startPreviewId: {}", courseId, startPreviewId)
 
-        val fetcher = WebContentFetcher()
-        val doc = fetcher.getHtmlDocumentFrom(url)
-        if (doc == null) {
-            log.warn("Failed to fetch preview page HTML from {}", url)
-            return null
-        }
+        val doc = WebContentFetcher().getHtmlDocumentFrom(url)
+        val previewElement = doc?.selectFirst("[data-module-id=course-preview]")
+        val moduleArgs = previewElement?.attr("data-module-args")
 
-        // Find the element with data-module-id="course-preview"
-        val previewElement = doc.selectFirst("[data-module-id=course-preview]")
-        if (previewElement == null) {
-            log.warn("Could not find course-preview element in preview page HTML")
-            return null
-        }
-
-        // Extract data-module-args attribute (contains HTML-encoded JSON)
-        val moduleArgs = previewElement.attr("data-module-args")
-        if (moduleArgs.isEmpty()) {
-            log.warn("data-module-args attribute is empty or missing")
+        if (moduleArgs.isNullOrEmpty()) {
+            log.warn("Could not extract valid preview module data from {}", url)
             return null
         }
 
         return try {
-            // The JSON is HTML-encoded, so we need to decode it
-            val decodedJson = moduleArgs
-                .replace("&quot;", "\"")
-                .replace("&amp;", "&")
-                .replace("&lt;", "<")
-                .replace("&gt;", ">")
+            val decodedJson =
+                moduleArgs
+                    .replace("&quot;", "\"")
+                    .replace("&amp;", "&")
+                    .replace("&lt;", "<")
+                    .replace("&gt;", ">")
 
             JSONObject(decodedJson)
         } catch (e: Exception) {

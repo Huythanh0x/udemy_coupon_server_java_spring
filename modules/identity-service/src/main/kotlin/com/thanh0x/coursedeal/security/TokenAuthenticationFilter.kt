@@ -15,14 +15,14 @@ import org.springframework.web.filter.OncePerRequestFilter
 @Component
 class TokenAuthenticationFilter(
     private val tokenProvider: TokenProvider,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
 ) : OncePerRequestFilter() {
     private val log = logger()
 
     override fun doFilterInternal(
         request: HttpServletRequest,
         response: HttpServletResponse,
-        filterChain: FilterChain
+        filterChain: FilterChain,
     ) {
         try {
             val jwt = getJwtFromRequest(request)

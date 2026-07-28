@@ -14,5 +14,5 @@ data class CurriculumItemDTO(
     val isPracticeTest: Boolean? = null,
     val previewUrl: String? = null,
     val learnUrl: String? = null,
-    val objectIndex: Int? = null
+    val objectIndex: Int? = null,
 )

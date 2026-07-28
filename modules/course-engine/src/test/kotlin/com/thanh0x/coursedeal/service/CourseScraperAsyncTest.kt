@@ -9,7 +9,6 @@ import org.springframework.test.context.ActiveProfiles
 @SpringBootTest
 @ActiveProfiles("test")
 class CourseScraperAsyncTest {
-
     @Autowired
     private lateinit var scraperService: CourseScraperService
 

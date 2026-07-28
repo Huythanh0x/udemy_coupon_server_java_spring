@@ -7,7 +7,6 @@ import com.thanh0x.coursedeal.model.coupon.CouponJsonData
 import com.thanh0x.coursedeal.model.coupon.CourseJsonData
 import com.thanh0x.coursedeal.model.coupon.CourseLevel
 import com.thanh0x.coursedeal.utils.UrlUtils
-import org.json.JSONArray
 import org.json.JSONObject
 import java.time.Instant
 import java.time.OffsetDateTime
@@ -179,7 +178,7 @@ class CourseDataExtractor {
 
         return CourseJsonData(
             category, subCategory, title, level, author, contentLength, rating, numberReviews, students,
-            language, headline, description
+            language, headline, description,
         )
     }
 
@@ -274,7 +273,6 @@ class CourseDataExtractor {
             }
 
             OffsetDateTime.parse(dateStr, DateTimeFormatter.ISO_OFFSET_DATE_TIME).toInstant()
-
         } catch (e: DateTimeParseException) {
             log.debug("Failed to parse expired date string '{}', defaulting far future", dateStr, e)
             Instant.parse("2030-05-19T17:24:00Z")
@@ -289,9 +287,11 @@ class CourseDataExtractor {
      * @param courseData The CourseJsonData object containing course information
      * @return A new CouponCourseData object with combined data from course and coupon
      */
-    private fun combineCourseAndCouponData(couponData: CouponJsonData?, courseData: CourseJsonData?): CouponCourseData? {
-        if (couponData == null || courseData == null) return null
-        if (couponData.price != 0f) return null
+    private fun combineCourseAndCouponData(
+        couponData: CouponJsonData?,
+        courseData: CourseJsonData?,
+    ): CouponCourseData? {
+        if (couponData == null || courseData == null || couponData.price != 0f) return null
         return CouponCourseData(
             courseId = courseId,
             category = courseData.category,
@@ -311,7 +311,7 @@ class CourseDataExtractor {
             heading = courseData.headline,
             description = courseData.description,
             previewVideo = couponData.previewVideo,
-            language = courseData.language
+            language = courseData.language,
         )
     }
 }

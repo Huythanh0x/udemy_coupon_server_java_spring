@@ -15,9 +15,8 @@ import java.util.Optional
 @Component
 class JpaCredentialRepository(
     private val passkeyRepository: PasskeyCredentialRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
 ) : CredentialRepository {
-
     override fun getCredentialIdsForUsername(username: String): Set<PublicKeyCredentialDescriptor> {
         val user = userRepository.findByUsername(username)
         return user?.let { u ->
@@ -41,7 +40,10 @@ class JpaCredentialRepository(
         return userRepository.findById(userId).map { it.username }
     }
 
-    override fun lookup(credentialId: ByteArray, userHandle: ByteArray): Optional<RegisteredCredential> {
+    override fun lookup(
+        credentialId: ByteArray,
+        userHandle: ByteArray,
+    ): Optional<RegisteredCredential> {
         val cred = passkeyRepository.findByCredentialId(credentialId.bytes)
         return Optional.ofNullable(cred).map { c ->
             RegisteredCredential.builder()
@@ -62,7 +64,7 @@ class JpaCredentialRepository(
                     .userHandle(ByteArray(c.user?.id.toString().toByteArray()))
                     .publicKeyCose(ByteArray(c.publicKey!!))
                     .signatureCount(c.signatureCount ?: 0L)
-                    .build()
+                    .build(),
             )
         } ?: emptySet()
     }

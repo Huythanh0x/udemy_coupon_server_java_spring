@@ -13,5 +13,5 @@ data class IncentivesDTO(
     val devicesAccess: String? = null, // e.g., "Access on mobile and TV"
     val hasAssignments: Boolean? = null,
     val hasCertificate: Boolean? = null,
-    val hasClosedCaptions: Boolean? = null
+    val hasClosedCaptions: Boolean? = null,
 )

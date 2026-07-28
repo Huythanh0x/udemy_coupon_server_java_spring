@@ -3,7 +3,7 @@ package com.thanh0x.coursedeal.service
 import com.thanh0x.coursedeal.config.logger
 import com.thanh0x.coursedeal.crawler_runner.CourseDataExtractor
 import com.thanh0x.coursedeal.dto.CouponDetailDTO
-import com.thanh0x.coursedeal.dto.CouponSummaryDTO
+import com.thanh0x.coursedeal.dto.CouponQueryDTO
 import com.thanh0x.coursedeal.dto.PagedCouponResponseDTO
 import com.thanh0x.coursedeal.exception.BadRequestException
 import com.thanh0x.coursedeal.exception.ResourceNotFoundException
@@ -29,7 +29,7 @@ class CourseResponseService(
     private val expiredCouponRepository: ExpiredCouponRepository,
     private val couponCourseHistoryRepository: CouponCourseHistoryRepository,
     private val couponMapper: CouponMapper,
-    private val courseScraperService: CourseScraperService
+    private val courseScraperService: CourseScraperService,
 ) {
     private val log = logger()
 
@@ -37,54 +37,51 @@ class CourseResponseService(
      * Unified listing endpoint that supports basic pagination, structured filters, free-text search, and sorting.
      */
     fun listCoupons(
-        category: String?,
-        rating: String?,
-        contentLength: String?,
-        level: String?,
-        language: String?,
-        query: String?,
-        sortBy: String?,
-        sortOrder: String?,
-        pageIndex: String,
-        numberPerPage: String,
-        remoteAddr: String?
+        queryDto: CouponQueryDTO,
+        remoteAddr: String?,
     ): PagedCouponResponseDTO {
-        handlePagingParameters(pageIndex, numberPerPage)
+        handlePagingParameters(queryDto.pageIndex, queryDto.numberPerPage)
 
-        val sort = createSort(sortBy, sortOrder)
-        val pageable = PageRequest.of(
-            pageIndex.toInt(),
-            Math.min(numberPerPage.toInt(), Constant.MAX_PAGE_SIZE),
-            sort
-        )
+        val sort = createSort(queryDto.sortBy, queryDto.sortOrder)
+        val pageable =
+            PageRequest.of(
+                queryDto.pageIndex.toInt(),
+                Math.min(queryDto.numberPerPage.toInt(), Constant.MAX_PAGE_SIZE),
+                sort,
+            )
 
-        val hasQuery = !query.isNullOrBlank()
-        val hasStructuredFilters = (rating != null && rating != "-1") ||
-                (contentLength != null && contentLength != "-1") ||
-                !level.isNullOrBlank() ||
-                !category.isNullOrBlank() ||
-                !language.isNullOrBlank()
+        val hasQuery = !queryDto.query.isBlank()
+        val hasStructuredFilters =
+            (queryDto.rating != "-1") ||
+                (queryDto.contentLength != "-1") ||
+                !queryDto.level.isBlank() ||
+                !queryDto.category.isBlank() ||
+                !queryDto.language.isBlank()
 
-        val page: Page<CouponCourseData> = when {
-            hasQuery -> {
-                couponCourseRepository.findByTitleContainingOrDescriptionContainingOrHeadingContaining(
-                    query!!, query, query, pageable
-                )
+        val page: Page<CouponCourseData> =
+            when {
+                hasQuery -> {
+                    couponCourseRepository.findByTitleContainingOrDescriptionContainingOrHeadingContaining(
+                        queryDto.query,
+                        queryDto.query,
+                        queryDto.query,
+                        pageable,
+                    )
+                }
+                hasStructuredFilters -> {
+                    couponCourseRepository.findWithStructuredFilters(
+                        queryDto.rating.toFloatOrNull() ?: -1f,
+                        queryDto.contentLength.toIntOrNull() ?: -1,
+                        queryDto.level,
+                        queryDto.category,
+                        queryDto.language,
+                        pageable,
+                    )
+                }
+                else -> {
+                    couponCourseRepository.findAll(pageable)
+                }
             }
-            hasStructuredFilters -> {
-                couponCourseRepository.findByRatingGreaterThanAndContentLengthGreaterThanAndLevelContainingAndCategoryIsContainingIgnoreCaseAndLanguageContaining(
-                    rating?.toFloatOrNull() ?: -1f,
-                    contentLength?.toIntOrNull() ?: -1,
-                    level ?: "",
-                    category ?: "",
-                    language ?: "",
-                    pageable
-                )
-            }
-            else -> {
-                couponCourseRepository.findAll(pageable)
-            }
-        }
 
         val dtos = page.content.map { couponMapper.toSummaryDto(it) }
 
@@ -93,33 +90,38 @@ class CourseResponseService(
             page.totalElements,
             page.totalPages,
             page.pageable.pageNumber,
-            dtos
+            dtos,
         )
     }
 
     /**
      * Creates a Sort object based on the provided sort field and order.
      */
-    private fun createSort(sortBy: String?, sortOrder: String?): Sort {
+    private fun createSort(
+        sortBy: String?,
+        sortOrder: String?,
+    ): Sort {
         val actualSortBy = if (sortBy.isNullOrBlank()) "createdAt" else sortBy
 
-        val direction = if (sortOrder?.equals("asc", ignoreCase = true) == true) {
-            Sort.Direction.ASC
-        } else {
-            Sort.Direction.DESC
-        }
-
-        val sortField = when (actualSortBy.lowercase()) {
-            "students" -> "students"
-            "rating" -> "rating"
-            "createdat", "created_at", "newest" -> "createdAt"
-            "contentlength", "content_length" -> "contentLength"
-            "usesremaining", "uses_remaining" -> "usesRemaining"
-            else -> {
-                log.warn("Unknown sort field: {}, defaulting to createdAt", actualSortBy)
-                "createdAt"
+        val direction =
+            if (sortOrder?.equals("asc", ignoreCase = true) == true) {
+                Sort.Direction.ASC
+            } else {
+                Sort.Direction.DESC
             }
-        }
+
+        val sortField =
+            when (actualSortBy.lowercase()) {
+                "students" -> "students"
+                "rating" -> "rating"
+                "createdat", "created_at", "newest" -> "createdAt"
+                "contentlength", "content_length" -> "contentLength"
+                "usesremaining", "uses_remaining" -> "usesRemaining"
+                else -> {
+                    log.warn("Unknown sort field: {}, defaulting to createdAt", actualSortBy)
+                    "createdAt"
+                }
+            }
 
         return Sort.by(direction, sortField)
     }
@@ -130,14 +132,20 @@ class CourseResponseService(
      * @param couponUrl  the URL of the coupon to save
      * @param remoteAddr the remote address of the user saving the coupon
      */
-    fun saveNewCouponUrlAsync(couponUrl: String, remoteAddr: String?) {
+    fun saveNewCouponUrlAsync(
+        couponUrl: String,
+        remoteAddr: String?,
+    ) {
         courseScraperService.enqueueScrapingTask(couponUrl, remoteAddr ?: "unknown")
     }
 
     /**
      * Refreshes a coupon URL asynchronously.
      */
-    fun refreshCouponAsync(courseId: Int, remoteAddr: String?) {
+    fun refreshCouponAsync(
+        courseId: Int,
+        remoteAddr: String?,
+    ) {
         couponCourseRepository.findById(courseId).ifPresent { coupon ->
             courseScraperService.enqueueScrapingTask(coupon.couponUrl ?: "", remoteAddr ?: "unknown")
         }
@@ -146,12 +154,17 @@ class CourseResponseService(
     /**
      * Saves a new coupon URL to the database.
      */
-    fun saveNewCouponUrl(couponUrl: String, remoteAddr: String?): CouponDetailDTO {
+    fun saveNewCouponUrl(
+        couponUrl: String,
+        remoteAddr: String?,
+    ): CouponDetailDTO {
         val extractor = CourseDataExtractor(couponUrl)
-        val couponData = extractor.getFullCouponCodeData()
-            ?: throw BadRequestException("Coupon is invalid or expired")
+        val couponData =
+            extractor.getFullCouponCodeData()
+                ?: throw BadRequestException("Coupon is invalid or expired")
 
-        val existedBefore = couponCourseRepository.findByCouponUrl(couponUrl) != null ||
+        val existedBefore =
+            couponCourseRepository.findByCouponUrl(couponUrl) != null ||
                 expiredCouponRepository.findByCouponUrl(couponUrl) != null
         couponData.isNew = !existedBefore
 
@@ -161,8 +174,8 @@ class CourseResponseService(
                 courseId = saved.courseId,
                 title = saved.title,
                 couponUrl = saved.couponUrl ?: "",
-                status = if (existedBefore) "reactivated" else "new"
-            )
+                status = if (existedBefore) "reactivated" else "new",
+            ),
         )
         return couponMapper.toDetailDto(saved)
     }
@@ -170,7 +183,10 @@ class CourseResponseService(
     /**
      * Validates and handles paging parameters for pagination.
      */
-    fun handlePagingParameters(pageIndex: String, numberPerPage: String) {
+    fun handlePagingParameters(
+        pageIndex: String,
+        numberPerPage: String,
+    ) {
         try {
             pageIndex.toInt()
             numberPerPage.toInt()

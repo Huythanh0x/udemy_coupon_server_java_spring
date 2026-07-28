@@ -9,5 +9,5 @@ data class CurriculumSectionDTO(
     val duration: String? = null, // e.g., "15:47"
     val durationSeconds: Int? = null,
     val lectureCount: Int? = null,
-    val items: List<CurriculumItemDTO>? = null
+    val items: List<CurriculumItemDTO>? = null,
 )

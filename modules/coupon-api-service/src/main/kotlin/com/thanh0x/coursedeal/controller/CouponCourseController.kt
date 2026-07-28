@@ -2,6 +2,7 @@ package com.thanh0x.coursedeal.controller
 
 import com.thanh0x.coursedeal.config.ApiProperties
 import com.thanh0x.coursedeal.dto.CouponDetailDTO
+import com.thanh0x.coursedeal.dto.CouponQueryDTO
 import com.thanh0x.coursedeal.dto.CouponRequestDTO
 import com.thanh0x.coursedeal.dto.CouponUpdateRequestDTO
 import com.thanh0x.coursedeal.dto.PagedCouponResponseDTO
@@ -9,7 +10,16 @@ import com.thanh0x.coursedeal.service.CourseResponseService
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.ModelAttribute
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
 
 /**
  * Controller class for managing coupon-related endpoints.
@@ -18,39 +28,14 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("api/v1/coupons")
 class CouponCourseController(
     private val courseResponseService: CourseResponseService,
-    private val properties: ApiProperties
+    private val properties: ApiProperties,
 ) {
-
-    /**
-     * Retrieves a paged list of coupons with optional filtering, search, and sorting criteria.
-     */
     @GetMapping
     fun listCoupons(
-        @RequestParam(required = false, defaultValue = "") category: String,
-        @RequestParam(required = false, defaultValue = "-1") rating: String,
-        @RequestParam(required = false, defaultValue = "-1") contentLength: String,
-        @RequestParam(required = false, defaultValue = "") level: String,
-        @RequestParam(required = false, defaultValue = "") language: String,
-        @RequestParam(required = false, defaultValue = "") query: String,
-        @RequestParam(required = false, defaultValue = "createdAt") sortBy: String,
-        @RequestParam(required = false, defaultValue = "desc") sortOrder: String,
-        @RequestParam(required = false, defaultValue = "0") pageIndex: String,
-        @RequestParam(required = false, defaultValue = "10") numberPerPage: String,
-        request: HttpServletRequest
+        @ModelAttribute queryDto: CouponQueryDTO,
+        request: HttpServletRequest,
     ): PagedCouponResponseDTO {
-        return courseResponseService.listCoupons(
-            category,
-            rating,
-            contentLength,
-            level,
-            language,
-            query,
-            sortBy,
-            sortOrder,
-            pageIndex,
-            numberPerPage,
-            request.remoteAddr
-        )
+        return courseResponseService.listCoupons(queryDto, request.remoteAddr)
     }
 
     /**
@@ -60,7 +45,7 @@ class CouponCourseController(
     @PostMapping
     fun createCoupon(
         @Valid @RequestBody requestBody: CouponRequestDTO,
-        request: HttpServletRequest
+        request: HttpServletRequest,
     ): ResponseEntity<String> {
         courseResponseService.saveNewCouponUrlAsync(requestBody.couponUrl!!, request.remoteAddr)
         return ResponseEntity.accepted().body("Coupon submission received and is being processed.")
@@ -74,7 +59,9 @@ class CouponCourseController(
      * @param courseId the course identifier of the coupon to be deleted
      */
     @DeleteMapping("/{courseId}")
-    fun deleteCoupon(@PathVariable("courseId") courseId: Int) {
+    fun deleteCoupon(
+        @PathVariable("courseId") courseId: Int,
+    ) {
         throw UnsupportedOperationException("Direct deletion is not allowed.")
     }
 
@@ -86,7 +73,7 @@ class CouponCourseController(
     fun refreshCoupon(
         @PathVariable("courseId") courseId: Int,
         @RequestParam("secret") secret: String,
-        request: HttpServletRequest
+        request: HttpServletRequest,
     ): ResponseEntity<String> {
         if (properties.refreshSecret.isEmpty() || properties.refreshSecret != secret) {
             return ResponseEntity.status(401).body("Invalid refresh secret.")
@@ -108,7 +95,7 @@ class CouponCourseController(
     @PutMapping("/{courseId}")
     fun updateCoupon(
         @PathVariable("courseId") courseId: Int,
-        @RequestBody requestBody: CouponUpdateRequestDTO
+        @RequestBody requestBody: CouponUpdateRequestDTO,
     ): CouponDetailDTO {
         // TODO: Implement refresh from Udemy function.
         // This will update the latest data in our DB.
@@ -120,7 +107,9 @@ class CouponCourseController(
      * Retrieves coupon details for a specific course identified by courseId.
      */
     @GetMapping("/{courseId}")
-    fun getCouponDetail(@PathVariable("courseId") courseId: String): CouponDetailDTO {
+    fun getCouponDetail(
+        @PathVariable("courseId") courseId: String,
+    ): CouponDetailDTO {
         return courseResponseService.getCouponDetail(courseId)
     }
 }

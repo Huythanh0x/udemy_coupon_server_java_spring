@@ -10,5 +10,5 @@ data class CourseReviewsDTO(
     val hasNext: Boolean? = null,
     val hasPrevious: Boolean? = null,
     val nextUrl: String? = null,
-    val previousUrl: String? = null
+    val previousUrl: String? = null,
 )

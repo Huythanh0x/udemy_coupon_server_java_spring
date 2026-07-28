@@ -10,5 +10,5 @@ data class ApiErrorDTO(
     val status: Int = 0,
     val error: String? = null,
     val message: String? = null,
-    val path: String? = null
+    val path: String? = null,
 )

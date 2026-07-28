@@ -7,5 +7,5 @@ data class CouponUpdateRequestDTO(
     /**
      * The identifier of the coupon to update.
      */
-    val courseId: Int? = null
+    val courseId: Int? = null,
 )

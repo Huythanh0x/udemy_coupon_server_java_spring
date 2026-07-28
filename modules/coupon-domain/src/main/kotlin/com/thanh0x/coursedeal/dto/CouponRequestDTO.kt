@@ -13,7 +13,7 @@ data class CouponRequestDTO(
     @field:NotBlank(message = "Coupon URL is required")
     @field:Pattern(
         regexp = "^https?://.*udemy\\.com/.*",
-        message = "Invalid Udemy coupon URL"
+        message = "Invalid Udemy coupon URL",
     )
-    val couponUrl: String = ""
+    val couponUrl: String = "",
 )

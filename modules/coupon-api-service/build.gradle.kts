@@ -1,5 +1,5 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("org.springframework.boot")
     id("io.spring.dependency-management")
@@ -23,7 +23,7 @@ tasks.withType<KotlinCompile> {
 }
 
 // Load .env file for bootRun tasks to ensure environment variables are available
-apply(from = "${rootDir}/gradle/env-loading.gradle.kts")
+apply(from = "$rootDir/gradle/env-loading.gradle.kts")
 
 dependencies {
     implementation(project(":modules:coupon-domain"))
@@ -48,4 +48,3 @@ dependencies {
     testImplementation(libs.h2)
     testRuntimeOnly(libs.junit.platform.launcher)
 }
-

@@ -10,11 +10,10 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @RequestMapping("/api/v1/auth/passkey")
 class PasskeyAuthController(private val passkeyService: PasskeyService) {
-
     @GetMapping("/registration/options")
     fun getRegistrationOptions(
         @RequestParam email: String,
-        @RequestParam(defaultValue = "Course Deal User") name: String
+        @RequestParam(defaultValue = "Course Deal User") name: String,
     ): ResponseEntity<PublicKeyCredentialCreationOptions> {
         return ResponseEntity.ok(passkeyService.startRegistration(email, name))
     }
@@ -22,20 +21,22 @@ class PasskeyAuthController(private val passkeyService: PasskeyService) {
     @PostMapping("/registration/finish")
     fun finishRegistration(
         @RequestParam email: String,
-        @RequestBody responseJson: String
+        @RequestBody responseJson: String,
     ): ResponseEntity<AuthResponseDTO> {
         return ResponseEntity.ok(passkeyService.finishRegistration(email, responseJson))
     }
 
     @GetMapping("/authentication/options")
-    fun getAuthenticationOptions(@RequestParam email: String): ResponseEntity<AssertionRequest> {
+    fun getAuthenticationOptions(
+        @RequestParam email: String,
+    ): ResponseEntity<AssertionRequest> {
         return ResponseEntity.ok(passkeyService.startAuthentication(email))
     }
 
     @PostMapping("/authentication/finish")
     fun finishAuthentication(
         @RequestParam email: String,
-        @RequestBody responseJson: String
+        @RequestBody responseJson: String,
     ): ResponseEntity<AuthResponseDTO> {
         return ResponseEntity.ok(passkeyService.finishAuthentication(email, responseJson))
     }

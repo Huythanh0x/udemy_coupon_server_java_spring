@@ -30,5 +30,5 @@ data class CouponDetailDTO(
     @get:JvmName("isNew")
     val isNew: Boolean = false,
     val createdAt: LocalDateTime? = null,
-    val updatedAt: LocalDateTime? = null
+    val updatedAt: LocalDateTime? = null,
 )

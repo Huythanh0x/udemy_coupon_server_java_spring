@@ -9,6 +9,7 @@ import java.time.Instant
 import java.time.LocalDateTime
 
 @Entity
+@Suppress("LongParameterList")
 class CouponCourseData(
     @Id
     var courseId: Int = 0,
@@ -16,9 +17,7 @@ class CouponCourseData(
     var subCategory: String? = null,
     var title: String? = null,
     var contentLength: Int = 0,
-
     var level: CourseLevel? = null,
-
     var author: String? = null,
     var rating: Float = 0f,
     var reviews: Int = 0,
@@ -36,12 +35,10 @@ class CouponCourseData(
     var language: String? = null,
     @Column(name = "is_new", nullable = false)
     var isNew: Boolean = true,
-
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     var createdAt: LocalDateTime? = null,
-
     @UpdateTimestamp
     @Column(name = "updated_at")
-    var updatedAt: LocalDateTime? = null
+    var updatedAt: LocalDateTime? = null,
 )

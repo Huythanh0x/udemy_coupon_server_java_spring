@@ -13,5 +13,5 @@ data class CrawlerProperties(
     var refreshMinUsesRemaining: Int = 50,
     var refreshOldHours: Int = 1,
     var enableSmartRefresh: Boolean = true,
-    var batchProcessingSize: Int = 100
+    var batchProcessingSize: Int = 100,
 )
