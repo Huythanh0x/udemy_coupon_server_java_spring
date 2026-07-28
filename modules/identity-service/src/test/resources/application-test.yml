@@ -1,0 +1,9 @@
+# PasskeyService requires a RedisTemplate bean unconditionally, so RedisConfig's
+# @ConditionalOnProperty(name = ["spring.data.redis.host"]) must be satisfied for the
+# context to start. Lettuce connects lazily, so no live Redis is needed for these tests
+# as long as they never issue a real command.
+spring:
+  data:
+    redis:
+      host: localhost
+      port: 6379

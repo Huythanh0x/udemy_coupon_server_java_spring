@@ -20,7 +20,11 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPat
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 @SpringBootTest
-@AutoConfigureMockMvc
+// identity-service has no SecurityConfig of its own (it's owned by coupon-api-service, which
+// depends on this module, not the reverse), so Spring Security's default deny-all would 403
+// every request here. Filters are irrelevant to what this test verifies (controller <-> mocked
+// service wiring), so they're disabled rather than duplicating production security rules.
+@AutoConfigureMockMvc(addFilters = false)
 @ActiveProfiles("test")
 class SocialAuthControllerTest {
 

@@ -26,4 +26,7 @@ dependencies {
     api(libs.jobrunr.spring.boot.starter)
     implementation(libs.kotlin.reflect)
     implementation(libs.kotlin.stdlib)
+    testImplementation(libs.spring.boot.starter.test)
+    testImplementation(libs.h2)
+    testRuntimeOnly(libs.junit.platform.launcher)
 }
