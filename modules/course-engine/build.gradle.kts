@@ -7,7 +7,7 @@ plugins {
 
 dependencyManagement {
     imports {
-        mavenBom("org.springframework.boot:spring-boot-dependencies:3.5.7")
+        mavenBom("org.springframework.boot:spring-boot-dependencies:${libs.versions.spring.boot.get()}")
     }
 }
 
@@ -19,11 +19,11 @@ java {
 dependencies {
     api(project(":modules:coupon-domain"))
     api(project(":modules:coupon-infrastructure"))
-    implementation("org.springframework.boot:spring-boot-starter-data-redis")
-    api("org.jsoup:jsoup:1.15.4")
-    api("org.json:json:20231013")
-    implementation("org.springframework.boot:spring-boot-starter")
-    api("org.jobrunr:jobrunr-spring-boot-3-starter:8.7.1")
-    implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib")
+    implementation(libs.spring.boot.starter.data.redis)
+    api(libs.jsoup)
+    api(libs.json.org)
+    implementation(libs.spring.boot.starter)
+    api(libs.jobrunr.spring.boot.starter)
+    implementation(libs.kotlin.reflect)
+    implementation(libs.kotlin.stdlib)
 }

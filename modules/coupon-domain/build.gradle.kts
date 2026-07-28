@@ -11,7 +11,7 @@ plugins {
 
 dependencyManagement {
     imports {
-        mavenBom("org.springframework.boot:spring-boot-dependencies:3.5.7")
+        mavenBom("org.springframework.boot:spring-boot-dependencies:${libs.versions.spring.boot.get()}")
     }
 }
 
@@ -26,10 +26,10 @@ tasks.withType<KotlinCompile> {
 }
 
 dependencies {
-    api("org.springframework.boot:spring-boot-starter-data-jpa")
-    api("org.json:json:20231013")
-    api("jakarta.validation:jakarta.validation-api:3.0.2")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-    implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib")
+    api(libs.spring.boot.starter.data.jpa)
+    api(libs.json.org)
+    api(libs.jakarta.validation.api)
+    implementation(libs.jackson.module.kotlin)
+    implementation(libs.kotlin.reflect)
+    implementation(libs.kotlin.stdlib)
 }

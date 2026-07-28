@@ -7,7 +7,7 @@ plugins {
 
 dependencyManagement {
     imports {
-        mavenBom("org.springframework.boot:spring-boot-dependencies:3.5.7")
+        mavenBom("org.springframework.boot:spring-boot-dependencies:${libs.versions.spring.boot.get()}")
     }
 }
 
@@ -18,16 +18,16 @@ java {
 
 dependencies {
     api(project(":modules:coupon-domain"))
-    api("org.springframework.boot:spring-boot-starter-data-redis")
-    api("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.slf4j:slf4j-api")
-    implementation("com.google.firebase:firebase-admin:9.3.0")
-    implementation("org.springframework.boot:spring-boot-starter")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-    implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib")
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    api(libs.spring.boot.starter.data.redis)
+    api(libs.spring.boot.starter.web)
+    implementation(libs.slf4j.api)
+    implementation(libs.firebase.admin)
+    implementation(libs.spring.boot.starter)
+    implementation(libs.jackson.module.kotlin)
+    implementation(libs.kotlin.reflect)
+    implementation(libs.kotlin.stdlib)
+    testImplementation(libs.spring.boot.starter.test)
+    testRuntimeOnly(libs.junit.platform.launcher)
 }
 
 tasks.withType<Test> {

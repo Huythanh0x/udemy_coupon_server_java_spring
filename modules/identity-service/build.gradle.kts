@@ -7,7 +7,7 @@ plugins {
 
 dependencyManagement {
     imports {
-        mavenBom("org.springframework.boot:spring-boot-dependencies:3.5.7")
+        mavenBom("org.springframework.boot:spring-boot-dependencies:${libs.versions.spring.boot.get()}")
     }
 }
 
@@ -19,14 +19,14 @@ java {
 dependencies {
     api(project(":modules:coupon-domain"))
     api(project(":modules:coupon-infrastructure"))
-    implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.springframework.boot:spring-boot-starter-security")
-    implementation("org.springframework.boot:spring-boot-starter-validation")
-    api("com.yubico:webauthn-server-core:2.9.0")
-    api("com.google.api-client:google-api-client:2.2.0")
-    api("io.jsonwebtoken:jjwt-impl:0.11.5")
-    api("io.jsonwebtoken:jjwt-api:0.11.5")
-    api("io.jsonwebtoken:jjwt-jackson:0.11.5")
-    implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib")
+    implementation(libs.spring.boot.starter.web)
+    implementation(libs.spring.boot.starter.security)
+    implementation(libs.spring.boot.starter.validation)
+    api(libs.webauthn.server.core)
+    api(libs.google.api.client)
+    api(libs.jjwt.impl)
+    api(libs.jjwt.api)
+    api(libs.jjwt.jackson)
+    implementation(libs.kotlin.reflect)
+    implementation(libs.kotlin.stdlib)
 }

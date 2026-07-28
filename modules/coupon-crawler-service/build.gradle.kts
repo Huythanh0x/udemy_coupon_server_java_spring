@@ -17,45 +17,20 @@ java {
 }
 
 // Load .env file for bootRun tasks to ensure environment variables are available
-tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
-    doFirst {
-        val envFile = file("${rootProject.projectDir}/.env")
-        if (envFile.exists()) {
-            println("🔐 Loading environment variables from .env")
-            envFile.readLines().forEach { line ->
-                if (line.isNotBlank() && !line.trimStart().startsWith("#") && line.contains("=")) {
-                    val (key, value) = line.split("=", limit = 2)
-                    val envKey = key.trim()
-                    var envValue = value.trim()
-                    // Remove quotes if present
-                    if ((envValue.startsWith("\"") && envValue.endsWith("\"")) ||
-                        (envValue.startsWith("'") && envValue.endsWith("'"))) {
-                        envValue = envValue.substring(1, envValue.length - 1)
-                    }
-                    // Only set if not already in environment
-                    if (System.getenv(envKey) == null) {
-                        environment(envKey, envValue)
-                    }
-                }
-            }
-        } else {
-            println("ℹ️  .env file not found. Using default configuration values.")
-        }
-    }
-}
+apply(from = "${rootDir}/gradle/env-loading.gradle.kts")
 
 dependencies {
     implementation(project(":modules:coupon-domain"))
     implementation(project(":modules:coupon-infrastructure"))
     implementation(project(":modules:course-engine"))
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-    implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.springframework.boot:spring-boot-starter-actuator")
-    implementation("org.springframework.boot:spring-boot-starter-security")
-    implementation("org.flywaydb:flyway-mysql")
-    implementation("com.mysql:mysql-connector-j:8.3.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8")
+    implementation(libs.spring.boot.starter.data.jpa)
+    implementation(libs.spring.boot.starter.web)
+    implementation(libs.spring.boot.starter.actuator)
+    implementation(libs.spring.boot.starter.security)
+    implementation(libs.flyway.mysql)
+    implementation(libs.mysql.connector.j)
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.coroutines.jdk8)
 }
 
 // Run extractor against a single URL without starting the web server.

@@ -1,11 +1,9 @@
 plugins {
-    id("org.springframework.boot") version "3.5.7" apply false
-    id("io.spring.dependency-management") version "1.1.0" apply false
-    kotlin("jvm") version "1.9.21" apply false
-    kotlin("plugin.spring") version "1.9.21" apply false
-    kotlin("plugin.jpa") version "1.9.21" apply false
-    kotlin("plugin.allopen") version "1.9.21" apply false
-    kotlin("plugin.noarg") version "1.9.21" apply false
+    alias(libs.plugins.spring.boot) apply false
+    alias(libs.plugins.spring.dependency.management) apply false
+    alias(libs.plugins.kotlin.jvm) apply false
+    alias(libs.plugins.kotlin.plugin.spring) apply false
+    alias(libs.plugins.kotlin.plugin.jpa) apply false
     java
 }
 
