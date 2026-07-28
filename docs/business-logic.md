@@ -7,19 +7,20 @@
 - **`coupon-crawler-service`**: Background workers that periodically discover new course deals from aggregator sites and hand them off for validation.
 
 ## High-Level Architecture
-- **Discovery Layer** (`coupon-crawler-service`): Periodically pulls URLs from multiple sources. It does not validate URLs itself; it delegates to the async scraper.
-- **Asynchronous Processing** (`CourseScraperService`): A shared pipeline that validates coupons in background threads. It handles Udemy API interaction and persists results with full audit logging.
+- **Discovery Layer** (`coupon-crawler-service`): Periodically pulls URLs from multiple sources. It does not validate URLs itself; it enqueues them into **JobRunr**.
+- **Background Processing** (`CourseScraperService`): A persistent background pipeline powered by **JobRunr** that validates coupons. It handles Udemy API interaction and persists results with full audit logging and automatic retries.
 - **Modern Auth** (`SocialAuthController`, `PasskeyAuthController`): Secure, password-less authentication supporting Google, Apple, and Biometric Passkeys.
 - **Personalized Notifications** (`NotificationService`): Matches newly discovered coupons against user-defined keywords/categories and sends targeted FCM push notifications.
 
 ## Coupon Discovery & Validation Pipeline
 1. **Discovery:** `CrawlerRunner` fires every 15 minutes.
 2. **Collection:** `EnextCrawler` and `RealDiscountCrawler` collect raw URLs.
-3. **Async Handoff:** Discovered URLs are passed to `CourseScraperService.validateAndSaveCouponAsync()`.
-4. **Validation (Background):**
-   - A thread from the `scraperExecutor` pool is assigned.
+3. **Queue Handoff:** Discovered URLs are passed to `CourseScraperService.enqueueScrapingTask()`.
+4. **Validation (Background Worker):**
+   - JobRunr picks up the task from Redis.
    - `CourseDataExtractor` uses Jsoup to pull course metadata.
    - The result is audited in the `scraping_task_logs` table.
+   - If a provider is down, JobRunr automatically retries with exponential backoff.
 5. **Persistence & Alerts:**
    - Valid coupons are saved to `CouponCourseRepository`.
    - `NotificationService` checks user preferences and sends targeted FCM pushes.
@@ -29,21 +30,23 @@
 - **Passkeys (WebAuthn):** Two-step biometric handshake (Registration & Authentication) using FIDO2 standards.
 - **Security:** `TokenAuthenticationFilter` verifies JWTs and manages the security context for personalized requests (like Preference updates).
 
-## Sequence Diagram (Async Flow)
+## Sequence Diagram (JobRunr Flow)
 ```mermaid
 sequenceDiagram
     participant Crawler as CrawlerRunner
     participant API as CouponCourseController
-    participant Scraper as CourseScraperService
+    participant Redis as Redis (JobRunr)
+    participant Scraper as JobRunr Worker
     participant Extractor as CourseDataExtractor
     participant DB as Database
     participant FCM as NotificationService
 
-    Note over Crawler, API: Both trigger Scraper
-    Crawler->>Scraper: validateAndSaveCouponAsync(url)
+    Note over Crawler, API: Enqueue Scraping Task
+    Crawler->>Redis: enqueue(url)
     API-->>Client: 202 Accepted (Immediate)
-    API->>Scraper: validateAndSaveCouponAsync(url)
+    API->>Redis: enqueue(url)
     
+    Scraper->>Redis: Poll Job
     Scraper->>DB: Log Task (PENDING)
     Scraper->>Extractor: Extract Metadata (Slow IO)
     Extractor-->>Scraper: CouponCourseData

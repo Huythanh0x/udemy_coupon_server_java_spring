@@ -1,7 +1,7 @@
 # Getting Started
 
 ## Overview
-`Course Deal Server` is a modern, asynchronous multi-module backend designed for scalability and security.
+`Course Deal Server` is a modern, asynchronous multi-module backend designed for high performance and security.
 
 ```mermaid
 graph TD
@@ -15,17 +15,17 @@ graph TD
     
     subgraph "External Dependencies"
         Domain -- "Flyway" --> MySQL[(MySQL)]
-        Infra -- "State" --> Redis((Redis))
-        Infra -- "Push" --> FCM((Firebase))
-        Infra -- "Scrape" --> Udemy((Course Providers))
+        Infra -- "Job Storage" --> Redis((Redis))
+        Infra -- "Push Alerts" --> FCM((Firebase))
+        Infra -- "Validation" --> Ext((Course Providers))
     end
 ```
 
 ### Module Breakdown:
-- **`modules/coupon-domain`**: Pure data layer. Contains JPA entities, repositories, and DTOs.
-- **`modules/coupon-infrastructure`**: Shared technical services. Handles Redis, the Async Scraper engine, and FCM notifications.
-- **`modules/coupon-api-service`**: User-facing REST stack. Handles Social/Passkey authentication and search logic.
-- **`modules/coupon-crawler-service`**: Background discovery workers that find new deals from external sources.
+- **`modules/coupon-domain`**: Pure data layer. Entities are mapped to MySQL via JPA.
+- **`modules/coupon-infrastructure`**: The technical backbone. Manages Redis state, the **JobRunr** background worker, and FCM notifications.
+- **`modules/coupon-api-service`**: User entry point. Handles Social/Passkey authentication and search logic.
+- **`modules/coupon-crawler-service`**: Periodic discovery workers that find raw URLs from aggregator sites.
 
 ## Prerequisites
 - Java 17 JDK in your `$PATH`.

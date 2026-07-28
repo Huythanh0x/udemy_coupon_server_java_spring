@@ -1,22 +1,25 @@
-# Spring Boot: 100% Off Course Deal Server
+# Spring Boot: Course Deal Server (Kotlin)
 
-![Java](https://img.shields.io/badge/Java-17-blue)
-![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.1.1-brightgreen)
+![Kotlin](https://img.shields.io/badge/Kotlin-1.9.21-blue)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.7-brightgreen)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
-The Spring Boot Course Deal Server is a robust application designed to crawl 100% off coupons from various websites and validate them using the official Udemy API. It provides several API endpoints for fetching, searching, and filtering these free coupons, with built-in authentication and authorization.
+The Course Deal Server is a modern, asynchronous application designed to crawl 100% off coupons from various websites and validate them. It provides a robust REST API for fetching, searching, and filtering free coupons, featuring password-less authentication and automated background processing.
+
 ## Features
 
-- **Coupon Crawling**: Automatically fetch coupons from multiple sources.
-- **Coupon Validation**: Validate coupons using the Udemy API then filter 100% off coupon only
-- **Search Functionality**: Search for coupons by query.
-- **Filter Functionality**: Filter coupons based on various criteria.
-- **Authentication & Authorization**: Secure access to API endpoints.
+- **Automated Crawling**: Discovers course deals from multiple aggregator sources.
+- **Asynchronous Scraping**: Non-blocking background validation engine powered by **JobRunr**.
+- **Modern Authentication**: Secure, biometric-ready auth supporting **Google**, **Apple**, and **Passkeys (WebAuthn)**.
+- **Targeted Notifications**: Personalized **FCM push notifications** based on user-defined keywords and categories.
+- **SSRF Hardened**: Strict URL validation to protect infrastructure.
+- **Search & Filter**: Powerful querying capabilities for discovering the best deals.
 
 ## Architecture
-- `modules/coupon-domain`: entities, repositories, shared DTOs, Flyway migrations.
-- `modules/coupon-api-service`: REST APIs, security/auth, Swagger UI (port 8080).
-- `modules/coupon-crawler-service`: crawler workers + schedulers (port 8081).
+- `modules/coupon-domain`: Pure data layer containing JPA entities, repositories, and DTOs.
+- `modules/coupon-infrastructure`: Shared technical services including Redis, the Scraper engine, and FCM.
+- `modules/coupon-api-service`: REST API exposed on port 8080.
+- `modules/coupon-crawler-service`: Discovery workers and background job server (port 8081).
 
 ## Prerequisites
 - [Java 17](https://jdk.java.net/17/) or higher (JDK)
