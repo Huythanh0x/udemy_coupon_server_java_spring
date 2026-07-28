@@ -43,13 +43,5 @@ custom:
       max-pool-size: 10
       queue-capacity: 100
 
-management:
-  tracing:
-    export:
-      otlp:
-        enabled: false
-    sampling:
-      probability: 0.0
-
 server:
   address: 0.0.0.0

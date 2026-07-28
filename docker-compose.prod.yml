@@ -57,7 +57,8 @@ services:
       - .env
     restart: always
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsu \"$PROM_ACTUATOR_USER:$PROM_ACTUATOR_PASSWORD\" http://localhost:8080/actuator/health || exit 1"]
+      # No actuator/curl dependency: just checks the HTTP port is accepting connections.
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/127.0.0.1/8080' || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -85,7 +86,8 @@ services:
       - .env
     restart: always
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsu \"$PROM_ACTUATOR_USER:$PROM_ACTUATOR_PASSWORD\" http://localhost:8081/actuator/health || exit 1"]
+      # No actuator/curl dependency: just checks the HTTP port is accepting connections.
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/127.0.0.1/8081' || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5

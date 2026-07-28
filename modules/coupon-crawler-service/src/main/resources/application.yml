@@ -33,10 +33,6 @@ org:
         port: 6379
         password: ${SPRING_DATA_REDIS_PASSWORD:}
 
-logging:
-  level:
-    org.springframework.web: DEBUG
-
 custom:
   number-of-request-thread: 4
   number-of-enext-coupon: 500
@@ -53,13 +49,3 @@ custom:
 
 server:
   port: 8081
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info
-  endpoint:
-    health:
-      probes:
-        enabled: true

@@ -27,14 +27,13 @@ class SecurityConfig(private val tokenAuthenticationFilter: TokenAuthenticationF
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests { auth ->
                 auth
+                    // Covers both /api/v1/auth/social/** and /api/v1/auth/passkey/**
                     .requestMatchers("/api/v1/auth/**").permitAll()
-                    .requestMatchers("/api/v1/auth/social/**").permitAll()
-                    .requestMatchers("/api/v1/auth/passkey/**").permitAll()
                     .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                     .requestMatchers("/error").permitAll()
-                    .requestMatchers("/actuator/**").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/v1/coupons/**").permitAll()
-                    .requestMatchers("/*").permitAll()
+                    // /api/v1/preferences is intentionally NOT listed here: it's per-user data
+                    // and must fall through to anyRequest().authenticated() below.
                     .anyRequest().authenticated()
             }
             .httpBasic { it.disable() }

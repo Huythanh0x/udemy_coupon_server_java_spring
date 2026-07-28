@@ -33,10 +33,6 @@ org:
         port: 6379
         password: ${SPRING_DATA_REDIS_PASSWORD:}
 
-logging:
-  level:
-    org.springframework.web: DEBUG
-
 custom:
   jwt-expiration: ${CUSTOM_JWT_EXPIRATION:86400000}
   jwt-secret: ${CUSTOM_JWT_SECRET:}
@@ -53,13 +49,3 @@ custom:
     rp-id: ${WEBAUTHN_RP_ID:coursedeal.thanh0x.com}
     rp-name: ${WEBAUTHN_RP_NAME:Course Deal}
     origins: ${WEBAUTHN_ORIGINS:https://coursedeal.thanh0x.com}
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info
-  endpoint:
-    health:
-      probes:
-        enabled: true

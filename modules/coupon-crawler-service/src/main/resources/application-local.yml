@@ -51,11 +51,3 @@ custom:
 server:
   port: 8081
   address: 0.0.0.0
-
-management:
-  tracing:
-    export:
-      otlp:
-        enabled: false
-    sampling:
-      probability: 0.0

@@ -6,8 +6,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.web.SecurityFilterChain
 
 /**
- * Default security configuration for non-actuator endpoints in the crawler service.
- * All application endpoints remain open; actuator endpoints are handled by ActuatorSecurityConfig.
+ * Default security configuration for the crawler service. All endpoints are open: this
+ * service has no user-facing API surface, only internal background job processing.
  */
 @Configuration
 class WebSecurityConfig {
