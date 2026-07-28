@@ -10,6 +10,8 @@ rootProject.name = "course-deal-server"
 include(
     "modules:coupon-domain",
     "modules:coupon-infrastructure",
+    "modules:course-engine",
+    "modules:identity-service",
     "modules:coupon-api-service",
     "modules:coupon-crawler-service"
 )

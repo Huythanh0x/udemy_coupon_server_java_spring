@@ -47,14 +47,13 @@ tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
 dependencies {
     implementation(project(":modules:coupon-domain"))
     implementation(project(":modules:coupon-infrastructure"))
+    implementation(project(":modules:course-engine"))
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.flywaydb:flyway-mysql")
     implementation("com.mysql:mysql-connector-j:8.3.0")
-    implementation("org.jsoup:jsoup:1.15.4")
-    implementation("org.json:json:20231013")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8")
 }
