@@ -44,7 +44,7 @@ cd course-deal-server
 docker compose -f docker-compose.prod.yml up
 ```
 
-This pulls the API/crawler images built by GitHub Actions (and starts MySQL/Redis plus the observability stack).
+This pulls the API/crawler images built by GitHub Actions and starts MySQL/Redis alongside them.
 
 2. Local development (run services from source, MySQL via local compose):
 
@@ -61,6 +61,15 @@ docker compose -f docker-compose.local.yml up -d
 - Migration scripts live under `modules/coupon-domain/src/main/resources/db/migration` (e.g., `V1__init_schema.sql`).
 - When the Spring Boot app starts it automatically runs pending migrations; no manual SQL is required.
 - For local verification you can run `./gradlew :modules:coupon-api-service:flywayMigrate` (or the crawler equivalent) once MySQL is up.
+
+## Code Quality
+- Dependency and plugin versions are centralized in [`gradle/libs.versions.toml`](gradle/libs.versions.toml).
+- [ktlint](https://github.com/pinterest/ktlint) and [detekt](https://detekt.dev/) run on every module. Pre-existing violations are snapshotted per-module in `ktlint-baseline.xml`/`detekt-baseline.xml`, so only newly introduced issues fail the build.
+  ```shell
+  ./gradlew ktlintCheck detekt   # check
+  ./gradlew ktlintFormat         # auto-fix formatting
+  ```
+- CI runs `ktlintCheck` and `detekt` before the test suite.
 
 ## API Documentation
 Once the server is running, navigate to [Swagger UI](http://localhost:8080/swagger-ui/index.html) for interactive docs or fetch the OpenAPI JSON at `/v3/api-docs`. See `docs/getting-started.md` for setup instructions and `docs/business-logic.md` for flow details.

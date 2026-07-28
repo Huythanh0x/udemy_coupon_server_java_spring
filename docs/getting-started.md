@@ -68,8 +68,8 @@ We use hierarchical YAML files for easier management of complex settings.
 
 | File | Purpose | Key Knobs |
 | ------------ | ------- | ---------- |
-| `application.yml` | Base Config | `spring.datasource`, `management.endpoints` |
-| `application-local.yml` | Dev Environment | `custom.async.scraper.max-pool-size=10`, `jwt-secret` |
+| `application.yml` | Base Config | `spring.datasource`, `org.jobrunr` |
+| `application-local.yml` | Dev Environment | `custom.async.scraper.max-pool-size=10`, `jwt-secret`, `logging.level.org.springframework.web=DEBUG` |
 
 ### Modern Auth Setup
 To enable the full feature set, define these in your environment:
@@ -78,8 +78,9 @@ To enable the full feature set, define these in your environment:
 - `WEBAUTHN_RP_ID`: Your domain for Passkey support (e.g., `localhost`).
 
 ## Useful Gradle Tasks
-- `./gradlew build` – clean build and compile all 4 modules.
-- `./gradlew test` – runs the test suite (includes **SSRF Hardening** and **Auth** tests).
+- `./gradlew build` – clean build and compile all 6 modules.
+- `./gradlew test` – runs the test suite (includes **SSRF Hardening**, **Auth**, **SecurityConfig**, and background-job tests).
+- `./gradlew ktlintCheck detekt` – lint and static analysis (see [Code Quality](../README.md#code-quality) in the main README).
 - `./gradlew flywayMigrate` – manually trigger database schema updates.
 
 ## API & Debugging
