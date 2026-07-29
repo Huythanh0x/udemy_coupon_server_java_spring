@@ -21,8 +21,9 @@ apply(from = "$rootDir/gradle/env-loading.gradle.kts")
 
 dependencies {
     implementation(project(":modules:coupon-domain"))
+    implementation(project(":modules:coupon-common"))
     implementation(project(":modules:coupon-infrastructure"))
-    implementation(project(":modules:course-engine"))
+    implementation(project(":modules:course-scraper"))
     implementation(libs.spring.boot.starter.data.jpa)
     implementation(libs.spring.boot.starter.web)
     implementation(libs.spring.boot.starter.security)

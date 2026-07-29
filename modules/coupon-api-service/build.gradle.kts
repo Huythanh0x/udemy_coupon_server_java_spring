@@ -27,8 +27,10 @@ apply(from = "$rootDir/gradle/env-loading.gradle.kts")
 
 dependencies {
     implementation(project(":modules:coupon-domain"))
+    implementation(project(":modules:coupon-common"))
     implementation(project(":modules:coupon-infrastructure"))
-    implementation(project(":modules:course-engine"))
+    implementation(project(":modules:course-scraper"))
+    implementation(project(":modules:course-external-api"))
     implementation(project(":modules:identity-service"))
     implementation(libs.jackson.module.kotlin)
     implementation(libs.kotlin.reflect)

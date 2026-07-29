@@ -23,21 +23,16 @@ java {
 
 dependencies {
     api(project(":modules:coupon-domain"))
-    api(libs.spring.boot.starter.data.redis)
-    implementation(libs.slf4j.api)
+    api(project(":modules:notification-service"))
+    implementation(project(":modules:coupon-common"))
+    implementation(libs.spring.boot.starter.data.redis)
+    api(libs.jsoup)
+    api(libs.json.org)
     implementation(libs.spring.boot.starter)
-    implementation(libs.jackson.module.kotlin)
+    api(libs.jobrunr.spring.boot.starter)
     implementation(libs.kotlin.reflect)
     implementation(libs.kotlin.stdlib)
     testImplementation(libs.spring.boot.starter.test)
+    testImplementation(libs.h2)
     testRuntimeOnly(libs.junit.platform.launcher)
-}
-
-tasks.withType<Test> {
-    useJUnitPlatform()
-    testLogging {
-        events("passed", "skipped", "failed")
-        showStandardStreams = true
-        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
-    }
 }

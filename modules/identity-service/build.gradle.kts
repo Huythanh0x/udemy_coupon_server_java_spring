@@ -23,6 +23,10 @@ java {
 
 dependencies {
     api(project(":modules:coupon-domain"))
+    api(project(":modules:coupon-common"))
+    // PasskeyService stores WebAuthn challenge state via RedisTemplate, whose bean is provided
+    // by coupon-infrastructure's RedisConfig (auto-detected at runtime in whichever app hosts
+    // this module's controllers).
     api(project(":modules:coupon-infrastructure"))
     implementation(libs.spring.boot.starter.web)
     implementation(libs.spring.boot.starter.security)

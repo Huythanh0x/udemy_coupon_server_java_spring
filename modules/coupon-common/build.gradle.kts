@@ -22,22 +22,10 @@ java {
 }
 
 dependencies {
-    api(project(":modules:coupon-domain"))
-    api(libs.spring.boot.starter.data.redis)
+    // BadRequestException uses @ResponseStatus, which needs spring-web on the classpath
+    // of every module that throws it.
+    api(libs.spring.boot.starter.web)
     implementation(libs.slf4j.api)
-    implementation(libs.spring.boot.starter)
-    implementation(libs.jackson.module.kotlin)
     implementation(libs.kotlin.reflect)
     implementation(libs.kotlin.stdlib)
-    testImplementation(libs.spring.boot.starter.test)
-    testRuntimeOnly(libs.junit.platform.launcher)
-}
-
-tasks.withType<Test> {
-    useJUnitPlatform()
-    testLogging {
-        events("passed", "skipped", "failed")
-        showStandardStreams = true
-        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
-    }
 }

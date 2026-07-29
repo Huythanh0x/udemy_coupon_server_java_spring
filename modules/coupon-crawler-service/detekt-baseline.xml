@@ -9,6 +9,7 @@
     <ID>MaxLineLength:RealDiscountCrawler.kt$RealDiscountCrawler$* RealDiscountCrawler class extends CouponUrlCrawlerBase and implements a method to fetch coupon URLs from the Real Discount API.</ID>
     <ID>MaxLineLength:RealDiscountCrawler.kt$RealDiscountCrawler$log.info("Fetched {} coupons from RealDiscount (requested {})", jsonArray.length(), properties.numberOfRealDiscountCoupon)</ID>
     <ID>MaxLineLength:RealDiscountCrawler.kt$RealDiscountCrawler$this.apiUrl = "https://cdn.real.discount/api/courses?page=1&amp;limit=\${properties.numberOfRealDiscountCoupon}&amp;sortBy=sale_start"</ID>
+    <ID>PackageNaming:CouponUrlCrawlerBase.kt$package com.thanh0x.coursedeal.crawler_runner.base</ID>
     <ID>PackageNaming:CrawlerRunner.kt$package com.thanh0x.coursedeal.crawler_runner</ID>
     <ID>PackageNaming:CrawlerRunnerTest.kt$package com.thanh0x.coursedeal.crawler_runner</ID>
     <ID>PackageNaming:EnextCrawler.kt$package com.thanh0x.coursedeal.crawler_runner.crawler</ID>
