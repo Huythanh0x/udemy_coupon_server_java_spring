@@ -16,65 +16,32 @@ The Course Deal Server is a modern, asynchronous application designed to crawl 1
 - **Search & Filter**: Powerful querying capabilities for discovering the best deals.
 
 ## Architecture
+Each module owns one responsibility; the two deployables (`coupon-api-service`, `coupon-crawler-service`) compose the rest.
+- **`modules/coupon-common`**: Cross-cutting utilities used by nearly every other module (logging helper, shared exceptions).
 - **`modules/coupon-domain`**: Pure data layer containing JPA entities, repositories, and DTOs.
-- **`modules/coupon-infrastructure`**: Shared technical services (Redis/Firebase adapters).
-- **`modules/course-engine`**: Domain-specific I/O (Scraper, External APIs).
-- **`modules/identity-service`**: Auth (Social/Passkeys) and User Management.
+- **`modules/coupon-infrastructure`**: Redis caching/config only.
+- **`modules/notification-service`**: Firebase/FCM push notifications.
+- **`modules/course-scraper`**: Coupon scraping/validation pipeline shared by both deployables (JobRunr-backed).
+- **`modules/course-external-api`**: Client for Udemy's public course API (used only by `coupon-api-service`).
+- **`modules/identity-service`**: Auth (Social/Passkeys) and user preferences.
 - **`modules/coupon-api-service`**: Business REST API (port 8080).
 - **`modules/coupon-crawler-service`**: Background discovery and JobRunr worker (port 8081).
 
-## Prerequisites
-- [Java 17](https://jdk.java.net/17/) or higher (JDK)
-- with [Docker](https://www.docker.com/) (for MySQL container)
-- or [Docker Compose](https://docs.docker.com/compose/)
-
-## Getting Started
-
-### Clone the Repository
+## Quick Start
+Needs [Java 17](https://jdk.java.net/17/) and [Docker](https://www.docker.com/).
 
 ```shell
 git clone https://github.com/huythanh0x/course-deal-server
 cd course-deal-server
-```
-
-### Start the Services
-1. Full stack via Docker Compose (published images - CI parity) - recommended:
-
-```shell
 docker compose -f docker-compose.prod.yml up
 ```
 
 This pulls the API/crawler images built by GitHub Actions and starts MySQL/Redis alongside them.
 
-2. Local development (run services from source, MySQL via local compose):
-
-```shell
-docker compose -f docker-compose.local.yml up -d
-./gradlew :modules:coupon-api-service:bootRun --args='--spring.profiles.active=local'
-# optional crawler worker
-./gradlew :modules:coupon-crawler-service:bootRun --args='--spring.profiles.active=local'
-```
-
-## Database migrations
-
-- Schema changes and seed data are managed by [Flyway](https://flywaydb.org/).
-- Migration scripts live under `modules/coupon-domain/src/main/resources/db/migration` (e.g., `V1__init_schema.sql`).
-- When the Spring Boot app starts it automatically runs pending migrations; no manual SQL is required.
-- For local verification you can run `./gradlew :modules:coupon-api-service:flywayMigrate` (or the crawler equivalent) once MySQL is up.
-
-## Code Quality
-- Dependency and plugin versions are centralized in [`gradle/libs.versions.toml`](gradle/libs.versions.toml).
-- [ktlint](https://github.com/pinterest/ktlint) and [detekt](https://detekt.dev/) run on every module. Pre-existing violations are snapshotted per-module in `ktlint-baseline.xml`/`detekt-baseline.xml`, so only newly introduced issues fail the build.
-  ```shell
-  ./gradlew ktlintCheck detekt   # check
-  ./gradlew ktlintFormat         # auto-fix formatting
-  ```
-- CI runs `ktlintCheck` and `detekt` before the test suite.
-
-## API Documentation
-Once the server is running, navigate to [Swagger UI](http://localhost:8080/swagger-ui/index.html) for interactive docs or fetch the OpenAPI JSON at `/v3/api-docs`. See `docs/getting-started.md` for setup instructions and `docs/business-logic.md` for flow details.
-
-You can also view the live Swagger API documentation at [swagger-ui/index.html](https://coupons-api.thanh0x.com/swagger-ui/index.html).
+## Documentation
+- **[docs/getting-started.md](docs/getting-started.md)** — running services from source, local dev profiles, database migrations, configuration, API docs, and troubleshooting.
+- **[docs/business-logic.md](docs/business-logic.md)** — how the discovery/crawling/notification pipeline actually flows.
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** — code style, linting, and how to submit a PR.
 
 ## Contributing
 We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for more details.

@@ -48,11 +48,21 @@ If you have an idea for an enhancement or new feature, please open an issue on G
 
 ### Code Style
 
-Please follow the existing code style in the project. This includes indentation, naming conventions, and comments. If you're unsure, look at the existing code for examples.
+This project uses [ktlint](https://github.com/pinterest/ktlint) for formatting and [detekt](https://detekt.dev/) for static analysis, running on every module. Before submitting a PR:
 
-### Running Tests - There is no test for now
+```shell
+./gradlew ktlintCheck detekt   # check for violations
+./gradlew ktlintFormat         # auto-fix formatting issues
+```
 
-Before submitting your pull request, make sure all tests pass. You can run the tests using the following command:
+Pre-existing violations are snapshotted per-module in `ktlint-baseline.xml`/`detekt-baseline.xml`, so only newly introduced issues fail the build. Dependency and plugin versions are centralized in [`gradle/libs.versions.toml`](gradle/libs.versions.toml) - add new dependencies there rather than hardcoding versions in a module's `build.gradle.kts`.
+
+### Running Tests
+
+Before submitting your pull request, make sure all tests pass:
 
 ```shell
 ./gradlew test
+```
+
+CI runs `ktlintCheck`, `detekt`, and the full test suite on every push and pull request - a PR won't merge cleanly if any of these fail.

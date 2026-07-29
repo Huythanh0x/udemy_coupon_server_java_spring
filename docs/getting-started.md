@@ -6,30 +6,48 @@
 ```mermaid
 graph TD
     API[coupon-api-service] --> Domain[coupon-domain]
-    API --> Engine[course-engine]
+    API --> Common[coupon-common]
+    API --> Infra[coupon-infrastructure]
+    API --> Scraper[course-scraper]
+    API --> ExtApi[course-external-api]
     API --> ID[identity-service]
-    
+
+    Crawler[coupon-crawler-service] --> Domain
+    Crawler --> Common
+    Crawler --> Infra
+    Crawler --> Scraper
+
     ID --> Domain
-    ID --> Infra[coupon-infrastructure]
-    
-    Crawler[coupon-crawler-service] --> Engine
-    Crawler --> Domain
-    
-    Engine --> Infra
-    Engine --> Domain
-    
+    ID --> Common
+    ID --> Infra
+
+    ExtApi --> Scraper
+    ExtApi --> Common
+
+    Scraper --> Domain
+    Scraper --> Common
+    Scraper --> Notify[notification-service]
+
+    Notify --> Domain
+    Notify --> Common
+
+    Infra --> Domain
+
     subgraph "External Dependencies"
         Domain -- "Flyway" --> MySQL[(MySQL)]
-        Infra -- "Job Storage" --> Redis((Redis))
-        Infra -- "Push Alerts" --> FCM((Firebase))
-        Engine -- "Validation" --> Ext((Course Providers))
+        Infra -- "Cache/Job Storage" --> Redis((Redis))
+        Notify -- "Push Alerts" --> FCM((Firebase))
+        Scraper -- "Validation" --> Ext((Course Providers))
     end
 ```
 
 ### Module Breakdown:
+- **`modules/coupon-common`**: Cross-cutting utilities (logging helper, shared exceptions) used by nearly every other module.
 - **`modules/coupon-domain`**: Pure data layer. Entities are mapped to MySQL via JPA.
-- **`modules/coupon-infrastructure`**: Generic technical backbone (Redis, FCM).
-- **`modules/course-engine`**: Specialized course processing engine (Scraper, External APIs).
+- **`modules/coupon-infrastructure`**: Redis caching/config only.
+- **`modules/notification-service`**: Firebase Admin SDK (FCM) push notifications.
+- **`modules/course-scraper`**: Coupon scraping/validation pipeline shared by both deployables (JobRunr-backed).
+- **`modules/course-external-api`**: Client for Udemy's public course API, used only by `coupon-api-service`.
 - **`modules/identity-service`**: Standalone authentication (Social/Passkey) and user preferences.
 - **`modules/coupon-api-service`**: Main REST entry point for course searching and details.
 - **`modules/coupon-crawler-service`**: Periodic discovery workers and background job worker.
@@ -63,6 +81,12 @@ docker compose -f docker-compose.local.yml up -d
 ./gradlew :modules:coupon-crawler-service:bootRun --args='--spring.profiles.active=local'
 ```
 
+## Database Migrations
+- Schema changes and seed data are managed by [Flyway](https://flywaydb.org/).
+- Migration scripts live under `modules/coupon-domain/src/main/resources/db/migration` (e.g., `V1__init_schema.sql`).
+- When the Spring Boot app starts it automatically runs pending migrations; no manual SQL is required.
+- For local verification you can run `./gradlew :modules:coupon-api-service:flywayMigrate` (or the crawler equivalent) once MySQL is up.
+
 ## Configuration (YAML)
 We use hierarchical YAML files for easier management of complex settings.
 
@@ -78,14 +102,17 @@ To enable the full feature set, define these in your environment:
 - `WEBAUTHN_RP_ID`: Your domain for Passkey support (e.g., `localhost`).
 
 ## Useful Gradle Tasks
-- `./gradlew build` – clean build and compile all 6 modules.
+- `./gradlew build` – clean build and compile all 9 modules.
 - `./gradlew test` – runs the test suite (includes **SSRF Hardening**, **Auth**, **SecurityConfig**, and background-job tests).
-- `./gradlew ktlintCheck detekt` – lint and static analysis (see [Code Quality](../README.md#code-quality) in the main README).
+- `./gradlew ktlintCheck detekt` – lint and static analysis (see [Code Style](../CONTRIBUTING.md#code-style) in CONTRIBUTING.md).
 - `./gradlew flywayMigrate` – manually trigger database schema updates.
 
 ## API & Debugging
-- **Swagger UI:** [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
+- **Swagger UI (local):** [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
+- **Swagger UI (live):** [https://coupons-api.thanh0x.com/swagger-ui/index.html](https://coupons-api.thanh0x.com/swagger-ui/index.html)
 - **OpenAPI JSON:** `/v3/api-docs`
+- Every endpoint's auth requirement is documented via a `bearerAuth` security scheme - look for the lock icon in Swagger UI, or use the Authorize button to test protected endpoints directly.
+- See [business-logic.md](business-logic.md) for how requests flow between modules.
 - **Audit Logs:** Check the `scraping_task_logs` table in the database to debug asynchronous background scraping tasks.
 
 ## Troubleshooting

@@ -1,12 +1,15 @@
 # Business Logic & Flow - Course Deal Server
 
 ## Module Map
+- **`coupon-common`**: Cross-cutting utilities (logging helper, shared exceptions) used by nearly every other module. No framework-specific infra deps of its own beyond what those utilities need.
 - **`coupon-domain`**: Pure data layer. Contains DTOs, JPA entities, repositories, and Flyway migrations. No infrastructure or logic dependencies.
-- **`coupon-infrastructure`**: Shared technical services. Handles generic Redis configuration and Firebase Admin SDK (FCM).
-- **`course-engine`**: Specialized domain-specific I/O. Contains the `CourseScraperService`, `ExternalCourseApiClient`, and `CourseDataExtractor`.
+- **`coupon-infrastructure`**: Redis caching/config only (`RedisConfig`, `RedisService`, `LastFetchTimeManager`).
+- **`notification-service`**: Firebase Admin SDK (FCM) push notifications (`FirebaseConfig`, `NotificationService`).
+- **`course-scraper`**: Specialized domain-specific I/O shared by both deployables. Contains the `CourseScraperService` (JobRunr-backed validation pipeline) and `CourseDataExtractor`.
+- **`course-external-api`**: Client for Udemy's public course API (`ExternalCourseApiClient`), used only by `coupon-api-service`.
 - **`identity-service`**: Dedicated module for Identity and Access Management (IAM). Handles Social Auth, Passkey handshakes, and User Preferences.
 - **`coupon-api-service`**: Business REST stack. Focused purely on course searching, filtering, and detail retrieval.
-- **`coupon-crawler-service`**: Background discovery workers that periodically find new course deals and hand them off to the `course-engine` via JobRunr.
+- **`coupon-crawler-service`**: Background discovery workers that periodically find new course deals and hand them off to `course-scraper` via JobRunr.
 
 ## High-Level Architecture
 - **Discovery Layer** (`coupon-crawler-service`): Periodically pulls URLs from multiple sources. It does not validate URLs itself; it enqueues them into **JobRunr**.
@@ -61,7 +64,7 @@ sequenceDiagram
 
 ## Implementation Touchpoints
 - `com.thanh0x.coursedeal.crawler_runner.CrawlerRunner` (in `crawler-service`) – URL discovery loop.
-- `com.thanh0x.coursedeal.service.CourseScraperService` (in `course-engine`) – Core background scraping logic.
+- `com.thanh0x.coursedeal.service.CourseScraperService` (in `course-scraper`) – Core background scraping logic.
 - `com.thanh0x.coursedeal.controller.CouponCourseController` (in `api-service`) – REST API for coupons.
 - `com.thanh0x.coursedeal.controller.SocialAuthController` (in `identity-service`) – OAuth2 token exchange.
 - `com.thanh0x.coursedeal.controller.PasskeyAuthController` (in `identity-service`) – WebAuthn biometric flow.
