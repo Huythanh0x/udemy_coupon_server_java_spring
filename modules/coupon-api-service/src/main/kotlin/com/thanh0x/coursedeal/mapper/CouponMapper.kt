@@ -15,11 +15,10 @@ class CouponMapper {
             level = entity.level,
             author = entity.author,
             rating = entity.rating,
+            reviews = entity.reviews,
             students = entity.students,
             previewImage = entity.previewImage,
-            couponUrl = entity.couponUrl,
             expiredDate = entity.expiredDate,
-            usesRemaining = entity.usesRemaining,
             isNew = entity.isNew,
         )
     }

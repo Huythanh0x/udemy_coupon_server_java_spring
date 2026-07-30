@@ -13,11 +13,10 @@ data class CouponSummaryDTO(
     val level: CourseLevel? = null,
     val author: String? = null,
     val rating: Float = 0f,
+    val reviews: Int = 0,
     val students: Int = 0,
     val previewImage: String? = null,
-    val couponUrl: String? = null,
     val expiredDate: Instant? = null,
-    val usesRemaining: Int = 0,
     @get:JvmName("isNew")
     val isNew: Boolean = false,
 )
