@@ -1,7 +1,7 @@
 package com.thanh0x.coursedeal.service
 
 import com.thanh0x.coursedeal.config.logger
-import com.thanh0x.coursedeal.crawler_runner.CourseDataExtractor
+import com.thanh0x.coursedeal.crawlerrunner.CourseDataExtractor
 import com.thanh0x.coursedeal.model.audit.ScrapingTaskLog
 import com.thanh0x.coursedeal.model.coupon.CouponCourseHistory
 import com.thanh0x.coursedeal.repository.CouponCourseHistoryRepository
@@ -38,7 +38,12 @@ class CourseScraperService(
 
     /**
      * Core validation logic. This is executed by the JobRunr worker.
+     *
+     * Must not let any exception escape: an uncaught exception here would fail the JobRunr worker
+     * itself rather than just this one task, so any failure - network, parsing, or DB - is caught,
+     * logged, and recorded in the audit log instead.
      */
+    @Suppress("TooGenericExceptionCaught")
     @Transactional
     fun validateAndSaveCoupon(
         couponUrl: String,

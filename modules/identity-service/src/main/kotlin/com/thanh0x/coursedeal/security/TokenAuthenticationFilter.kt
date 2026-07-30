@@ -19,6 +19,13 @@ class TokenAuthenticationFilter(
 ) : OncePerRequestFilter() {
     private val log = logger()
 
+    companion object {
+        private const val BEARER_PREFIX = "Bearer "
+    }
+
+    // Must not let any exception escape: this runs on every request, and an uncaught exception
+    // here would break the entire filter chain instead of just leaving the request unauthenticated.
+    @Suppress("TooGenericExceptionCaught")
     override fun doFilterInternal(
         request: HttpServletRequest,
         response: HttpServletResponse,
@@ -46,8 +53,8 @@ class TokenAuthenticationFilter(
 
     private fun getJwtFromRequest(request: HttpServletRequest): String? {
         val bearerToken = request.getHeader("Authorization")
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7)
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
+            return bearerToken.substring(BEARER_PREFIX.length)
         }
         return null
     }

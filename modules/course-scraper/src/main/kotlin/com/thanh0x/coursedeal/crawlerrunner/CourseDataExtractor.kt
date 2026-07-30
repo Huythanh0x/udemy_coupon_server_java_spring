@@ -1,7 +1,7 @@
-package com.thanh0x.coursedeal.crawler_runner
+package com.thanh0x.coursedeal.crawlerrunner
 
 import com.thanh0x.coursedeal.config.logger
-import com.thanh0x.coursedeal.crawler_runner.fetcher.WebContentFetcher
+import com.thanh0x.coursedeal.crawlerrunner.fetcher.WebContentFetcher
 import com.thanh0x.coursedeal.model.coupon.CouponCourseData
 import com.thanh0x.coursedeal.model.coupon.CouponJsonData
 import com.thanh0x.coursedeal.model.coupon.CourseJsonData
@@ -22,6 +22,13 @@ class CourseDataExtractor {
     var courseId: Int = 0
         private set
     private var couponCode: String = ""
+
+    companion object {
+        private val DEFAULT_EXPIRED_DATE: Instant = Instant.parse("2030-05-19T17:24:00Z")
+        private val DISCOVER_DEEPLINK_ID_REGEX = Regex("""udemy://discover\?courseId=(\d+)""")
+        private const val MIN_TIMESTAMP_LENGTH = 19
+        private const val TIMEZONE_OFFSET_LENGTH = 5
+    }
 
     /**
      * Creates a new CourseDataExtractor with the given coupon URL.
@@ -53,51 +60,26 @@ class CourseDataExtractor {
      */
     private fun extractCourseId(): Int {
         val document = WebContentFetcher().getHtmlDocumentFrom(couponUrl)
-        if (document == null || document.body() == null) {
+        if (document == null) {
             log.warn("Unable to load document for coupon URL {}", couponUrl)
             return -1
         }
 
-        // Try extracting from body data attribute (modern Udemy pages)
-        val bodyId = document.body().attr("data-clp-course-id")
-        if (bodyId.isNotEmpty()) {
-            try {
-                return bodyId.toInt()
-            } catch (ignored: NumberFormatException) {
-            }
+        // Try body data attribute (modern Udemy pages) first, then fall back to searching the
+        // whole HTML for the native deeplink token.
+        val resolvedId =
+            document.body().attr("data-clp-course-id").toIntOrNull()
+                ?: extractCourseIdFromDiscoverDeeplink(document.html()).takeIf { it > 0 }
+
+        if (resolvedId == null) {
+            log.warn("Course id not found in HTML for {}", couponUrl)
         }
-
-        // Fallback to searching the whole HTML for the native deeplink token
-        val html = document.html()
-        val idFromDiscover = extractCourseIdFromDiscoverDeeplink(html)
-        if (idFromDiscover > 0) return idFromDiscover
-
-        log.warn("Course id not found in HTML for {}", couponUrl)
-        return -1
+        return resolvedId ?: -1
     }
 
     private fun extractCourseIdFromDiscoverDeeplink(html: String?): Int {
         if (html.isNullOrEmpty()) return -1
-
-        val token = "udemy://discover?courseId="
-        val idx = html.indexOf(token)
-        if (idx < 0) return -1
-
-        val start = idx + token.length
-        if (start >= html.length) return -1
-
-        var end = start
-        while (end < html.length && html[end].isDigit()) {
-            end++
-        }
-
-        if (end <= start) return -1
-
-        return try {
-            html.substring(start, end).toInt()
-        } catch (ignored: Exception) {
-            -1
-        }
+        return DISCOVER_DEEPLINK_ID_REGEX.find(html)?.groupValues?.get(1)?.toIntOrNull() ?: -1
     }
 
     /**
@@ -107,17 +89,8 @@ class CourseDataExtractor {
      * @return the extracted coupon code
      */
     private fun extractCouponCode(): String {
-        return try {
-            val parts = couponUrl.split("/?couponCode=")
-            if (parts.size > 1) {
-                parts[1]
-            } else {
-                ""
-            }
-        } catch (e: Exception) {
-            log.warn("Failed to extract coupon code from URL {}: {}", couponUrl, e.message)
-            ""
-        }
+        val parts = couponUrl.split("/?couponCode=")
+        return if (parts.size > 1) parts[1] else ""
     }
 
     /**
@@ -145,32 +118,25 @@ class CourseDataExtractor {
     private fun extractCourseDataFromOfficialAPI(courseObjectJson: JSONObject?): CourseJsonData? {
         if (courseObjectJson == null) return null
 
-        var author = "Unknown"
-        var category = "Unknown"
-        var subCategory = "Unknown"
-
         val title = courseObjectJson.optString("title", "")
         val headline = courseObjectJson.optString("headline", "")
         val description = courseObjectJson.optString("description", "").trim().replace("\n", "")
-        val visibleInstructors = courseObjectJson.optJSONArray("visible_instructors")
-        if (visibleInstructors != null && !visibleInstructors.isEmpty) {
-            val instructor = visibleInstructors.optJSONObject(0)
-            if (instructor != null) {
-                author = instructor.optString("title", "Unknown")
-            }
-        }
-        val primaryCategory = courseObjectJson.optJSONObject("primary_category")
-        if (primaryCategory != null) {
-            category = primaryCategory.optString("title", "Unknown")
-        }
-        val primarySubCategory = courseObjectJson.optJSONObject("primary_sub_category")
-        if (primarySubCategory != null) {
-            subCategory = primarySubCategory.optString("title", "Unknown")
-        }
-        val localeObj = courseObjectJson.optJSONObject("locale")
-        val language = localeObj?.optString("simple_english_title", "") ?: ""
+        val author =
+            courseObjectJson.optJSONArray("visible_instructors")
+                ?.takeIf { !it.isEmpty }
+                ?.optJSONObject(0)
+                ?.optString("title", "Unknown") ?: "Unknown"
+        val category = courseObjectJson.optJSONObject("primary_category")?.optString("title", "Unknown") ?: "Unknown"
+        val subCategory =
+            courseObjectJson.optJSONObject("primary_sub_category")?.optString("title", "Unknown") ?: "Unknown"
+        val language = courseObjectJson.optJSONObject("locale")?.optString("simple_english_title", "") ?: ""
         val instructionalLevel = courseObjectJson.optString("instructional_level", "")
-        val level = if (instructionalLevel.contains("Levels")) instructionalLevel else instructionalLevel.replace(" Level", "")
+        val level =
+            if (instructionalLevel.contains("Levels")) {
+                instructionalLevel
+            } else {
+                instructionalLevel.replace(" Level", "")
+            }
         val students = courseObjectJson.optInt("num_subscribers", 0)
         val rating = courseObjectJson.optFloat("avg_rating_recent", 0.0f)
         val numberReviews = courseObjectJson.optInt("num_reviews", 0)
@@ -189,51 +155,36 @@ class CourseDataExtractor {
      * @return CouponJsonData object with extracted data
      */
     private fun extractDataCouponFromOfficialAPI(couponJsonObject: JSONObject?): CouponJsonData? {
-        if (couponJsonObject == null) return null
-
         // Udemy now sometimes returns payloads like: {"detail":"Not found"}
-        val detail = couponJsonObject.optString("detail", null)
-        if (detail != null) {
-            return null
+        if (couponJsonObject == null || couponJsonObject.has("detail")) return null
+
+        val pricingResultObj =
+            couponJsonObject.optJSONObject("price_text")
+                ?.optJSONObject("data")
+                ?.optJSONObject("pricing_result")
+
+        val price = pricingResultObj?.optJSONObject("price")?.optFloat("amount", Float.NaN)
+
+        return if (pricingResultObj == null || price == null || java.lang.Float.isNaN(price)) {
+            null
+        } else {
+            val campaignObj = pricingResultObj.optJSONObject("campaign")
+            val expiredDate = parseExpiredDate(campaignObj?.optString("end_time", null))
+            val (previewImage, previewVideo) = extractPreviewAssets(couponJsonObject)
+            val usesRemaining = campaignObj?.optInt("uses_remaining", 0) ?: 0
+            CouponJsonData(price, expiredDate, previewImage, previewVideo, usesRemaining)
         }
+    }
 
-        val priceTextObj = couponJsonObject.optJSONObject("price_text") ?: return null
-        val dataObj = priceTextObj.optJSONObject("data") ?: return null
-        val pricingResultObj = dataObj.optJSONObject("pricing_result") ?: return null
-        val priceObj = pricingResultObj.optJSONObject("price") ?: return null
+    private fun extractPreviewAssets(couponJsonObject: JSONObject): Pair<String, String> {
+        val introductionAsset =
+            couponJsonObject.optJSONObject("sidebar_container")
+                ?.optJSONObject("componentProps")
+                ?.optJSONObject("introductionAsset")
 
-        val price = priceObj.optFloat("amount", Float.NaN)
-        if (java.lang.Float.isNaN(price)) return null
-
-        val campaignObj = pricingResultObj.optJSONObject("campaign")
-        val expiredDateStr = campaignObj?.optString("end_time", null)
-        var expiredDate: Instant
-        try {
-            expiredDate = parseExpiredDate(expiredDateStr)
-        } catch (e: Exception) {
-            log.warn("Failed to parse expired date for {}: {}", couponUrl, e.message)
-            expiredDate = Instant.parse("2030-05-19T17:24:00Z")
-        }
-
-        var previewImage = ""
-        var previewVideo = ""
-        val sidebarContainerObj = couponJsonObject.optJSONObject("sidebar_container")
-        if (sidebarContainerObj != null) {
-            val componentPropsObj = sidebarContainerObj.optJSONObject("componentProps")
-            if (componentPropsObj != null) {
-                val introductionAssetObj = componentPropsObj.optJSONObject("introductionAsset")
-                if (introductionAssetObj != null) {
-                    val imagesObj = introductionAssetObj.optJSONObject("images")
-                    if (imagesObj != null) {
-                        previewImage = imagesObj.optString("image_750x422", "")
-                    }
-                    previewVideo = introductionAssetObj.optString("course_preview_path", "")
-                }
-            }
-        }
-
-        val usesRemaining = campaignObj?.optInt("uses_remaining", 0) ?: 0
-        return CouponJsonData(price, expiredDate, previewImage, previewVideo, usesRemaining)
+        val previewImage = introductionAsset?.optJSONObject("images")?.optString("image_750x422", "") ?: ""
+        val previewVideo = introductionAsset?.optString("course_preview_path", "") ?: ""
+        return previewImage to previewVideo
     }
 
     /**
@@ -247,36 +198,32 @@ class CourseDataExtractor {
      * @return Instant representing the date in UTC
      */
     private fun parseExpiredDate(dateStr: String?): Instant {
-        if (dateStr == null || dateStr.trim { it <= ' ' }.isEmpty()) {
-            return Instant.parse("2030-05-19T17:24:00Z") // Default far future
-        }
+        if (dateStr.isNullOrBlank()) return DEFAULT_EXPIRED_DATE
 
         return try {
-            if (dateStr.contains("T")) {
-                return Instant.parse(dateStr)
+            val trimmed = dateStr.trim()
+            when {
+                dateStr.contains("T") -> Instant.parse(dateStr)
+                trimmed.contains(" ") -> Instant.parse(normalizeSpaceSeparatedTimestamp(trimmed))
+                else -> OffsetDateTime.parse(dateStr, DateTimeFormatter.ISO_OFFSET_DATE_TIME).toInstant()
             }
-
-            // Handle Udemy format: "2030-05-19 17:24:00+00:00" (space instead of T)
-            var normalized = dateStr.trim { it <= ' ' }
-            if (normalized.contains(" ")) {
-                normalized = normalized.replaceFirst(" ".toRegex(), "T")
-                var hasTimezone = normalized.contains("+") || normalized.contains("Z")
-                // Also check for negative timezone (e.g., "-05:00") after position 19
-                if (!hasTimezone && normalized.length > 19) {
-                    val timezoneStart = normalized.indexOf("-", 19)
-                    hasTimezone = (timezoneStart > 0 && normalized.length > timezoneStart + 5)
-                }
-                if (!hasTimezone) {
-                    normalized += "Z" // Assume UTC if no timezone
-                }
-                return Instant.parse(normalized)
-            }
-
-            OffsetDateTime.parse(dateStr, DateTimeFormatter.ISO_OFFSET_DATE_TIME).toInstant()
         } catch (e: DateTimeParseException) {
             log.debug("Failed to parse expired date string '{}', defaulting far future", dateStr, e)
-            Instant.parse("2030-05-19T17:24:00Z")
+            DEFAULT_EXPIRED_DATE
         }
+    }
+
+    /**
+     * Converts Udemy's "yyyy-MM-dd HH:mm:ss[+/-HH:mm|Z]" format to ISO 8601, assuming UTC if no
+     * timezone is present.
+     */
+    private fun normalizeSpaceSeparatedTimestamp(trimmed: String): String {
+        var normalized = trimmed.replaceFirst(" ", "T")
+        val timezoneStart = normalized.indexOf("-", MIN_TIMESTAMP_LENGTH)
+        val hasNegativeOffset = timezoneStart > 0 && normalized.length > timezoneStart + TIMEZONE_OFFSET_LENGTH
+        val hasTimezone = normalized.contains("+") || normalized.contains("Z") || hasNegativeOffset
+        if (!hasTimezone) normalized += "Z"
+        return normalized
     }
 
     /**

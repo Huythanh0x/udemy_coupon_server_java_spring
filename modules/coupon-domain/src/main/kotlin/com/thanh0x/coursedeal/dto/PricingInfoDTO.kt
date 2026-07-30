@@ -8,10 +8,12 @@ data class PricingInfoDTO(
     val listPrice: Float? = null,
     val savingPrice: Float? = null,
     val currency: String? = null,
-    val priceString: String? = null, // e.g., "Free"
+    // e.g., "Free"
+    val priceString: String? = null,
     val currencySymbol: String? = null,
     val discountPercent: Int? = null,
-    val discountDeadlineText: String? = null, // e.g., "4 days"
+    // e.g., "4 days"
+    val discountDeadlineText: String? = null,
     val couponCode: String? = null,
     val usesRemaining: Int? = null,
     val maximumUses: Int? = null,

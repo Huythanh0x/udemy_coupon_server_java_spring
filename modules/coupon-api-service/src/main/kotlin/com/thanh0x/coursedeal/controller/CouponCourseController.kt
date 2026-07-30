@@ -4,7 +4,6 @@ import com.thanh0x.coursedeal.config.ApiProperties
 import com.thanh0x.coursedeal.dto.CouponDetailDTO
 import com.thanh0x.coursedeal.dto.CouponQueryDTO
 import com.thanh0x.coursedeal.dto.CouponRequestDTO
-import com.thanh0x.coursedeal.dto.CouponUpdateRequestDTO
 import com.thanh0x.coursedeal.dto.PagedCouponResponseDTO
 import com.thanh0x.coursedeal.service.CourseResponseService
 import io.swagger.v3.oas.annotations.Operation
@@ -13,6 +12,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -44,9 +44,8 @@ class CouponCourseController(
     )
     fun listCoupons(
         @ModelAttribute queryDto: CouponQueryDTO,
-        request: HttpServletRequest,
     ): PagedCouponResponseDTO {
-        return courseResponseService.listCoupons(queryDto, request.remoteAddr)
+        return courseResponseService.listCoupons(queryDto)
     }
 
     /**
@@ -83,9 +82,7 @@ class CouponCourseController(
         description = "Always throws 501 Not Implemented - direct deletion is intentionally disabled.",
     )
     @SecurityRequirement(name = "bearerAuth")
-    fun deleteCoupon(
-        @PathVariable("courseId") courseId: Int,
-    ) {
+    fun deleteCoupon() {
         throw UnsupportedOperationException("Direct deletion is not allowed.")
     }
 
@@ -107,7 +104,7 @@ class CouponCourseController(
         request: HttpServletRequest,
     ): ResponseEntity<String> {
         if (properties.refreshSecret.isEmpty() || properties.refreshSecret != secret) {
-            return ResponseEntity.status(401).body("Invalid refresh secret.")
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid refresh secret.")
         }
 
         courseResponseService.refreshCouponAsync(courseId, request.remoteAddr)
@@ -117,10 +114,9 @@ class CouponCourseController(
     /**
      * Updates an existing coupon.
      * <p>
-     * Update functionality is currently disabled.
+     * Update functionality is currently disabled. A future implementation must refresh the coupon
+     * data from Udemy and include a hash check to ensure the request is valid before applying it.
      *
-     * @param courseId     the identifier of the coupon to update
-     * @param requestBody  details of the update
      * @return the updated coupon data
      */
     @PutMapping("/{courseId}")
@@ -129,13 +125,7 @@ class CouponCourseController(
         description = "Always throws 501 Not Implemented - manual updates are not yet supported.",
     )
     @SecurityRequirement(name = "bearerAuth")
-    fun updateCoupon(
-        @PathVariable("courseId") courseId: Int,
-        @RequestBody requestBody: CouponUpdateRequestDTO,
-    ): CouponDetailDTO {
-        // TODO: Implement refresh from Udemy function.
-        // This will update the latest data in our DB.
-        // MUST include a hash check to ensure the request is valid before performing the update.
+    fun updateCoupon(): CouponDetailDTO {
         throw UnsupportedOperationException("Manual update is not yet implemented.")
     }
 

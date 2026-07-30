@@ -15,6 +15,7 @@ data class RelatedCourseDTO(
     val rating: Float? = null,
     val numReviews: Int? = null,
     val numSubscribers: Int? = null,
-    val contentInfo: String? = null, // e.g., "2.5 hours"
+    // e.g., "2.5 hours"
+    val contentInfo: String? = null,
     val instructionalLevel: String? = null,
 )

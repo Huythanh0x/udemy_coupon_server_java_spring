@@ -13,48 +13,22 @@ class RedisService(private val redisTemplate: RedisTemplate<String, Any>) {
     private val valueOperations: ValueOperations<String, Any> = redisTemplate.opsForValue()
 
     /**
-     * Sets a value in Redis with the given key.
+     * Sets a value in Redis with the given key, optionally with an expiration.
      *
      * @param key   the Redis key
      * @param value the value to store
+     * @param ttl   optional expiration duration; the key never expires if omitted
      */
     fun set(
         key: String,
         value: Any,
+        ttl: Duration? = null,
     ) {
-        valueOperations.set(key, value)
-    }
-
-    /**
-     * Sets a value in Redis with expiration time.
-     *
-     * @param key      the Redis key
-     * @param value    the value to store
-     * @param timeout  the expiration time
-     * @param unit     the time unit for expiration
-     */
-    fun set(
-        key: String,
-        value: Any,
-        timeout: Long,
-        unit: TimeUnit,
-    ) {
-        valueOperations.set(key, value, timeout, unit)
-    }
-
-    /**
-     * Sets a value in Redis with expiration duration.
-     *
-     * @param key       the Redis key
-     * @param value     the value to store
-     * @param duration  the expiration duration
-     */
-    fun set(
-        key: String,
-        value: Any,
-        duration: Duration,
-    ) {
-        valueOperations.set(key, value, duration)
+        if (ttl != null) {
+            valueOperations.set(key, value, ttl)
+        } else {
+            valueOperations.set(key, value)
+        }
     }
 
     /**
@@ -106,16 +80,10 @@ class RedisService(private val redisTemplate: RedisTemplate<String, Any>) {
      */
     fun getLong(key: String): Long? {
         val value = get(key) ?: return null
-        if (value is Long) {
-            return value
-        }
-        if (value is Number) {
-            return value.toLong()
-        }
-        return try {
-            value.toString().toLong()
-        } catch (e: NumberFormatException) {
-            null
+        return when (value) {
+            is Long -> value
+            is Number -> value.toLong()
+            else -> value.toString().toLongOrNull()
         }
     }
 

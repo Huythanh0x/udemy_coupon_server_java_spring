@@ -1,8 +1,9 @@
-package com.thanh0x.coursedeal.crawler_runner.fetcher
+package com.thanh0x.coursedeal.crawlerrunner.fetcher
 
 import com.thanh0x.coursedeal.config.logger
 import com.thanh0x.coursedeal.utils.UrlValidator
 import org.json.JSONArray
+import org.json.JSONException
 import org.json.JSONObject
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
@@ -26,17 +27,10 @@ class WebContentFetcher {
      * @return a JSONArray object, or null if the request failed
      */
     fun getJsonArrayFrom(urlString: String): JSONArray? {
-        if (!UrlValidator.isSafeUrl(urlString)) {
-            return null
-        }
-        val rawHtml = getRawHTMLContentFrom(urlString)
-        if (rawHtml.isNullOrBlank()) {
-            log.warn("Failed to fetch content from {}, returning null", urlString)
-            return null
-        }
+        val rawJson = fetchSafeContent(urlString) ?: return null
         return try {
-            JSONArray(rawHtml)
-        } catch (e: Exception) {
+            JSONArray(rawJson)
+        } catch (e: JSONException) {
             log.warn("Error parsing JSON array from {}: {}", urlString, e.message)
             null
         }
@@ -49,24 +43,13 @@ class WebContentFetcher {
      * @return an HTML Document, or null if the request failed
      */
     fun getHtmlDocumentFrom(urlString: String): Document? {
-        if (!UrlValidator.isSafeUrl(urlString)) {
-            return null
-        }
-        val rawHtml = getRawHTMLContentFrom(urlString)
-        if (rawHtml.isNullOrBlank()) {
-            log.warn("Failed to fetch content from {}, returning null", urlString)
-            return null
-        }
-        return try {
-            Jsoup.parse(rawHtml)
-        } catch (e: Exception) {
-            log.warn("Error parsing HTML from {}: {}", urlString, e.message)
-            null
-        }
+        val rawHtml = fetchSafeContent(urlString) ?: return null
+        return Jsoup.parse(rawHtml)
     }
 
     companion object {
         private val log = logger()
+        private const val REQUEST_TIMEOUT_SECONDS = 10L
 
         /**
          * Retrieves a JSONObject from a given URL.
@@ -76,19 +59,28 @@ class WebContentFetcher {
          */
         @JvmStatic
         fun getJsonObjectFrom(urlString: String): JSONObject? {
-            if (!UrlValidator.isSafeUrl(urlString)) {
-                return null
-            }
-            val content = getRawHTMLContentFrom(urlString)
-            if (content.isNullOrBlank()) {
-                log.warn("Failed to fetch content from {}, returning null", urlString)
-                return null
-            }
+            val content = fetchSafeContent(urlString) ?: return null
             return try {
                 JSONObject(content)
-            } catch (e: Exception) {
+            } catch (e: JSONException) {
                 log.warn("Error parsing JSON from {}: {}", urlString, e.message)
                 null
+            }
+        }
+
+        /**
+         * Validates the URL and fetches its raw content, logging and returning null if either
+         * the URL is unsafe or the fetch produced no content.
+         */
+        private fun fetchSafeContent(urlString: String): String? {
+            if (!UrlValidator.isSafeUrl(urlString)) return null
+
+            val content = getRawHTMLContentFrom(urlString)
+            return if (content.isNullOrBlank()) {
+                log.warn("Failed to fetch content from {}, returning null", urlString)
+                null
+            } else {
+                content
             }
         }
 
@@ -104,7 +96,7 @@ class WebContentFetcher {
             val request =
                 HttpRequest.newBuilder()
                     .uri(URI.create(urlString))
-                    .timeout(Duration.ofSeconds(10))
+                    .timeout(Duration.ofSeconds(REQUEST_TIMEOUT_SECONDS))
                     .build()
 
             return try {

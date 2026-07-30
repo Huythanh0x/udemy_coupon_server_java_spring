@@ -7,8 +7,10 @@ data class CurriculumItemDTO(
     val id: Long? = null,
     val title: String? = null,
     val description: String? = null,
-    val contentSummary: String? = null, // e.g., "15:47"
-    val itemType: String? = null, // "lecture", "quiz", "assignment", "practice_test"
+    // e.g., "15:47"
+    val contentSummary: String? = null,
+    // "lecture", "quiz", "assignment", "practice_test"
+    val itemType: String? = null,
     val canBePreviewed: Boolean? = null,
     val isCodingExercise: Boolean? = null,
     val isPracticeTest: Boolean? = null,

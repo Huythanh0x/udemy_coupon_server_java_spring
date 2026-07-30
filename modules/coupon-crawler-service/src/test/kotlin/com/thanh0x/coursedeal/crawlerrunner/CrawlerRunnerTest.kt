@@ -1,9 +1,8 @@
-package com.thanh0x.coursedeal.crawler_runner
+package com.thanh0x.coursedeal.crawlerrunner
 
 import com.thanh0x.coursedeal.config.CrawlerProperties
-import com.thanh0x.coursedeal.crawler_runner.crawler.EnextCrawler
-import com.thanh0x.coursedeal.crawler_runner.crawler.RealDiscountCrawler
-import com.thanh0x.coursedeal.repository.CouponCourseRepository
+import com.thanh0x.coursedeal.crawlerrunner.crawler.EnextCrawler
+import com.thanh0x.coursedeal.crawlerrunner.crawler.RealDiscountCrawler
 import com.thanh0x.coursedeal.service.CourseScraperService
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
@@ -18,7 +17,6 @@ import org.mockito.Mockito.`when`
  * default intervalTime (900_000ms) keeps a second round from starting during that wait.
  */
 class CrawlerRunnerTest {
-    private val couponCourseRepository = mock(CouponCourseRepository::class.java)
     private val courseScraperService = mock(CourseScraperService::class.java)
     private val enextCrawler = mock(EnextCrawler::class.java)
     private val realDiscountCrawler = mock(RealDiscountCrawler::class.java)
@@ -26,7 +24,6 @@ class CrawlerRunnerTest {
 
     private val runner =
         CrawlerRunner(
-            couponCourseRepository,
             courseScraperService,
             enextCrawler,
             realDiscountCrawler,

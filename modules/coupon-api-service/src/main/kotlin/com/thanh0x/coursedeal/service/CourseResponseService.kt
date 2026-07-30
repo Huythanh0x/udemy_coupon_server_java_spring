@@ -1,7 +1,7 @@
 package com.thanh0x.coursedeal.service
 
 import com.thanh0x.coursedeal.config.logger
-import com.thanh0x.coursedeal.crawler_runner.CourseDataExtractor
+import com.thanh0x.coursedeal.crawlerrunner.CourseDataExtractor
 import com.thanh0x.coursedeal.dto.CouponDetailDTO
 import com.thanh0x.coursedeal.dto.CouponQueryDTO
 import com.thanh0x.coursedeal.dto.PagedCouponResponseDTO
@@ -36,10 +36,7 @@ class CourseResponseService(
     /**
      * Unified listing endpoint that supports basic pagination, structured filters, free-text search, and sorting.
      */
-    fun listCoupons(
-        queryDto: CouponQueryDTO,
-        remoteAddr: String?,
-    ): PagedCouponResponseDTO {
+    fun listCoupons(queryDto: CouponQueryDTO): PagedCouponResponseDTO {
         handlePagingParameters(queryDto.pageIndex, queryDto.numberPerPage)
 
         val sort = createSort(queryDto.sortBy, queryDto.sortOrder)
@@ -154,10 +151,7 @@ class CourseResponseService(
     /**
      * Saves a new coupon URL to the database.
      */
-    fun saveNewCouponUrl(
-        couponUrl: String,
-        remoteAddr: String?,
-    ): CouponDetailDTO {
+    fun saveNewCouponUrl(couponUrl: String): CouponDetailDTO {
         val extractor = CourseDataExtractor(couponUrl)
         val couponData =
             extractor.getFullCouponCodeData()
@@ -190,7 +184,7 @@ class CourseResponseService(
         try {
             pageIndex.toInt()
             numberPerPage.toInt()
-        } catch (e: Exception) {
+        } catch (e: NumberFormatException) {
             log.warn("Invalid paging parameters pageIndex={}, numberPerPage={}", pageIndex, numberPerPage, e)
             throw BadRequestException(e.toString())
         }

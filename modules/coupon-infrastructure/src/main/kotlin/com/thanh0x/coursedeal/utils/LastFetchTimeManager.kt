@@ -3,6 +3,7 @@ package com.thanh0x.coursedeal.utils
 import com.thanh0x.coursedeal.service.RedisService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.dao.DataAccessException
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -34,6 +35,9 @@ object LastFetchTimeManager {
         } catch (e: IllegalStateException) {
             // Redis not available
             log.warn("Redis not available, cannot save fetch time: {}", e.message)
+        } catch (e: UninitializedPropertyAccessException) {
+            // RedisService.instance not yet set (RedisConfig hasn't run, e.g. app still starting up)
+            log.warn("Redis not available, cannot save fetch time: {}", e.message)
         }
     }
 
@@ -56,13 +60,16 @@ object LastFetchTimeManager {
                 epochMillisString.toLong()
             }
         } catch (e: IllegalStateException) {
-            // Redis not available
+            log.warn("Redis not available, cannot load fetch time: {}", e.message)
+            Int.MIN_VALUE.toLong()
+        } catch (e: UninitializedPropertyAccessException) {
+            // RedisService.instance not yet set (RedisConfig hasn't run, e.g. app still starting up)
+            log.warn("Redis not available, cannot load fetch time: {}", e.message)
             Int.MIN_VALUE.toLong()
         } catch (e: NumberFormatException) {
             log.error("Error parsing last fetch time from Redis (expected epoch milliseconds): {}", e.message)
             Int.MIN_VALUE.toLong()
-        } catch (e: Exception) {
-            // Other errors
+        } catch (e: DataAccessException) {
             log.error("Error reading last fetch time from Redis: {}", e.message)
             Int.MIN_VALUE.toLong()
         }

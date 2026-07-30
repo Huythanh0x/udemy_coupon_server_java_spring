@@ -25,6 +25,14 @@ import java.time.Duration
 @Configuration
 @EnableCaching
 class CacheConfig {
+    companion object {
+        private const val DEFAULT_TTL_HOURS = 12L
+        private const val COURSE_DETAILS_TTL_HOURS = 24L
+        private const val COURSE_REVIEWS_TTL_HOURS = 6L
+        private const val COURSE_CURRICULUM_TTL_HOURS = 24L
+        private const val RELATED_COURSES_TTL_HOURS = 12L
+    }
+
     /**
      * Creates a clean Jackson ObjectMapper for REST API responses.
      * This is the primary ObjectMapper used by Spring for JSON serialization.
@@ -68,22 +76,22 @@ class CacheConfig {
         // Default cache configuration
         val defaultConfig =
             RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofHours(12)) // Default TTL: 12 hours
+                .entryTtl(Duration.ofHours(DEFAULT_TTL_HOURS))
                 .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(StringRedisSerializer()))
                 .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(jsonSerializer))
                 .disableCachingNullValues()
 
-        // Course details cache: 24 hours
-        val courseDetailsConfig = defaultConfig.entryTtl(Duration.ofHours(24))
+        // Course details cache: rarely changes
+        val courseDetailsConfig = defaultConfig.entryTtl(Duration.ofHours(COURSE_DETAILS_TTL_HOURS))
 
-        // Course reviews cache: 6 hours (more dynamic)
-        val courseReviewsConfig = defaultConfig.entryTtl(Duration.ofHours(6))
+        // Course reviews cache: more dynamic
+        val courseReviewsConfig = defaultConfig.entryTtl(Duration.ofHours(COURSE_REVIEWS_TTL_HOURS))
 
-        // Course curriculum cache: 24 hours (rarely changes)
-        val courseCurriculumConfig = defaultConfig.entryTtl(Duration.ofHours(24))
+        // Course curriculum cache: rarely changes
+        val courseCurriculumConfig = defaultConfig.entryTtl(Duration.ofHours(COURSE_CURRICULUM_TTL_HOURS))
 
-        // Related courses cache: 12 hours
-        val relatedCoursesConfig = defaultConfig.entryTtl(Duration.ofHours(12))
+        // Related courses cache
+        val relatedCoursesConfig = defaultConfig.entryTtl(Duration.ofHours(RELATED_COURSES_TTL_HOURS))
 
         return RedisCacheManager.builder(connectionFactory)
             .cacheDefaults(defaultConfig)

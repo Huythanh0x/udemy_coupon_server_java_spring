@@ -1,4 +1,4 @@
-package com.thanh0x.coursedeal.crawler_runner.base
+package com.thanh0x.coursedeal.crawlerrunner.base
 
 /**
  * This class is an abstract base class for coupon url crawlers.

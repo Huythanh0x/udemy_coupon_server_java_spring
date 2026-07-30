@@ -1,5 +1,6 @@
 package com.thanh0x.coursedeal.service
 
+import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.thanh0x.coursedeal.config.logger
 import com.thanh0x.coursedeal.dto.AuthResponseDTO
@@ -9,11 +10,23 @@ import com.thanh0x.coursedeal.model.user.UserEntity
 import com.thanh0x.coursedeal.repository.PasskeyCredentialRepository
 import com.thanh0x.coursedeal.repository.UserRepository
 import com.thanh0x.coursedeal.security.TokenProvider
-import com.yubico.webauthn.*
-import com.yubico.webauthn.data.*
+import com.yubico.webauthn.AssertionRequest
+import com.yubico.webauthn.FinishAssertionOptions
+import com.yubico.webauthn.FinishRegistrationOptions
+import com.yubico.webauthn.RelyingParty
+import com.yubico.webauthn.StartAssertionOptions
+import com.yubico.webauthn.StartRegistrationOptions
+import com.yubico.webauthn.data.ByteArray
+import com.yubico.webauthn.data.PublicKeyCredential
+import com.yubico.webauthn.data.PublicKeyCredentialCreationOptions
+import com.yubico.webauthn.data.UserIdentity
+import com.yubico.webauthn.exception.AssertionFailedException
+import com.yubico.webauthn.exception.RegistrationFailedException
+import org.springframework.dao.DataAccessException
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.io.IOException
 import java.time.Duration
 
 /**
@@ -33,6 +46,7 @@ class PasskeyService(
     companion object {
         private const val REG_OPTIONS_PREFIX = "webauthn:reg:"
         private const val AUTH_REQUEST_PREFIX = "webauthn:auth:"
+        private const val HANDSHAKE_TTL_MINUTES = 5L
     }
 
     fun startRegistration(
@@ -99,10 +113,21 @@ class PasskeyService(
                 accessToken = tokenProvider.createToken(user),
                 tokenType = "Bearer",
             )
-        } catch (e: Exception) {
-            log.error("Registration failed for {}: {}", email, e.message)
-            throw BadRequestException("Registration failed: " + e.message)
+        } catch (e: BadRequestException) {
+            failRegistration(email, e)
+        } catch (e: RegistrationFailedException) {
+            failRegistration(email, e)
+        } catch (e: IOException) {
+            failRegistration(email, e)
         }
+    }
+
+    private fun failRegistration(
+        email: String,
+        e: Exception,
+    ): Nothing {
+        log.error("Registration failed for {}: {}", email, e.message)
+        throw BadRequestException("Registration failed: " + e.message, e)
     }
 
     fun startAuthentication(email: String): AssertionRequest {
@@ -118,7 +143,6 @@ class PasskeyService(
     }
 
     @Transactional
-    @Suppress("ThrowsCount")
     fun finishAuthentication(
         email: String,
         responseJson: String,
@@ -137,10 +161,10 @@ class PasskeyService(
 
             if (!result.isSuccess) {
                 log.error("WebAuthn assertion failed for {}", email)
-                error("Authentication failed")
+                throw BadRequestException("Authentication failed")
             }
 
-            val user = userRepository.findByEmail(email) ?: error("User not found")
+            val user = userRepository.findByEmail(email) ?: throw BadRequestException("User not found")
 
             passkeyRepository.findByCredentialId(result.credentialId.bytes)?.apply {
                 signatureCount = result.signatureCount
@@ -151,10 +175,21 @@ class PasskeyService(
                 accessToken = tokenProvider.createToken(user),
                 tokenType = "Bearer",
             )
-        } catch (e: Exception) {
-            log.error("Authentication failed for {}: {}", email, e.message)
-            throw BadRequestException("Authentication failed: " + e.message)
+        } catch (e: BadRequestException) {
+            failAuthentication(email, e)
+        } catch (e: AssertionFailedException) {
+            failAuthentication(email, e)
+        } catch (e: IOException) {
+            failAuthentication(email, e)
         }
+    }
+
+    private fun failAuthentication(
+        email: String,
+        e: Exception,
+    ): Nothing {
+        log.error("Authentication failed for {}: {}", email, e.message)
+        throw BadRequestException("Authentication failed: " + e.message, e)
     }
 
     private fun storeInRedis(
@@ -163,9 +198,11 @@ class PasskeyService(
     ) {
         try {
             val json = objectMapper.writeValueAsString(value)
-            redisTemplate.opsForValue().set(key, json, Duration.ofMinutes(5))
-        } catch (e: Exception) {
-            throw RuntimeException("Failed to store WebAuthn state", e)
+            redisTemplate.opsForValue().set(key, json, Duration.ofMinutes(HANDSHAKE_TTL_MINUTES))
+        } catch (e: JsonProcessingException) {
+            throw IllegalStateException("Failed to store WebAuthn state", e)
+        } catch (e: DataAccessException) {
+            throw IllegalStateException("Failed to store WebAuthn state", e)
         }
     }
 
@@ -173,13 +210,13 @@ class PasskeyService(
         key: String,
         clazz: Class<T>,
     ): T {
-        try {
-            val json =
-                redisTemplate.opsForValue().get(key) as String?
-                    ?: throw BadRequestException("Handshake expired or not found")
-            return objectMapper.readValue(json, clazz)
-        } catch (e: Exception) {
-            throw BadRequestException("Failed to retrieve WebAuthn state: " + e.message)
+        val json =
+            redisTemplate.opsForValue().get(key) as String?
+                ?: throw BadRequestException("Handshake expired or not found")
+        return try {
+            objectMapper.readValue(json, clazz)
+        } catch (e: JsonProcessingException) {
+            throw BadRequestException("Failed to retrieve WebAuthn state: " + e.message, e)
         }
     }
 }

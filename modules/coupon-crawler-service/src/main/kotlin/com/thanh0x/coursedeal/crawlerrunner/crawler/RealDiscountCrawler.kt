@@ -1,15 +1,17 @@
-package com.thanh0x.coursedeal.crawler_runner.crawler
+package com.thanh0x.coursedeal.crawlerrunner.crawler
 
 import com.thanh0x.coursedeal.config.CrawlerProperties
 import com.thanh0x.coursedeal.config.logger
-import com.thanh0x.coursedeal.crawler_runner.base.CouponUrlCrawlerBase
-import com.thanh0x.coursedeal.crawler_runner.fetcher.WebContentFetcher
+import com.thanh0x.coursedeal.crawlerrunner.base.CouponUrlCrawlerBase
+import com.thanh0x.coursedeal.crawlerrunner.fetcher.WebContentFetcher
 import org.json.JSONArray
+import org.json.JSONException
 import org.json.JSONObject
 import org.springframework.stereotype.Component
 
 /**
- * RealDiscountCrawler class extends CouponUrlCrawlerBase and implements a method to fetch coupon URLs from the Real Discount API.
+ * RealDiscountCrawler class extends CouponUrlCrawlerBase and implements a method to fetch
+ * coupon URLs from the Real Discount API.
  */
 @Component
 class RealDiscountCrawler(
@@ -18,7 +20,9 @@ class RealDiscountCrawler(
     private val log = logger()
 
     init {
-        this.apiUrl = "https://cdn.real.discount/api/courses?page=1&limit=\${properties.numberOfRealDiscountCoupon}&sortBy=sale_start"
+        this.apiUrl =
+            "https://cdn.real.discount/api/courses?page=1&limit=\${properties.numberOfRealDiscountCoupon}" +
+            "&sortBy=sale_start"
     }
 
     /**
@@ -33,7 +37,11 @@ class RealDiscountCrawler(
             val jsonObject = jo as JSONObject
             allUrls.add(extractCouponUrl(jsonObject))
         }
-        log.info("Fetched {} coupons from RealDiscount (requested {})", jsonArray.length(), properties.numberOfRealDiscountCoupon)
+        log.info(
+            "Fetched {} coupons from RealDiscount (requested {})",
+            jsonArray.length(),
+            properties.numberOfRealDiscountCoupon,
+        )
         return allUrls
     }
 
@@ -62,7 +70,7 @@ class RealDiscountCrawler(
         }
         return try {
             jsonObject.getJSONArray("items")
-        } catch (e: Exception) {
+        } catch (e: JSONException) {
             log.warn("Error extracting 'items' array from JSON: {}", e.message)
             JSONArray()
         }

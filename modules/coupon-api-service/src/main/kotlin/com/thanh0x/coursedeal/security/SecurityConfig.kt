@@ -18,6 +18,10 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 @Configuration
 @EnableWebSecurity
 class SecurityConfig(private val tokenAuthenticationFilter: TokenAuthenticationFilter) {
+    companion object {
+        private const val CORS_PREFLIGHT_MAX_AGE_SECONDS = 3600L
+    }
+
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
         http
@@ -54,7 +58,8 @@ class SecurityConfig(private val tokenAuthenticationFilter: TokenAuthenticationF
         configuration.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
         configuration.allowedHeaders = listOf("*")
         configuration.allowCredentials = true
-        configuration.maxAge = 3600L // Cache preflight requests for 1 hour
+        // Cache preflight requests for 1 hour
+        configuration.maxAge = CORS_PREFLIGHT_MAX_AGE_SECONDS
 
         val source = UrlBasedCorsConfigurationSource()
         source.registerCorsConfiguration("/**", configuration)

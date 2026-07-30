@@ -1,6 +1,5 @@
 package com.thanh0x.coursedeal.service
 
-import com.thanh0x.coursedeal.repository.CouponCourseRepository
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -11,9 +10,6 @@ import org.springframework.test.context.ActiveProfiles
 class CourseScraperAsyncTest {
     @Autowired
     private lateinit var scraperService: CourseScraperService
-
-    @Autowired
-    private lateinit var couponRepository: CouponCourseRepository
 
     @Test
     fun validateAndSaveCouponAsync_ShouldRunInBackground() {

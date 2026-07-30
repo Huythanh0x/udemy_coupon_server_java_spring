@@ -48,7 +48,11 @@ class GlobalExceptionHandler : ResponseEntityExceptionHandler() {
         request: WebRequest,
     ): ResponseEntity<ApiErrorDTO> {
         log.error("Unexpected error: ", exception)
-        return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, exception.message ?: "Internal Server Error", request)
+        return createErrorResponse(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            exception.message ?: "Internal Server Error",
+            request,
+        )
     }
 
     private fun createErrorResponse(

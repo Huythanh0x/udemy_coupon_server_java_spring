@@ -1,7 +1,7 @@
 package com.thanh0x.coursedeal.utils
 
 import java.nio.charset.StandardCharsets
-import java.util.*
+import java.util.Base64
 
 /**
  * Utility object for handling URLs related to Udemy APIs.
@@ -34,9 +34,10 @@ object UrlUtils {
      * Returns the API endpoint for a specific course on Udemy.
      *
      * @param courseId the unique identifier of the course
-     * @return the URL string for the course API including various fields such as title, context info, primary category,
-     * primary subcategory, recent average rating, visible instructors, locale, estimated content length, number of subscribers,
-     * number of reviews, description, headline, and instructional level
+     * @return the URL string for the course API including various fields such as title, context info,
+     * primary category, primary subcategory, recent average rating, visible instructors, locale,
+     * estimated content length, number of subscribers, number of reviews, description, headline,
+     * and instructional level
      */
     @JvmStatic
     fun getCourseAPI(courseId: Int): String {

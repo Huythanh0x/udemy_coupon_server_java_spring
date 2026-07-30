@@ -8,6 +8,8 @@ import org.springframework.context.annotation.ComponentScan
 @ComponentScan(basePackages = ["com.thanh0x.coursedeal"])
 class CouponCrawlerServiceApplication
 
+@Suppress("SpreadOperator")
 fun main(args: Array<String>) {
+    // runApplication's vararg signature requires spreading the incoming args array.
     runApplication<CouponCrawlerServiceApplication>(*args)
 }

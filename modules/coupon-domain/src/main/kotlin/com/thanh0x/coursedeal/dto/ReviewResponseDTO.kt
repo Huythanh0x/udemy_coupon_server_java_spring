@@ -7,6 +7,7 @@ data class ReviewResponseDTO(
     val content: String? = null,
     val contentHtml: String? = null,
     val created: String? = null,
-    val createdFormatted: String? = null, // e.g., "18 hours ago"
+    // e.g., "18 hours ago"
+    val createdFormatted: String? = null,
     val user: ReviewUserDTO? = null,
 )

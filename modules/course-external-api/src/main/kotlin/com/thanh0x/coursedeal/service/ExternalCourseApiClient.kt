@@ -1,8 +1,9 @@
 package com.thanh0x.coursedeal.service
 
 import com.thanh0x.coursedeal.config.logger
-import com.thanh0x.coursedeal.crawler_runner.fetcher.WebContentFetcher
+import com.thanh0x.coursedeal.crawlerrunner.fetcher.WebContentFetcher
 import com.thanh0x.coursedeal.utils.UrlUtils
+import org.json.JSONException
 import org.json.JSONObject
 import org.springframework.stereotype.Service
 
@@ -93,7 +94,7 @@ class ExternalCourseApiClient {
                     .replace("&gt;", ">")
 
             JSONObject(decodedJson)
-        } catch (e: Exception) {
+        } catch (e: JSONException) {
             log.warn("Failed to parse JSON from data-module-args: {}", e.message)
             null
         }

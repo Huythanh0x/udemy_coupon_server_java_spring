@@ -9,6 +9,8 @@ import org.springframework.boot.runApplication
 @EnableConfigurationProperties(ApiProperties::class)
 class CouponApiServiceApplication
 
+@Suppress("SpreadOperator")
 fun main(args: Array<String>) {
+    // runApplication's vararg signature requires spreading the incoming args array.
     runApplication<CouponApiServiceApplication>(*args)
 }

@@ -1,6 +1,7 @@
 package com.thanh0x.coursedeal.service
 
 import com.google.firebase.messaging.FirebaseMessaging
+import com.google.firebase.messaging.FirebaseMessagingException
 import com.google.firebase.messaging.Message
 import com.google.firebase.messaging.Notification
 import com.thanh0x.coursedeal.config.logger
@@ -76,7 +77,7 @@ class NotificationService(private val userRepository: UserRepository) {
 
             val response = FirebaseMessaging.getInstance().send(message)
             log.info("Successfully sent message: $response")
-        } catch (e: Exception) {
+        } catch (e: FirebaseMessagingException) {
             log.error("Error sending FCM message", e)
         }
     }

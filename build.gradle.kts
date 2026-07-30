@@ -31,16 +31,10 @@ subprojects {
 
     configure<KtlintExtension> {
         version.set("1.0.1")
-        // Snapshots today's formatting violations so only newly introduced ones fail the
-        // build going forward (see ktlint-baseline.xml). Regenerate with `ktlintGenerateBaseline`.
-        baseline.set(file("$projectDir/ktlint-baseline.xml"))
     }
 
     configure<DetektExtension> {
         buildUponDefaultConfig = true
-        // Each module gets its own baseline snapshotting today's violations, so only
-        // newly introduced issues fail the build going forward (see detekt-baseline.xml).
-        baseline = file("$projectDir/detekt-baseline.xml")
     }
 }
 

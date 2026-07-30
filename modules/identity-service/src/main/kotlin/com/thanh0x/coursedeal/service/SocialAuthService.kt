@@ -15,6 +15,8 @@ import com.thanh0x.coursedeal.repository.UserRepository
 import com.thanh0x.coursedeal.security.TokenProvider
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.io.IOException
+import java.security.GeneralSecurityException
 import java.util.Collections
 
 @Service
@@ -29,7 +31,7 @@ class SocialAuthService(
         val user: UserEntity =
             when (request.provider) {
                 AuthProvider.GOOGLE -> verifyGoogleToken(request.idToken!!)
-                AuthProvider.APPLE -> verifyAppleToken(request.idToken!!)
+                AuthProvider.APPLE -> verifyAppleToken()
                 else -> throw BadRequestException("Unsupported social provider")
             }
 
@@ -60,12 +62,18 @@ class SocialAuthService(
             val name = payload["name"] as String?
 
             return findOrCreateUser(email, name, AuthProvider.GOOGLE, providerId)
-        } catch (e: Exception) {
-            throw BadRequestException("Failed to verify Google Token: " + e.message)
+        } catch (e: GeneralSecurityException) {
+            failGoogleVerification(e)
+        } catch (e: IOException) {
+            failGoogleVerification(e)
         }
     }
 
-    private fun verifyAppleToken(idTokenString: String): UserEntity {
+    private fun failGoogleVerification(e: Exception): Nothing {
+        throw BadRequestException("Failed to verify Google Token: " + e.message, e)
+    }
+
+    private fun verifyAppleToken(): UserEntity {
         // Mocking Apple for now - requires JWT validation with Apple's public keys
         throw UnsupportedOperationException("Apple login not yet implemented")
     }

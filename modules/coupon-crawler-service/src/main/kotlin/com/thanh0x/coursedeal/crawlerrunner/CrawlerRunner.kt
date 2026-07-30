@@ -1,14 +1,20 @@
-package com.thanh0x.coursedeal.crawler_runner
+package com.thanh0x.coursedeal.crawlerrunner
 
 import com.thanh0x.coursedeal.config.CrawlerProperties
 import com.thanh0x.coursedeal.config.logger
-import com.thanh0x.coursedeal.crawler_runner.crawler.EnextCrawler
-import com.thanh0x.coursedeal.crawler_runner.crawler.RealDiscountCrawler
-import com.thanh0x.coursedeal.repository.CouponCourseRepository
+import com.thanh0x.coursedeal.crawlerrunner.crawler.EnextCrawler
+import com.thanh0x.coursedeal.crawlerrunner.crawler.RealDiscountCrawler
 import com.thanh0x.coursedeal.service.CourseScraperService
 import com.thanh0x.coursedeal.utils.LastFetchTimeManager
 import jakarta.annotation.PreDestroy
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -22,7 +28,6 @@ import java.util.concurrent.atomic.AtomicLong
 @Component
 @EnableConfigurationProperties(CrawlerProperties::class)
 class CrawlerRunner(
-    private val couponCourseRepository: CouponCourseRepository,
     private val courseScraperService: CourseScraperService,
     private val enextCrawler: EnextCrawler,
     private val realDiscountCrawler: RealDiscountCrawler,
@@ -37,7 +42,11 @@ class CrawlerRunner(
 
     /**
      * Starts the crawler process that continuously fetches coupon URLs.
+     *
+     * This is the top-level loop for a long-running background daemon: it must survive any
+     * single round's failure (network, DB, etc.) and keep running for the next round.
      */
+    @Suppress("TooGenericExceptionCaught")
     fun startCrawler() {
         val lastFetchedTime = LastFetchTimeManager.loadLasFetchedTimeInMilliSecond()
         val startTime = AtomicLong(lastFetchedTime)
@@ -66,7 +75,8 @@ class CrawlerRunner(
                     delayUntilTheNextRound(startTime.get())
                 }
             } catch (e: CancellationException) {
-                log.info("Crawler coroutine cancelled")
+                log.info("Crawler coroutine cancelled", e)
+                throw e
             } catch (e: Exception) {
                 log.error("Error in crawler loop", e)
             }
