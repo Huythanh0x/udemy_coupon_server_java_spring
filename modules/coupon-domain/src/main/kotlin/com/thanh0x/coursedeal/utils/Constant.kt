@@ -12,5 +12,5 @@ object Constant {
      * Maximum number of items allowed per page to prevent abuse and excessive response sizes.
      * Requests exceeding this limit will be capped at this value.
      */
-    const val MAX_PAGE_SIZE = 20
+    const val MAX_PAGE_SIZE = 1000
 }

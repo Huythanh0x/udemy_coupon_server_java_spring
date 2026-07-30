@@ -14,5 +14,5 @@ data class CouponQueryDTO(
     val sortBy: String = "createdAt",
     val sortOrder: String = "desc",
     val pageIndex: String = "0",
-    val numberPerPage: String = "10",
+    val numberPerPage: String = "1000",
 )
