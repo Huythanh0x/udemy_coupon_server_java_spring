@@ -30,6 +30,11 @@
    - Valid coupons are saved to `CouponCourseRepository`.
    - `NotificationService` checks user preferences and sends targeted FCM pushes.
 
+## Coupon API Behavior
+- **`GET /api/v1/coupons`**: Returns a paged list of coupons. Supports remote filtering by category, rating, level, etc.
+- **Local Filtering/Sorting**: The API response (`CouponSummaryDTO`) includes rich metadata to allow mobile clients to filter and sort locally without additional network calls. These fields include:
+    - `language`, `rating`, `students`, `reviews`, `expiredTime`, `newest` (createdAt).
+
 ## Authentication System
 - **Social Login:** Validates Google/Apple ID tokens and issues a server-side JWT.
 - **Passkeys (WebAuthn):** Two-step biometric handshake (Registration & Authentication) using FIDO2 standards.

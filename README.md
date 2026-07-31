@@ -13,7 +13,7 @@ The Course Deal Server is a modern, asynchronous application designed to crawl 1
 - **Modern Authentication**: Secure, biometric-ready auth supporting **Google**, **Apple**, and **Passkeys (WebAuthn)**.
 - **Targeted Notifications**: Personalized **FCM push notifications** based on user-defined keywords and categories.
 - **SSRF Hardened**: Strict URL validation to protect infrastructure.
-- **Search & Filter**: Powerful querying capabilities for discovering the best deals.
+- **Search & Filter**: Powerful querying capabilities with rich metadata (language, rating, reviews, etc.) for local client-side sorting.
 
 ## Architecture
 Each module owns one responsibility; the two deployables (`coupon-api-service`, `coupon-crawler-service`) compose the rest.

@@ -111,6 +111,8 @@ class CourseResponseService(
             when (actualSortBy.lowercase()) {
                 "students" -> "students"
                 "rating" -> "rating"
+                "reviews" -> "reviews"
+                "expiredtime", "expired_time", "expireddate", "expired_date" -> "expiredDate"
                 "createdat", "created_at", "newest" -> "createdAt"
                 "contentlength", "content_length" -> "contentLength"
                 "usesremaining", "uses_remaining" -> "usesRemaining"
