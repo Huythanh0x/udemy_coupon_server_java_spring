@@ -40,8 +40,8 @@ class CouponCourseController(
         summary = "List/search/filter coupons (public)",
         description =
             "Paged, filterable coupon listing. All query params are optional. " +
-                "Supports local filtering/sorting with fields: language, rating, students, reviews, expiredTime, newest. " +
-                "`rating`/`contentLength` use -1 to mean \"no filter\".",
+                "Supports local filtering/sorting with fields: language, rating, students, reviews, " +
+                "expiredTime, newest. `rating`/`contentLength` use -1 to mean \"no filter\".",
     )
     fun listCoupons(
         @ModelAttribute queryDto: CouponQueryDTO,
