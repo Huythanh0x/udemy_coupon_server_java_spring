@@ -41,7 +41,8 @@ class CouponCourseController(
         description =
             "Paged, filterable coupon listing. All query params are optional. " +
                 "Supports local filtering/sorting with fields: language, rating, students, reviews, " +
-                "expiredTime, newest. `rating`/`contentLength` use -1 to mean \"no filter\".",
+                "expiredTime, createdAt. Time fields are returned as Unix timestamps (seconds). " +
+                "`rating`/`contentLength` use -1 to mean \"no filter\".",
     )
     fun listCoupons(
         @ModelAttribute queryDto: CouponQueryDTO,
@@ -55,7 +56,7 @@ class CouponCourseController(
      */
     @PostMapping
     @Operation(
-        summary = "Submit a Udemy coupon URL for validation",
+        summary = "Submit a coupon URL for validation",
         description =
             "Returns 202 Accepted immediately - the URL is enqueued and validated asynchronously by a " +
                 "background worker (JobRunr), not validated inline. Poll GET /{courseId} afterwards, or " +
@@ -83,17 +84,17 @@ class CouponCourseController(
         description = "Always throws 501 Not Implemented - direct deletion is intentionally disabled.",
     )
     @SecurityRequirement(name = "bearerAuth")
-    fun deleteCoupon() {
+    fun deleteCoupon(@PathVariable("courseId") courseId: Int) {
         throw UnsupportedOperationException("Direct deletion is not allowed.")
     }
 
     /**
-     * Triggers a refresh of the coupon data from Udemy.
+     * Triggers a refresh of the coupon data from the provider.
      * Requires a valid hash/secret to prevent unauthorized scraping load.
      */
     @PutMapping("/{courseId}/refresh")
     @Operation(
-        summary = "Re-validate a coupon against Udemy",
+        summary = "Re-validate a coupon against the provider",
         description =
             "Requires BOTH a valid JWT AND the `secret` query param matching the server's configured " +
                 "refresh secret (a separate anti-abuse gate, not something a normal client will have).",

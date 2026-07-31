@@ -34,6 +34,7 @@ dependencies {
     api(libs.spring.boot.starter.data.jpa)
     api(libs.json.org)
     api(libs.jakarta.validation.api)
+    api(libs.swagger.annotations)
     implementation(libs.jackson.module.kotlin)
     implementation(libs.kotlin.reflect)
     implementation(libs.kotlin.stdlib)
