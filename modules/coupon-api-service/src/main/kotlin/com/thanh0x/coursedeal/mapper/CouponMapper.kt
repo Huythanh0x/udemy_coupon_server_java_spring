@@ -4,7 +4,6 @@ import com.thanh0x.coursedeal.dto.CouponDetailDTO
 import com.thanh0x.coursedeal.dto.CouponSummaryDTO
 import com.thanh0x.coursedeal.model.coupon.CouponCourseData
 import org.springframework.stereotype.Component
-import java.time.LocalDateTime
 import java.time.ZoneOffset
 
 @Component

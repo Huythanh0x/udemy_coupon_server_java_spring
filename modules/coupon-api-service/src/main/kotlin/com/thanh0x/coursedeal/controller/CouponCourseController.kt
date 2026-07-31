@@ -85,7 +85,9 @@ class CouponCourseController(
     )
     @SecurityRequirement(name = "bearerAuth")
     @Suppress("UnusedParameter")
-    fun deleteCoupon(@PathVariable("courseId") courseId: Int) {
+    fun deleteCoupon(
+        @PathVariable("courseId") courseId: Int,
+    ) {
         throw UnsupportedOperationException("Direct deletion is not allowed.")
     }
 
@@ -129,7 +131,9 @@ class CouponCourseController(
     )
     @SecurityRequirement(name = "bearerAuth")
     @Suppress("UnusedParameter")
-    fun updateCoupon(@PathVariable("courseId") courseId: Int): CouponDetailDTO {
+    fun updateCoupon(
+        @PathVariable("courseId") courseId: Int,
+    ): CouponDetailDTO {
         throw UnsupportedOperationException("Manual update is not yet implemented.")
     }
 
