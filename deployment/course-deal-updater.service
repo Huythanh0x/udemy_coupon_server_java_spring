@@ -1,0 +1,11 @@
+[Unit]
+Description=Course Deal Server Auto-Deployer
+After=network.target docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/training-coupon
+ExecStart=/bin/bash /opt/training-coupon/scripts/autodeploy.sh
+
+[Install]
+WantedBy=multi-user.target
