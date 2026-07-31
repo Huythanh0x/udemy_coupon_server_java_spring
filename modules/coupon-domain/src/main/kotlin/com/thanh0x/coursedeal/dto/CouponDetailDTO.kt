@@ -1,8 +1,6 @@
 package com.thanh0x.coursedeal.dto
 
 import com.thanh0x.coursedeal.model.coupon.CourseLevel
-import java.time.Instant
-import java.time.LocalDateTime
 
 /**
  * Full DTO for coupon detail view.
@@ -21,7 +19,7 @@ data class CouponDetailDTO(
     val couponCode: String? = null,
     val previewImage: String? = null,
     val couponUrl: String? = null,
-    val expiredDate: Instant? = null,
+    val expiredTime: Long? = null,
     val usesRemaining: Int = 0,
     val heading: String? = null,
     val description: String? = null,
@@ -29,6 +27,6 @@ data class CouponDetailDTO(
     val language: String? = null,
     @get:JvmName("isNew")
     val isNew: Boolean = false,
-    val createdAt: LocalDateTime? = null,
-    val updatedAt: LocalDateTime? = null,
+    val createdAt: Long? = null,
+    val updatedAt: Long? = null,
 )

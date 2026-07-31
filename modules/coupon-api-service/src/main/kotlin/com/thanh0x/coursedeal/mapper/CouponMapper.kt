@@ -4,6 +4,8 @@ import com.thanh0x.coursedeal.dto.CouponDetailDTO
 import com.thanh0x.coursedeal.dto.CouponSummaryDTO
 import com.thanh0x.coursedeal.model.coupon.CouponCourseData
 import org.springframework.stereotype.Component
+import java.time.LocalDateTime
+import java.time.ZoneOffset
 
 @Component
 class CouponMapper {
@@ -19,8 +21,8 @@ class CouponMapper {
             reviews = entity.reviews,
             students = entity.students,
             previewImage = entity.previewImage,
-            expiredTime = entity.expiredDate,
-            newest = entity.createdAt,
+            expiredTime = entity.expiredDate?.epochSecond,
+            createdAt = entity.createdAt?.toEpochSecond(ZoneOffset.UTC),
             isNew = entity.isNew,
         )
     }
@@ -40,15 +42,15 @@ class CouponMapper {
             couponCode = entity.couponCode,
             previewImage = entity.previewImage,
             couponUrl = entity.couponUrl,
-            expiredDate = entity.expiredDate,
+            expiredTime = entity.expiredDate?.epochSecond,
             usesRemaining = entity.usesRemaining,
             heading = entity.heading,
             description = entity.description,
             previewVideo = entity.previewVideo,
             language = entity.language,
             isNew = entity.isNew,
-            createdAt = entity.createdAt,
-            updatedAt = entity.updatedAt,
+            createdAt = entity.createdAt?.toEpochSecond(ZoneOffset.UTC),
+            updatedAt = entity.updatedAt?.toEpochSecond(ZoneOffset.UTC),
         )
     }
 }
