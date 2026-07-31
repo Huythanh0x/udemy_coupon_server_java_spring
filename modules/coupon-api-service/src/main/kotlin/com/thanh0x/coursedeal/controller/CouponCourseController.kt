@@ -84,6 +84,7 @@ class CouponCourseController(
         description = "Always throws 501 Not Implemented - direct deletion is intentionally disabled.",
     )
     @SecurityRequirement(name = "bearerAuth")
+    @Suppress("UnusedParameter")
     fun deleteCoupon(@PathVariable("courseId") courseId: Int) {
         throw UnsupportedOperationException("Direct deletion is not allowed.")
     }
