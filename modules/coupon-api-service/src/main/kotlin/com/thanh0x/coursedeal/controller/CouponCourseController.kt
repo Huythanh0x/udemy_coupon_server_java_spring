@@ -128,7 +128,8 @@ class CouponCourseController(
         description = "Always throws 501 Not Implemented - manual updates are not yet supported.",
     )
     @SecurityRequirement(name = "bearerAuth")
-    fun updateCoupon(): CouponDetailDTO {
+    @Suppress("UnusedParameter")
+    fun updateCoupon(@PathVariable("courseId") courseId: Int): CouponDetailDTO {
         throw UnsupportedOperationException("Manual update is not yet implemented.")
     }
 
