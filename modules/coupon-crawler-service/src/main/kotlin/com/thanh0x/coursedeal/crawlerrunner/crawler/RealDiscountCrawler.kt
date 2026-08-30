@@ -21,7 +21,7 @@ class RealDiscountCrawler(
 
     init {
         this.apiUrl =
-            "https://cdn.real.discount/api/courses?page=1&limit=\${properties.numberOfRealDiscountCoupon}" +
+            "https://cdn.real.discount/api/courses?page=1&limit=${properties.numberOfRealDiscountCoupon}" +
             "&sortBy=sale_start"
     }
 
