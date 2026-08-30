@@ -42,6 +42,7 @@ This pulls the API/crawler images built by GitHub Actions and starts MySQL/Redis
 - **[docs/getting-started.md](docs/getting-started.md)** — running services from source, local dev profiles, database migrations, configuration, API docs, and troubleshooting.
 - **[docs/business-logic.md](docs/business-logic.md)** — how the discovery/crawling/notification pipeline actually flows.
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** — code style, linting, and how to submit a PR.
+- **[docs/project-management.md](docs/project-management.md)** — branching, commit, PR, versioning, and CI conventions.
 
 ## Contributing
 We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for more details.
